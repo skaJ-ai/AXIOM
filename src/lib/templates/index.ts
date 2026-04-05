@@ -1,0 +1,523 @@
+import type { SessionChecklist, TemplateType } from '@/lib/db/schema';
+
+type MethodologyCategory = 'analysis' | 'structure' | 'validation';
+type TemplateBadgeColor = 'amber' | 'blue' | 'gray' | 'green';
+
+interface TemplateSectionDefinition {
+  description: string;
+  name: string;
+  required: boolean;
+}
+
+interface TemplateChecklistItem {
+  helpText: string;
+  id: string;
+  intent: string;
+  label: string;
+  weight: number;
+}
+
+interface MethodologyCard {
+  category: MethodologyCategory;
+  description: string;
+  id: string;
+  name: string;
+}
+
+interface TemplateBadge {
+  color: TemplateBadgeColor;
+  label: string;
+}
+
+interface TemplateMethodologyMap {
+  analysis: MethodologyCard[];
+  structure: MethodologyCard[];
+  validation: MethodologyCard[];
+}
+
+interface TemplatePromptSet {
+  generate: string;
+  interview: string;
+}
+
+interface TemplateDefinition {
+  badge: TemplateBadge;
+  checklist: TemplateChecklistItem[];
+  description: string;
+  estimatedMinutes: number;
+  exampleTags: string[];
+  methodologyMap: TemplateMethodologyMap;
+  name: string;
+  sections: TemplateSectionDefinition[];
+  starterMessage: string;
+  systemPrompt: TemplatePromptSet;
+  type: TemplateType;
+}
+
+type TemplateDefinitionMap = Record<TemplateType, Omit<TemplateDefinition, 'systemPrompt'>>;
+
+const CHECKLIST_ITEMS: TemplateChecklistItem[] = [
+  {
+    helpText:
+      '"신임 리더십 교육 성과를 정리해서 내년 예산 확보에 쓰려고 합니다"처럼, 이 보고서가 어디에 쓰이는지 말씀해 주세요.',
+    id: '1',
+    intent: '이 문서를 왜 작성하는지 명확히 한다.',
+    label: '목적',
+    weight: 2,
+  },
+  {
+    helpText:
+      '"팀장 이상 리더에게 보고합니다" 또는 "경영진 보고용"처럼, 누가 이 문서를 읽을지 알려주세요.',
+    id: '2',
+    intent: '누구를 위한 보고서인지와 독자를 분명히 한다.',
+    label: '대상',
+    weight: 1,
+  },
+  {
+    helpText:
+      '"현재 퇴사율이 8%이고 작년 대비 2%p 올랐습니다"처럼, 숫자나 사실을 중심으로 현재 상황을 설명해 주세요.',
+    id: '3',
+    intent: '현재 상황과 주요 사실을 구조화한다.',
+    label: '현황',
+    weight: 3,
+  },
+  {
+    helpText:
+      '"온보딩 기간을 2주에서 1주로 줄이는 것을 제안합니다"처럼, 바꾸고 싶은 것이나 시도해볼 방향을 말씀해 주세요.',
+    id: '4',
+    intent: '제안, 시사점, 개선안의 방향을 정리한다.',
+    label: '제안',
+    weight: 2,
+  },
+  {
+    helpText:
+      '"비용 15% 절감이 기대됩니다" 또는 "만족도 4.5 이상 유지가 목표입니다"처럼, 숫자나 결과 중심으로 말씀해 주세요.',
+    id: '5',
+    intent: '기대효과와 의미를 숫자나 결과 중심으로 정리한다.',
+    label: '기대효과',
+    weight: 2,
+  },
+  {
+    helpText:
+      '"4월 첫째 주까지 완료하고 다음 분기에 재평가합니다"처럼, 언제까지 무엇을 할지 알려주세요.',
+    id: '6',
+    intent: '일정과 후속 조치를 분명히 한다.',
+    label: '일정',
+    weight: 1,
+  },
+  {
+    helpText:
+      '설문 결과, 인사 데이터, 벤치마크 자료 등이 있으면 근거자료 패널에 붙여넣어 주세요. 없으면 "근거 자료가 없습니다"라고 말씀해 주셔도 됩니다.',
+    id: '7',
+    intent: '근거 자료와 데이터 유무를 확인한다.',
+    label: '근거/데이터',
+    weight: 3,
+  },
+];
+
+const METHODOLOGY_LIBRARY: Record<string, MethodologyCard> = {
+  action_title: {
+    category: 'validation',
+    description: '섹션 제목을 행동 문장으로 정리해 핵심 메시지를 분명히 합니다.',
+    id: 'action_title',
+    name: 'Action Title',
+  },
+  as_is_to_be: {
+    category: 'analysis',
+    description: '현재 상태와 목표 상태를 비교해 변화 포인트를 선명하게 만듭니다.',
+    id: 'as_is_to_be',
+    name: 'As-Is / To-Be',
+  },
+  force_field: {
+    category: 'analysis',
+    description: '변화를 밀어주는 힘과 막는 힘을 나눠 리스크를 드러냅니다.',
+    id: 'force_field',
+    name: 'Force Field',
+  },
+  hr_analytics: {
+    category: 'analysis',
+    description: '현황 기술, 원인, 시사점을 HR 지표 중심으로 정리합니다.',
+    id: 'hr_analytics',
+    name: 'HR Analytics',
+  },
+  kirkpatrick: {
+    category: 'structure',
+    description: '반응-학습-행동-결과 순으로 교육 성과를 구조화합니다.',
+    id: 'kirkpatrick',
+    name: 'Kirkpatrick 4단계',
+  },
+  logic_model: {
+    category: 'analysis',
+    description: '투입-활동-산출-성과 흐름으로 교육/제도 효과를 설명합니다.',
+    id: 'logic_model',
+    name: 'Logic Model',
+  },
+  mece: {
+    category: 'validation',
+    description: '빠진 항목과 중복된 항목이 없는지 점검합니다.',
+    id: 'mece',
+    name: 'MECE 검증',
+  },
+  pyramid_scqa: {
+    category: 'structure',
+    description: '결론과 배경을 먼저 세워 임원 보고형 구조를 만듭니다.',
+    id: 'pyramid_scqa',
+    name: '피라미드 원칙 + SCQA',
+  },
+  sds: {
+    category: 'structure',
+    description: '요약-상세-요약 흐름으로 짧고 읽기 쉬운 보고를 만듭니다.',
+    id: 'sds',
+    name: 'SDS',
+  },
+  so_what_why_so: {
+    category: 'validation',
+    description: '데이터의 의미와 근거를 교차 점검해 논리적 허점을 줄입니다.',
+    id: 'so_what_why_so',
+    name: 'So What / Why So',
+  },
+};
+
+const ACTION_TITLE = METHODOLOGY_LIBRARY.action_title!;
+const AS_IS_TO_BE = METHODOLOGY_LIBRARY.as_is_to_be!;
+const FORCE_FIELD = METHODOLOGY_LIBRARY.force_field!;
+const HR_ANALYTICS = METHODOLOGY_LIBRARY.hr_analytics!;
+const LOGIC_MODEL = METHODOLOGY_LIBRARY.logic_model!;
+const MECE = METHODOLOGY_LIBRARY.mece!;
+const PYRAMID_SCQA = METHODOLOGY_LIBRARY.pyramid_scqa!;
+const SDS = METHODOLOGY_LIBRARY.sds!;
+const SO_WHAT_WHY_SO = METHODOLOGY_LIBRARY.so_what_why_so!;
+
+const RAW_TEMPLATE_DEFINITIONS: TemplateDefinitionMap = {
+  analysis: {
+    badge: { color: 'amber', label: '🔍 인사이트' },
+    checklist: CHECKLIST_ITEMS,
+    description: '데이터를 해석하고 시사점을 뽑을 때',
+    estimatedMinutes: 10,
+    exampleTags: ['이직 원인 분석', '보상 벤치마크', '만족도 조사 해석', '역량 갭 분석'],
+    methodologyMap: {
+      analysis: [HR_ANALYTICS, AS_IS_TO_BE],
+      structure: [PYRAMID_SCQA],
+      validation: [SO_WHAT_WHY_SO],
+    },
+    name: '분석 보고 작성하기',
+    sections: [
+      {
+        description: '왜 이 분석이 필요한지 배경을 정리합니다.',
+        name: '분석 배경',
+        required: true,
+      },
+      {
+        description: '어떤 데이터를 어떻게 분석했는지 정리합니다.',
+        name: '분석 범위와 방법',
+        required: true,
+      },
+      { description: '핵심 데이터와 발견된 패턴을 정리합니다.', name: '주요 발견', required: true },
+      {
+        description: '데이터가 의미하는 것과 시사점을 해석합니다.',
+        name: '해석과 시사점',
+        required: true,
+      },
+      {
+        description: '분석 결과에 기반한 권고 사항을 제안합니다.',
+        name: '권고 사항',
+        required: true,
+      },
+      { description: '원본 데이터와 출처를 정리합니다.', name: '근거 자료', required: true },
+    ],
+    starterMessage:
+      '분석 보고서를 함께 작성하겠습니다. 어떤 주제를 분석하려고 하시나요? 분석 배경부터 알려주세요.',
+    type: 'analysis',
+  },
+  planning: {
+    badge: { color: 'blue', label: '→ 미래' },
+    checklist: CHECKLIST_ITEMS,
+    description: '새로운 걸 제안하거나 검토할 때',
+    estimatedMinutes: 10,
+    exampleTags: ['복리후생 도입안', '채용 전략 수립', '제도 개편 검토', '교육 프로그램 설계'],
+    methodologyMap: {
+      analysis: [AS_IS_TO_BE, FORCE_FIELD],
+      structure: [PYRAMID_SCQA],
+      validation: [MECE],
+    },
+    name: '기획(안) 작성하기',
+    sections: [
+      { description: '왜 이 기획이 필요한지 배경을 정리합니다.', name: '배경', required: true },
+      { description: '지금 어떤 상태인지 현황을 분석합니다.', name: '현황 분석', required: true },
+      {
+        description: '무엇을 제안하는지 구체적으로 정리합니다.',
+        name: '제안 내용',
+        required: true,
+      },
+      {
+        description: '어떻게, 언제 실행하는지 계획을 세웁니다.',
+        name: '실행 계획',
+        required: true,
+      },
+      {
+        description: '어떤 결과를 예상하는지 효과를 정리합니다.',
+        name: '기대 효과',
+        required: true,
+      },
+      { description: '참고 데이터와 출처를 정리합니다.', name: '근거 자료', required: true },
+    ],
+    starterMessage:
+      '기획(안) 작성을 함께 시작하겠습니다. 어떤 주제의 기획안을 준비하시나요? 배경부터 들려주세요.',
+    type: 'planning',
+  },
+  result: {
+    badge: { color: 'green', label: '← 과거' },
+    checklist: CHECKLIST_ITEMS,
+    description: '한 일의 성과를 정리할 때',
+    estimatedMinutes: 8,
+    exampleTags: ['교육 결과 보고', '채용 실적 정리', '제도 시행 성과', '행사 결과 요약'],
+    methodologyMap: {
+      analysis: [LOGIC_MODEL, HR_ANALYTICS],
+      structure: [SDS],
+      validation: [SO_WHAT_WHY_SO, ACTION_TITLE],
+    },
+    name: '결과 보고 정리하기',
+    sections: [
+      {
+        description: '무엇을, 왜, 언제 했는지 기본 정보를 정리합니다.',
+        name: '개요',
+        required: true,
+      },
+      { description: '어떻게 진행됐는지 과정을 요약합니다.', name: '과정 요약', required: true },
+      { description: '핵심 결과와 수치를 정리합니다.', name: '주요 성과', required: true },
+      { description: '성과의 의미와 교훈을 해석합니다.', name: '분석과 인사이트', required: true },
+      { description: '다음에 개선할 점을 제안합니다.', name: '개선 제안', required: true },
+      { description: '데이터와 출처를 정리합니다.', name: '근거 자료', required: true },
+    ],
+    starterMessage:
+      '결과 보고를 함께 정리하겠습니다. 어떤 활동의 결과를 정리하시나요? 기본 개요부터 들려주세요.',
+    type: 'result',
+  },
+  status: {
+    badge: { color: 'gray', label: '● 현재' },
+    checklist: CHECKLIST_ITEMS,
+    description: '지금 상태를 보고할 때',
+    estimatedMinutes: 5,
+    exampleTags: ['월간 인력현황', '이직률 보고', '채용 파이프라인', 'HR KPI 현황'],
+    methodologyMap: {
+      analysis: [HR_ANALYTICS],
+      structure: [SDS],
+      validation: [ACTION_TITLE],
+    },
+    name: '현황 보고 작성하기',
+    sections: [
+      {
+        description: '가장 중요한 이슈와 요약 메시지를 정리합니다.',
+        name: '주요 이슈 요약',
+        required: true,
+      },
+      {
+        description: '업무 진행 상태와 핵심 경과를 정리합니다.',
+        name: '진행 현황',
+        required: true,
+      },
+      { description: '핵심 수치와 KPI를 정리합니다.', name: '주요 지표', required: true },
+      {
+        description: '다음 기간에 이어갈 계획과 의사결정 포인트를 정리합니다.',
+        name: '향후 계획',
+        required: true,
+      },
+      {
+        description: '리스크, 지원 요청, 특이사항을 정리합니다.',
+        name: '특이사항',
+        required: true,
+      },
+    ],
+    starterMessage:
+      '현황 보고를 시작하겠습니다. 어떤 영역의 현황을 보고하시나요? 주요 이슈부터 말씀해주세요.',
+    type: 'status',
+  },
+};
+
+function buildChecklistJsonTemplate(checklist: TemplateChecklistItem[]): string {
+  return `{${checklist.map((item) => `"${item.id}": boolean`).join(', ')}}`;
+}
+
+function buildCanvasJsonTemplate(template: Omit<TemplateDefinition, 'systemPrompt'>): string {
+  const sectionTemplate = template.sections
+    .map((section) => `{"name":"${section.name}","content":"..."}`)
+    .join(', ');
+  const methodologyIds = Object.values(template.methodologyMap)
+    .flat()
+    .map((methodology: MethodologyCard) => `"${methodology.id}"`)
+    .join(', ');
+
+  return `{"title":"${template.name}","sections":[${sectionTemplate}],"methodologySuggestionIds":[${methodologyIds}]}`;
+}
+
+function buildInterviewPrompt(template: Omit<TemplateDefinition, 'systemPrompt'>): string {
+  const checklistGuide = template.checklist
+    .map(
+      (item) =>
+        `- ${item.id}. ${item.label} (가중치 ${item.weight}) — ${item.intent}\n  도움말: ${item.helpText}`,
+    )
+    .join('\n');
+  const methodologyGuide = Object.entries(template.methodologyMap)
+    .map(([category, methodologies]) => {
+      const cards = methodologies
+        .map((methodology: MethodologyCard) => `${methodology.name}: ${methodology.description}`)
+        .join(' / ');
+
+      return `- ${category}: ${cards}`;
+    })
+    .join('\n');
+  const sectionGuide = template.sections
+    .map((section, index) => `${index + 1}. ${section.name} — ${section.description}`)
+    .join('\n');
+
+  return [
+    '당신은 HR 업무 전문 기획 파트너입니다.',
+    `현재 작업은 "${template.name}"입니다.`,
+    '사용자와 한국어로 자연스럽게 대화하며, 산출물에 필요한 정보를 채워야 합니다.',
+    '한 번에 질문은 하나만 하고, 답변을 들은 뒤 다음 질문으로 넘어갑니다.',
+    '답변 앞부분에는 지금까지 파악한 내용을 1~2문장으로 짧게 정리합니다.',
+    '근거가 부족하면 단정하지 말고, 필요한 자료를 다시 요청합니다.',
+    '필요할 때만 방법론을 1~2개 제안하고, 강요하지 않습니다.',
+    '체크리스트가 덜 채워진 항목을 우선 추적합니다.',
+    '',
+    '[섹션 구조]',
+    sectionGuide,
+    '',
+    '[필수 체크리스트]',
+    checklistGuide,
+    '',
+    '[허용된 방법론 카드]',
+    methodologyGuide,
+    '',
+    '[항목 설명 요청 처리]',
+    '- 사용자가 특정 체크리스트 항목의 의미를 물으면 (예: "목적이 뭐야?", "현황 항목이 정확히 뭘 말하는 건지"), 해당 항목의 도움말을 바탕으로 먼저 설명합니다.',
+    '- 설명 후에는 같은 항목에 대한 구체적 질문으로 바로 이어갑니다. 예: "이 항목은 ~입니다. 지금 작성하시는 보고서에서는 어떤 목적으로 쓰시나요?"',
+    '- 설명 요청은 인터뷰 흐름을 벗어나는 것이 아니라, 해당 항목을 채우기 위한 준비 단계로 취급합니다.',
+    '',
+    '[모호도 감지 규칙]',
+    '- 사용자 답변이 아래 패턴에 해당하면 "모호한 답변"으로 판단하고, 구체화를 요청합니다:',
+    '  1. 형용사만 있는 답변: "잘 됐어요", "괜찮았어요", "별로였어요" → 수치나 사례를 요청',
+    '  2. 주어 없는 답변: "개선이 필요해요" → 누가, 어떤 부분인지 요청',
+    '  3. 기간/범위 없는 답변: "최근에 변경했어요" → 언제, 얼마나인지 요청',
+    '  4. 비교 기준 없는 수치: "만족도 4.2점" → 이전 대비인지, 목표 대비인지 요청',
+    '- 모호도 감지 시 체크리스트를 true로 바꾸지 않습니다.',
+    '- 톤은 공감 → 구체화 요청 순서입니다. 예: "좋은 결과네요. 구체적으로 어떤 지표에서 그렇게 나왔는지 알려주시겠어요?"',
+    '- 구체화 요청 후에도 비슷한 수준의 답변이 오면, 집요하게 반복하지 말고 현재 답변으로 진행합니다. 체크리스트는 true로 처리합니다.',
+    '- 이 규칙은 best effort입니다. 대화 기록을 참고해 이미 같은 항목에서 구체화를 요청했다면 재질문하지 않습니다.',
+    '',
+    '[예시 문서 활용 규칙]',
+    '- 사용자가 예시 문서를 제공한 경우, 해당 문서의 문체와 깊이를 참고해 질문 수준을 조절합니다.',
+    '- 예시 문서의 내용을 인터뷰에서 직접 인용하지 않습니다.',
+    '- 예시 문서를 언급할 때는 "제공해 주신 예시를 참고하면..."으로 시작합니다.',
+    '- 예시 문서가 없어도 인터뷰 진행에 지장이 없도록 합니다.',
+    '',
+    '[출력 규칙]',
+    '- 사용자에게 보이는 본문은 자연스러운 한국어 대화만 작성합니다.',
+    '- 본문 뒤에는 숨김 메타데이터 주석을 정확히 두 개만 추가합니다.',
+    '- 첫 번째 주석은 checklist JSON이고, 두 번째 주석은 canvas JSON입니다.',
+    `- checklist 형식: <!-- checklist:${buildChecklistJsonTemplate(template.checklist)} -->`,
+    `- canvas 형식: <!-- canvas:${buildCanvasJsonTemplate(template)} -->`,
+    '- checklist 값은 true/false만 사용합니다.',
+    '- canvas.sections는 반드시 위 섹션 순서와 이름을 그대로 유지합니다.',
+    '- canvas.content에는 현재까지 수집된 내용을 짧게 누적 요약합니다.',
+    '- 아직 정보가 없으면 빈 문자열을 사용합니다.',
+    '- methodologySuggestionIds에는 지금 시점에 유용한 방법론 id만 0~3개 넣습니다.',
+    '- 주석 외에는 JSON, 코드블록, 마크다운 제목을 출력하지 않습니다.',
+  ].join('\n');
+}
+
+function buildGeneratePrompt(template: Omit<TemplateDefinition, 'systemPrompt'>): string {
+  const sectionGuide = template.sections
+    .map((section, index) => `${index + 1}. ${section.name} — ${section.description}`)
+    .join('\n');
+  const sectionExample = template.sections[0] ?? {
+    description: '내용을 작성합니다.',
+    name: '섹션명',
+    required: true,
+  };
+
+  return [
+    '당신은 HR 보고서를 작성하는 전문 에디터입니다.',
+    `현재 작성 대상은 "${template.name}"입니다.`,
+    '수집된 대화와 자료를 바탕으로, 아래 섹션 순서를 반드시 지켜 Markdown 문서를 작성합니다.',
+    '[섹션 구조]',
+    sectionGuide,
+    '[규칙]',
+    '- 근거가 없는 내용은 추정으로 표시합니다.',
+    '- 비즈니스 한국어 톤으로 작성합니다.',
+    '- 출력은 Markdown만 사용합니다.',
+    '- 반드시 정의된 섹션 수만큼만 작성하고, 순서와 섹션명을 바꾸지 않습니다.',
+    '- 각 섹션은 `## 섹션명` 헤딩으로 시작합니다.',
+    '- 각 헤딩 바로 아래 줄에 `<!-- section-meta:{"confidence":"high","cited":true} -->` 형식의 숨김 주석을 정확히 1개 둡니다.',
+    '- confidence는 high | medium | low 중 하나만 사용합니다.',
+    '- cited는 true | false만 사용합니다.',
+    '- 코드블록, JSON 블록, 서론/결론 문단, 섹션 외 추가 제목을 출력하지 않습니다.',
+    '- 데이터가 있으면 수치와 근거를 반영하고, 불충분하면 content 안에 추정임을 드러냅니다.',
+    '',
+    '[예시 문서 참고]',
+    '- 사용자가 제공한 예시 문서가 있으면, 해당 문서의 문체, 분량, 구조를 참고해 작성합니다.',
+    '- 예시 문서의 내용이 아닌 스타일(톤, 깊이, 형식)을 따릅니다.',
+    '- 예시 문서가 없으면 이 규칙을 무시합니다.',
+    '[출력 예시]',
+    `## ${sectionExample.name}`,
+    '<!-- section-meta:{"confidence":"high","cited":true} -->',
+    `${sectionExample.description}에 해당하는 내용을 2~4문장으로 작성합니다.`,
+  ].join('\n');
+}
+
+const TEMPLATE_DEFINITIONS: Record<TemplateType, TemplateDefinition> = {
+  analysis: {
+    ...RAW_TEMPLATE_DEFINITIONS.analysis,
+    systemPrompt: {
+      generate: buildGeneratePrompt(RAW_TEMPLATE_DEFINITIONS.analysis),
+      interview: buildInterviewPrompt(RAW_TEMPLATE_DEFINITIONS.analysis),
+    },
+  },
+  planning: {
+    ...RAW_TEMPLATE_DEFINITIONS.planning,
+    systemPrompt: {
+      generate: buildGeneratePrompt(RAW_TEMPLATE_DEFINITIONS.planning),
+      interview: buildInterviewPrompt(RAW_TEMPLATE_DEFINITIONS.planning),
+    },
+  },
+  result: {
+    ...RAW_TEMPLATE_DEFINITIONS.result,
+    systemPrompt: {
+      generate: buildGeneratePrompt(RAW_TEMPLATE_DEFINITIONS.result),
+      interview: buildInterviewPrompt(RAW_TEMPLATE_DEFINITIONS.result),
+    },
+  },
+  status: {
+    ...RAW_TEMPLATE_DEFINITIONS.status,
+    systemPrompt: {
+      generate: buildGeneratePrompt(RAW_TEMPLATE_DEFINITIONS.status),
+      interview: buildInterviewPrompt(RAW_TEMPLATE_DEFINITIONS.status),
+    },
+  },
+};
+
+function createInitialChecklist(templateType: TemplateType): SessionChecklist {
+  const template = TEMPLATE_DEFINITIONS[templateType];
+
+  return Object.fromEntries(template.checklist.map((item) => [item.id, false]));
+}
+
+function getTemplateByType(templateType: TemplateType): TemplateDefinition {
+  return TEMPLATE_DEFINITIONS[templateType];
+}
+
+function getTemplateCatalog(): TemplateDefinition[] {
+  return Object.values(TEMPLATE_DEFINITIONS);
+}
+
+export { createInitialChecklist, getTemplateByType, getTemplateCatalog };
+export type {
+  MethodologyCard,
+  MethodologyCategory,
+  TemplateBadge,
+  TemplateBadgeColor,
+  TemplateChecklistItem,
+  TemplateDefinition,
+  TemplateMethodologyMap,
+  TemplateSectionDefinition,
+};

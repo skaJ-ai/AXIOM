@@ -1,0 +1,9 @@
+node_modules
+.next
+out
+dist
+pnpm-lock.yaml
+package-lock.json
+
+# Presentation assets (not code — excluded from harness:check)
+*.html
