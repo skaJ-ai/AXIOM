@@ -1,7 +1,7 @@
 FROM node:20-slim AS base
-ARG HTTP_PROXY
-ARG HTTPS_PROXY
-ARG NPM_PROXY
+ARG HTTP_PROXY=http://168.219.61.252:8080
+ARG HTTPS_PROXY=http://168.219.61.252:8080
+ARG NPM_PROXY=http://168.219.61.252:8080
 ARG NO_PROXY=localhost,127.0.0.1,host.docker.internal,10.240.248.157
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -20,7 +20,11 @@ FROM base AS deps
 COPY package.json package-lock.json ./
 RUN if [ -n "$NPM_PROXY" ]; then npm config set proxy "$NPM_PROXY" && npm config set https-proxy "$NPM_PROXY"; fi \
  && npm config set strict-ssl false \
- && npm ci --prefer-offline \
+ && npm config set fetch-retries 5 \
+ && npm config set fetch-retry-mintimeout 20000 \
+ && npm config set fetch-retry-maxtimeout 120000 \
+ && npm config set fetch-timeout 300000 \
+ && npm ci --prefer-offline --no-audit --no-fund \
  && test -d /app/node_modules \
  && test -x /app/node_modules/.bin/next
 
