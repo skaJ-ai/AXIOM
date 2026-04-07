@@ -7,6 +7,8 @@ import { runKnowledgeExtractionPipeline } from '@/lib/knowledge/pipeline';
 
 import type { Report } from './types';
 
+// TODO(v0.3): Consolidate deliverables and reports into a single write domain. See Codex review blocker 5.
+
 async function createReport({
   reportType,
   sections,

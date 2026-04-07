@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server';
 import { requireAuthenticatedApiUser } from '@/lib/auth/middleware';
 import { listDeliverablesByWorkspace } from '@/lib/deliverables/service';
 
+// TODO(v0.3): Consolidate deliverables and reports into a single write domain. See Codex review blocker 5.
+
 async function GET() {
   try {
     const currentUser = await requireAuthenticatedApiUser();

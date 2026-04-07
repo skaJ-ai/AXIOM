@@ -1,5 +1,12 @@
 import { and, asc, desc, eq, sql } from 'drizzle-orm';
 
+import { listClustersBySession, listIdeasBySession } from '@/domains/diverge/queries';
+import type { ClusterWithIdeas, Idea } from '@/domains/diverge/types';
+import { listClaimsBySession } from '@/domains/synthesize/queries';
+import type { ClaimWithSources } from '@/domains/synthesize/types';
+import { listReviewsBySession } from '@/domains/validate/queries';
+import type { Review } from '@/domains/validate/types';
+import type { Report } from '@/domains/write/types';
 import { mergeCanvasState } from '@/lib/ai/session-chat';
 import { getDb } from '@/lib/db';
 import type {
@@ -9,7 +16,7 @@ import type {
   SourceType,
   TemplateType,
 } from '@/lib/db/schema';
-import { messagesTable, sessionsTable, sourcesTable } from '@/lib/db/schema';
+import { messagesTable, reportsTable, sessionsTable, sourcesTable } from '@/lib/db/schema';
 import {
   getLatestDeliverableSummaryForSession,
   listRecentReferenceDeliverablesByTemplate,
@@ -22,9 +29,16 @@ import type {
   SessionDetail,
   SessionMessageMetadata,
   SessionModeSummary,
+  SessionParentArtifacts,
   SessionSummary,
   SessionTemplateSummary,
 } from './types';
+
+const REPORT_TYPE_TO_TEMPLATE_TYPE: Record<ReportType, TemplateType> = {
+  briefing: 'status',
+  operation: 'analysis',
+  planning: 'planning',
+};
 
 function createSessionModeSummary(mode: SessionMode): SessionModeSummary {
   const modeDefinition = getModeByType(mode);
@@ -146,6 +160,11 @@ async function createSessionForWorkspace(
   const database = getDb();
   const modeDefinition = getModeByType(mode);
   const initialChecklist = createInitialModeChecklist(mode);
+  const templateType =
+    options?.templateType ??
+    (mode === 'write' && options?.reportType
+      ? REPORT_TYPE_TO_TEMPLATE_TYPE[options.reportType]
+      : null);
 
   return database.transaction(async (transaction) => {
     const createdSessions = await transaction
@@ -156,7 +175,7 @@ async function createSessionForWorkspace(
         mode,
         parentSessionId: options?.parentSessionId ?? null,
         reportType: options?.reportType ?? null,
-        templateType: options?.templateType ?? null,
+        templateType,
         title: modeDefinition.name,
         workspaceId,
       })
@@ -530,6 +549,180 @@ async function createAssistantMessageForSession({
   });
 }
 
+function mapReportRowToReport(row: {
+  createdAt: Date;
+  id: string;
+  reportType: ReportType;
+  sections: Report['sections'];
+  sessionId: string | null;
+  status: Report['status'];
+  title: string;
+  updatedAt: Date;
+  version: number;
+  workspaceId: string;
+}): Report {
+  return {
+    createdAt: row.createdAt.toISOString(),
+    id: row.id,
+    reportType: row.reportType,
+    sections: row.sections,
+    sessionId: row.sessionId,
+    status: row.status,
+    title: row.title,
+    updatedAt: row.updatedAt.toISOString(),
+    version: row.version,
+    workspaceId: row.workspaceId,
+  };
+}
+
+function hasParentArtifacts(parentArtifacts: SessionParentArtifacts): boolean {
+  if (parentArtifacts.mode === 'diverge') {
+    return parentArtifacts.ideas.length > 0 || parentArtifacts.clusters.length > 0;
+  }
+
+  if (parentArtifacts.mode === 'validate') {
+    return parentArtifacts.reviews.length > 0;
+  }
+
+  if (parentArtifacts.mode === 'synthesize') {
+    return parentArtifacts.claims.length > 0;
+  }
+
+  return parentArtifacts.report !== null || parentArtifacts.canvas !== null;
+}
+
+async function getWriteParentArtifacts({
+  parentSessionId,
+  templateType,
+  workspaceId,
+}: {
+  parentSessionId: string;
+  templateType: TemplateType | null;
+  workspaceId: string;
+}): Promise<SessionParentArtifacts | null> {
+  const database = getDb();
+  const reportRows = await database
+    .select({
+      createdAt: reportsTable.createdAt,
+      id: reportsTable.id,
+      reportType: reportsTable.reportType,
+      sections: reportsTable.sections,
+      sessionId: reportsTable.sessionId,
+      status: reportsTable.status,
+      title: reportsTable.title,
+      updatedAt: reportsTable.updatedAt,
+      version: reportsTable.version,
+      workspaceId: reportsTable.workspaceId,
+    })
+    .from(reportsTable)
+    .where(
+      and(eq(reportsTable.sessionId, parentSessionId), eq(reportsTable.workspaceId, workspaceId)),
+    )
+    .orderBy(desc(reportsTable.updatedAt))
+    .limit(1);
+  const latestReport = reportRows[0] ? mapReportRowToReport(reportRows[0]) : null;
+
+  if (latestReport) {
+    return {
+      canvas: null,
+      mode: 'write',
+      report: latestReport,
+    };
+  }
+
+  if (!templateType) {
+    return null;
+  }
+
+  const parentMessageRows = await database
+    .select({
+      metadata: messagesTable.metadata,
+    })
+    .from(messagesTable)
+    .where(and(eq(messagesTable.sessionId, parentSessionId), eq(messagesTable.role, 'assistant')))
+    .orderBy(desc(messagesTable.createdAt));
+  const parentCanvas =
+    parentMessageRows
+      .map((messageRow) => parseSessionMessageMetadata(messageRow.metadata).canvas ?? null)
+      .find((canvas): canvas is NonNullable<SessionMessageMetadata['canvas']> => canvas !== null) ??
+    null;
+
+  if (!parentCanvas) {
+    return null;
+  }
+
+  return {
+    canvas: mergeCanvasState(templateType, parentCanvas),
+    mode: 'write',
+    report: null,
+  };
+}
+
+async function getParentSessionArtifacts({
+  parentSessionId,
+  workspaceId,
+}: {
+  parentSessionId: string;
+  workspaceId: string;
+}): Promise<SessionParentArtifacts | null> {
+  const database = getDb();
+  const parentSessionRows = await database
+    .select({
+      id: sessionsTable.id,
+      mode: sessionsTable.mode,
+      templateType: sessionsTable.templateType,
+    })
+    .from(sessionsTable)
+    .where(and(eq(sessionsTable.id, parentSessionId), eq(sessionsTable.workspaceId, workspaceId)))
+    .limit(1);
+  const parentSession = parentSessionRows[0];
+
+  if (!parentSession) {
+    return null;
+  }
+
+  let parentArtifacts: SessionParentArtifacts | null = null;
+
+  if (parentSession.mode === 'diverge') {
+    const [ideas, clusters]: [Idea[], ClusterWithIdeas[]] = await Promise.all([
+      listIdeasBySession(parentSession.id),
+      listClustersBySession(parentSession.id),
+    ]);
+
+    parentArtifacts = {
+      clusters,
+      ideas,
+      mode: 'diverge',
+    };
+  } else if (parentSession.mode === 'validate') {
+    const reviews: Review[] = await listReviewsBySession(parentSession.id);
+
+    parentArtifacts = {
+      mode: 'validate',
+      reviews,
+    };
+  } else if (parentSession.mode === 'synthesize') {
+    const claims: ClaimWithSources[] = await listClaimsBySession(parentSession.id);
+
+    parentArtifacts = {
+      claims,
+      mode: 'synthesize',
+    };
+  } else {
+    parentArtifacts = await getWriteParentArtifacts({
+      parentSessionId: parentSession.id,
+      templateType: parentSession.templateType,
+      workspaceId,
+    });
+  }
+
+  if (!parentArtifacts || !hasParentArtifacts(parentArtifacts)) {
+    return null;
+  }
+
+  return parentArtifacts;
+}
+
 async function getSessionPromptContext({
   sessionId,
   workspaceId,
@@ -541,6 +734,7 @@ async function getSessionPromptContext({
   exampleText: string | null;
   messages: { content: string; role: 'assistant' | 'system' | 'user' }[];
   mode: SessionMode;
+  parentArtifacts: SessionParentArtifacts | null;
   recentDeliverables: {
     summary: string;
     title: string;
@@ -559,6 +753,7 @@ async function getSessionPromptContext({
       exampleText: sessionsTable.exampleText,
       id: sessionsTable.id,
       mode: sessionsTable.mode,
+      parentSessionId: sessionsTable.parentSessionId,
       templateType: sessionsTable.templateType,
     })
     .from(sessionsTable)
@@ -571,7 +766,7 @@ async function getSessionPromptContext({
     throw new Error('세션을 찾을 수 없습니다.');
   }
 
-  const [messageRows, sourceRows, recentDeliverables] = await Promise.all([
+  const [messageRows, sourceRows, parentArtifacts, recentDeliverables] = await Promise.all([
     database
       .select({
         content: messagesTable.content,
@@ -589,6 +784,12 @@ async function getSessionPromptContext({
       .from(sourcesTable)
       .where(eq(sourcesTable.sessionId, sessionId))
       .orderBy(desc(sourcesTable.createdAt)),
+    sessionRow.parentSessionId
+      ? getParentSessionArtifacts({
+          parentSessionId: sessionRow.parentSessionId,
+          workspaceId,
+        })
+      : Promise.resolve(null),
     sessionRow.templateType
       ? listRecentReferenceDeliverablesByTemplate({
           excludeSessionId: sessionId,
@@ -604,6 +805,7 @@ async function getSessionPromptContext({
     exampleText: sessionRow.exampleText,
     messages: messageRows,
     mode: sessionRow.mode,
+    parentArtifacts,
     recentDeliverables: recentDeliverables.map((deliverable) => ({
       summary: deliverable.preview,
       title: deliverable.title,

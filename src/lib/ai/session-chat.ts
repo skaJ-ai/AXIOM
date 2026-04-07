@@ -4,6 +4,7 @@ import type {
   SessionCanvasState,
   SessionCanvasUpdate,
   SessionMethodologySuggestion,
+  SessionParentArtifacts,
 } from '@/lib/sessions/types';
 import { getTemplateByType } from '@/lib/templates';
 
@@ -12,6 +13,7 @@ import type { StreamTextTransform, UIMessage } from 'ai';
 interface BuildInterviewContextOptions {
   currentChecklist: SessionChecklist;
   exampleText?: string | null;
+  parentArtifacts?: SessionParentArtifacts | null;
   recentDeliverables: {
     summary: string;
     title: string;
@@ -33,20 +35,119 @@ interface ParsedAssistantMetadata {
 const CHECKLIST_METADATA_MARKER = '<!-- checklist:';
 const MODE_METADATA_MARKER = '<!-- mode-meta:';
 const EXAMPLE_TEXT_PROMPT_MAX_LENGTH = 3000;
+const PARENT_ARTIFACT_TEXT_MAX_LENGTH = 400;
+const PARENT_ARTIFACTS_HEADING = '## \uC774\uC804 \uC138\uC158 \uACB0\uACFC\uBB3C';
+const SESSION_MODE_LABELS: Record<SessionMode, string> = {
+  diverge: '\uBC1C\uC0B0',
+  synthesize: '\uC885\uD569',
+  validate: '\uAC80\uC99D',
+  write: '\uC791\uC131',
+};
 
 function truncatePromptReference(text: string, maxLength: number): string {
   return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
 }
 
+function formatParentArtifactText(text: string): string {
+  return truncatePromptReference(text.trim().replace(/\s+/g, ' '), PARENT_ARTIFACT_TEXT_MAX_LENGTH);
+}
+
+function buildParentArtifactsSection(parentArtifacts?: SessionParentArtifacts | null): string[] {
+  if (!parentArtifacts) {
+    return [];
+  }
+
+  const lines: string[] = [
+    PARENT_ARTIFACTS_HEADING,
+    `- \uC774\uC804 \uBAA8\uB4DC: ${SESSION_MODE_LABELS[parentArtifacts.mode]}`,
+  ];
+
+  if (parentArtifacts.mode === 'diverge') {
+    if (parentArtifacts.ideas.length > 0) {
+      lines.push('[\uC544\uC774\uB514\uC5B4]');
+      lines.push(
+        ...parentArtifacts.ideas.map(
+          (idea, index) => `- ${index + 1}. ${formatParentArtifactText(idea.content)}`,
+        ),
+      );
+    }
+
+    if (parentArtifacts.clusters.length > 0) {
+      lines.push('[\uD074\uB7EC\uC2A4\uD130]');
+      lines.push(
+        ...parentArtifacts.clusters.map((cluster, index) => {
+          const ideaSummary =
+            cluster.ideas.length > 0
+              ? ` | \uC544\uC774\uB514\uC5B4: ${cluster.ideas
+                  .map((idea) => formatParentArtifactText(idea.content))
+                  .join(' / ')}`
+              : '';
+          const summary = cluster.summary
+            ? ` | \uC694\uC57D: ${formatParentArtifactText(cluster.summary)}`
+            : '';
+
+          return `- ${index + 1}. ${cluster.label}${summary}${ideaSummary}`;
+        }),
+      );
+    }
+  } else if (parentArtifacts.mode === 'validate') {
+    lines.push(
+      ...parentArtifacts.reviews.map(
+        (review, index) =>
+          `- ${index + 1}. [${review.category}/${review.severity}] ${review.personaName}: ${formatParentArtifactText(review.content)}${
+            review.suggestion
+              ? ` | \uC81C\uC548: ${formatParentArtifactText(review.suggestion)}`
+              : ''
+          }`,
+      ),
+    );
+  } else if (parentArtifacts.mode === 'synthesize') {
+    lines.push(
+      ...parentArtifacts.claims.map((claim, index) => {
+        const excerptSummary = claim.sources
+          .map((source) => source.excerpt)
+          .filter(
+            (excerpt): excerpt is string =>
+              typeof excerpt === 'string' && excerpt.trim().length > 0,
+          )
+          .map((excerpt) => formatParentArtifactText(excerpt))
+          .join(' / ');
+
+        return `- ${index + 1}. [${claim.confidence}] ${formatParentArtifactText(claim.content)}${
+          excerptSummary.length > 0 ? ` | \uBC1C\uCDBC: ${excerptSummary}` : ''
+        }`;
+      }),
+    );
+  } else if (parentArtifacts.report) {
+    lines.push(`[\uBCF4\uACE0\uC11C] ${parentArtifacts.report.title}`);
+    lines.push(
+      ...parentArtifacts.report.sections.map(
+        (section) => `- ${section.name}: ${formatParentArtifactText(section.content)}`,
+      ),
+    );
+  } else if (parentArtifacts.canvas) {
+    lines.push(`[\uCE94\uBC84\uC2A4] ${parentArtifacts.canvas.title}`);
+    lines.push(
+      ...parentArtifacts.canvas.sections.map(
+        (section) => `- ${section.name}: ${formatParentArtifactText(section.content)}`,
+      ),
+    );
+  }
+
+  return lines.length > 2 ? lines : [];
+}
+
 function buildInterviewContext({
   currentChecklist,
   exampleText,
+  parentArtifacts,
   recentDeliverables,
   sources,
   templateType,
 }: BuildInterviewContextOptions): string {
   const template = getTemplateByType(templateType);
   const checklistState = JSON.stringify(currentChecklist);
+  const parentArtifactsSection = buildParentArtifactsSection(parentArtifacts);
   const sourceContext =
     sources.length > 0
       ? sources
@@ -76,6 +177,7 @@ function buildInterviewContext({
   return [
     template.systemPrompt.interview,
     '',
+    ...(parentArtifactsSection.length > 0 ? [...parentArtifactsSection, ''] : []),
     '[현재 체크리스트 상태]',
     checklistState,
     '',
@@ -95,8 +197,12 @@ function buildInterviewContext({
   ].join('\n');
 }
 
-function createMetadataCommentTransform(): StreamTextTransform<Record<string, never>> {
-  return () => {
+function createMetadataCommentTransform(): {
+  factory: StreamTextTransform<Record<string, never>>;
+  getRawText: () => string;
+} {
+  let rawAccumulator = '';
+  const factory: StreamTextTransform<Record<string, never>> = () => {
     let buffer = '';
     let currentTextId = '';
     let isMetadataStarted = false;
@@ -118,6 +224,7 @@ function createMetadataCommentTransform(): StreamTextTransform<Record<string, ne
         }
 
         currentTextId = chunk.id;
+        rawAccumulator += chunk.text;
 
         if (isMetadataStarted) {
           return;
@@ -162,6 +269,13 @@ function createMetadataCommentTransform(): StreamTextTransform<Record<string, ne
         buffer = buffer.slice(safeBoundary);
       },
     });
+  };
+
+  return {
+    factory,
+    getRawText() {
+      return rawAccumulator;
+    },
   };
 }
 
@@ -301,6 +415,7 @@ interface BuildModeInterviewContextOptions {
   currentChecklist: SessionChecklist;
   exampleText?: string | null;
   mode: SessionMode;
+  parentArtifacts?: SessionParentArtifacts | null;
   sources: {
     content: string;
     label: string | null;
@@ -312,10 +427,12 @@ function buildModeInterviewContext({
   currentChecklist,
   exampleText,
   mode,
+  parentArtifacts,
   sources,
 }: BuildModeInterviewContextOptions): string {
   const modeDefinition = getModeByType(mode);
   const checklistState = JSON.stringify(currentChecklist);
+  const parentArtifactsSection = buildParentArtifactsSection(parentArtifacts);
   const sourceContext =
     sources.length > 0
       ? sources
@@ -336,6 +453,7 @@ function buildModeInterviewContext({
   return [
     modeDefinition.systemPrompt.interview,
     '',
+    ...(parentArtifactsSection.length > 0 ? [...parentArtifactsSection, ''] : []),
     '[현재 체크리스트 상태]',
     checklistState,
     '',

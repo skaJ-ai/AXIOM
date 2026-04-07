@@ -26,12 +26,18 @@ async function createClaim(
   return row.id;
 }
 
-async function linkClaimSource(claimId: string, sourceId: string, excerpt?: string): Promise<void> {
+async function linkClaimSource(
+  claimId: string,
+  options: {
+    excerpt?: string;
+    sourceId?: string;
+  },
+): Promise<void> {
   const database = getDb();
   await database.insert(claimSourcesTable).values({
     claimId,
-    excerpt: excerpt ?? null,
-    sourceId,
+    excerpt: options.excerpt ?? null,
+    sourceId: options.sourceId ?? null,
   });
 }
 

@@ -2,6 +2,8 @@ import { requireAuthenticatedApiUser } from '@/lib/auth/middleware';
 import { generateDocxBuffer } from '@/lib/deliverables/docx-export';
 import { getDeliverableDetailForWorkspace } from '@/lib/deliverables/service';
 
+// TODO(v0.3): Consolidate deliverables and reports into a single write domain. See Codex review blocker 5.
+
 const UNSAFE_FILENAME_CHARS = /[\\/:*?"<>|]/g;
 
 async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {

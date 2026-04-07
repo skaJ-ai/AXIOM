@@ -4,6 +4,8 @@ import { requireAuthenticatedApiUser } from '@/lib/auth/middleware';
 import { convertDeliverableTone } from '@/lib/deliverables/service';
 import { convertToneRequestSchema } from '@/lib/deliverables/validators';
 
+// TODO(v0.3): Consolidate deliverables and reports into a single write domain. See Codex review blocker 5.
+
 export const maxDuration = 120;
 
 async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {

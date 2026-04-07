@@ -307,9 +307,7 @@ const claimSourcesTable = pgTable(
       .notNull()
       .references(() => claimsTable.id, { onDelete: 'cascade' }),
     excerpt: text('excerpt'),
-    sourceId: uuid('source_id')
-      .notNull()
-      .references(() => sourcesTable.id, { onDelete: 'cascade' }),
+    sourceId: uuid('source_id').references(() => sourcesTable.id, { onDelete: 'cascade' }),
   },
   (table) => ({
     claimIndex: index('idx_claim_sources_claim_id').on(table.claimId),

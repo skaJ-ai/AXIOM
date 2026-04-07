@@ -88,6 +88,7 @@ async function POST(request: Request, { params }: { params: Promise<{ id: string
       sessionId: id,
       workspaceId: currentUser.workspaceId,
     });
+    const { factory, getRawText } = createMetadataCommentTransform();
     const modelMessages = promptContext.messages.map((message, index) => ({
       id: `${id}-${index}`,
       parts: [
@@ -98,21 +99,16 @@ async function POST(request: Request, { params }: { params: Promise<{ id: string
       ],
       role: message.role,
     }));
-    let rawAssistantText = '';
 
     const result = streamText({
-      experimental_transform: createMetadataCommentTransform(),
+      experimental_transform: factory,
       messages: await convertToModelMessages(modelMessages),
       model: getChatModel(),
-      onChunk({ chunk }) {
-        if (chunk.type === 'text-delta') {
-          rawAssistantText += chunk.text;
-        }
-      },
       system: promptContext.templateType
         ? buildInterviewContext({
             currentChecklist: promptContext.checklist,
             exampleText: promptContext.exampleText,
+            parentArtifacts: promptContext.parentArtifacts,
             recentDeliverables: promptContext.recentDeliverables,
             sources: promptContext.sources,
             templateType: promptContext.templateType,
@@ -121,6 +117,7 @@ async function POST(request: Request, { params }: { params: Promise<{ id: string
             currentChecklist: promptContext.checklist,
             exampleText: promptContext.exampleText,
             mode: promptContext.mode,
+            parentArtifacts: promptContext.parentArtifacts,
             sources: promptContext.sources,
           }),
       temperature: 0.4,
@@ -133,6 +130,7 @@ async function POST(request: Request, { params }: { params: Promise<{ id: string
           return;
         }
 
+        const rawAssistantText = getRawText();
         const parsedAssistantMetadata = parseAssistantMetadata(rawAssistantText);
         const assistantContent =
           parsedAssistantMetadata.visibleText || extractTextFromUiMessage(responseMessage);

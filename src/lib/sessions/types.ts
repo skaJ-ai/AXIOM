@@ -1,3 +1,7 @@
+import type { ClusterWithIdeas, Idea } from '@/domains/diverge/types';
+import type { ClaimWithSources } from '@/domains/synthesize/types';
+import type { Review } from '@/domains/validate/types';
+import type { Report } from '@/domains/write/types';
 import type {
   SessionChecklist,
   SessionMode,
@@ -84,6 +88,34 @@ interface SessionModeSummary {
   name: string;
 }
 
+interface SessionParentDivergeArtifacts {
+  clusters: ClusterWithIdeas[];
+  ideas: Idea[];
+  mode: 'diverge';
+}
+
+interface SessionParentValidateArtifacts {
+  mode: 'validate';
+  reviews: Review[];
+}
+
+interface SessionParentSynthesizeArtifacts {
+  claims: ClaimWithSources[];
+  mode: 'synthesize';
+}
+
+interface SessionParentWriteArtifacts {
+  canvas: SessionCanvasState | null;
+  mode: 'write';
+  report: Report | null;
+}
+
+type SessionParentArtifacts =
+  | SessionParentDivergeArtifacts
+  | SessionParentValidateArtifacts
+  | SessionParentSynthesizeArtifacts
+  | SessionParentWriteArtifacts;
+
 interface SessionSummary {
   checklist: SessionChecklist;
   createdAt: string;
@@ -136,6 +168,7 @@ export type {
   SessionMessageMetadata,
   SessionMethodologySuggestion,
   SessionModeSummary,
+  SessionParentArtifacts,
   SessionSourceSummary,
   SessionSummary,
   SessionTemplateSummary,

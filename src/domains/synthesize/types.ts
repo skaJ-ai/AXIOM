@@ -11,7 +11,7 @@ interface Claim {
 interface ClaimWithSources extends Claim {
   sources: {
     excerpt: string | null;
-    sourceId: string;
+    sourceId: string | null;
   }[];
 }
 

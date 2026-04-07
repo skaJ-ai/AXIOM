@@ -5,6 +5,8 @@ import { reportsTable } from '@/lib/db/schema';
 
 import type { Report } from './types';
 
+// TODO(v0.3): Consolidate deliverables and reports into a single write domain. See Codex review blocker 5.
+
 function mapReportRow(row: {
   createdAt: Date;
   id: string;

@@ -1,6 +1,6 @@
 import { createCluster, createIdea, mergeIdeasIntoCluster } from '@/domains/diverge/actions';
 import { listIdeasBySession } from '@/domains/diverge/queries';
-import { createClaim } from '@/domains/synthesize/actions';
+import { createClaim, linkClaimSource } from '@/domains/synthesize/actions';
 import { createReview } from '@/domains/validate/actions';
 import type {
   ClaimConfidence,
@@ -34,6 +34,7 @@ interface ParsedReview {
 interface ParsedClaim {
   confidence: ClaimConfidence;
   content: string;
+  excerpts?: string[];
 }
 
 interface ParsedModeMetadata {
@@ -212,14 +213,20 @@ function parseClaims(rawValue: unknown): ParsedClaim[] {
 
       const content = (entry as { content?: unknown }).content;
       const confidence = asClaimConfidence((entry as { confidence?: unknown }).confidence);
+      const excerpts = (entry as { excerpts?: unknown }).excerpts;
 
       if (!isString(content) || !confidence) {
         return null;
       }
 
+      const parsedExcerpts = Array.isArray(excerpts)
+        ? excerpts.filter(isString).map((excerpt) => excerpt.trim())
+        : [];
+
       return {
         confidence,
         content: content.trim(),
+        ...(parsedExcerpts.length > 0 ? { excerpts: parsedExcerpts } : {}),
       };
     })
     .filter((claim): claim is ParsedClaim => claim !== null);
@@ -326,7 +333,13 @@ async function persistModeMetadata(
 
   if (mode === 'synthesize') {
     for (const claim of metadata.claims) {
-      await createClaim(sessionId, claim.content, claim.confidence);
+      const claimId = await createClaim(sessionId, claim.content, claim.confidence);
+
+      if (claim.excerpts) {
+        for (const excerpt of claim.excerpts) {
+          await linkClaimSource(claimId, { excerpt });
+        }
+      }
     }
   }
 }
