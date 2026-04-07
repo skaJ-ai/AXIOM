@@ -1,7 +1,7 @@
 {
   "name": "axiom",
   "version": "0.2.0",
-  "description": "AXIOM — AX Insight for Organizational Memory. AI가 사고를 정리·발전·검증하고, 조직 지식이 자동 축적되는 HR 작업공간.",
+  "description": "AXIOM — 생각을 자산으로 축적하는 4모드 AI 워크벤치. 발산·검증·종합·작성의 흐름을 남기고 다음 작업의 출발점으로 돌려주는 랩 내부 베타 작업공간.",
   "private": true,
   "scripts": {
     "dev": "next dev",

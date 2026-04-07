@@ -8,7 +8,7 @@ export default async function LoginPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-[var(--color-bg)] px-6 py-12">
       <AuthShell
-        description="기존 작업을 이어서 시작하고, private workspace에서 표준 HR 산출물을 정리하세요."
+        description="이전 세션의 맥락을 이어받아 발산·검증·종합·작성을 계속 진행하세요."
         linkHref="/signup"
         linkLabel="아직 계정이 없으신가요?"
         linkText="회원가입"

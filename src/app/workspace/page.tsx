@@ -5,6 +5,7 @@ import { ModeBadge } from '@/components/workspace/mode-badge';
 import { WorkspacePageHeader } from '@/components/workspace/page-header';
 import { SessionCard } from '@/components/workspace/session-card';
 import { requireAuthenticatedPageUser } from '@/lib/auth/middleware';
+import { BRAND_NAME } from '@/lib/brand';
 import type { SessionMode } from '@/lib/db/schema';
 import { listDeliverablesByWorkspace } from '@/lib/deliverables/service';
 import { searchWorkspaceContent } from '@/lib/search/service';
@@ -17,10 +18,10 @@ function getSearchKindBadgeLabel(result: WorkspaceSearchResult): string {
 
 function getSearchMetaLabel(result: WorkspaceSearchResult): string {
   if (result.kind === 'deliverable') {
-    return `${result.templateType ?? 'report'} · ${result.status ?? 'draft'}`;
+    return `${result.templateType ?? '보고서'} · ${result.status ?? '초안'}`;
   }
 
-  return `session source · ${result.sourceType ?? 'text'}`;
+  return `세션 자료 · ${result.sourceType ?? '텍스트'}`;
 }
 
 const MODE_QUICKSTART: { description: string; mode: SessionMode; name: string }[] = [
@@ -75,8 +76,8 @@ export default async function WorkspacePage({
               </Link>
             </>
           }
-          description="4가지 사고 모드로 아이디어를 발산·검증·종합하고, 정리된 재료로 보고서를 작성합니다."
-          eyebrow="Private Workspace"
+          description="4가지 사고 모드로 생각을 발산·검증·종합하고, 정리된 재료를 다음 작업의 출발점으로 남깁니다."
+          eyebrow="조직 사고 워크벤치"
           meta={
             <>
               <span className="badge badge-accent">{currentUser.workspaceName}</span>
@@ -85,13 +86,13 @@ export default async function WorkspacePage({
               <span className="badge badge-neutral">Knox {currentUser.knoxId}</span>
             </>
           }
-          title={`${currentUser.name}님의 AXIOM 작업공간`}
+          title={`${currentUser.name}님의 ${BRAND_NAME} 워크벤치`}
         />
 
         <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
           <DashboardKpiCard
             detail={`이번 워크스페이스 ${sessions.length}개`}
-            label="Sessions"
+            label="세션"
             value={sessions.length}
           />
           <DashboardKpiCard
@@ -101,7 +102,7 @@ export default async function WorkspacePage({
           />
           <DashboardKpiCard
             detail="누적된 보고서/산출물"
-            label="Deliverables"
+            label="산출물"
             value={deliverables.length}
           />
           <div className="workspace-card-muted flex flex-col justify-center gap-3">
@@ -147,7 +148,7 @@ export default async function WorkspacePage({
         {query.length > 0 ? (
           <section className="flex flex-col gap-4">
             <div className="flex items-center gap-3">
-              <p className="meta">Workspace Search</p>
+              <p className="meta">워크스페이스 검색</p>
               <h2 className="text-xl font-bold text-[var(--color-text)]">
                 &quot;{query}&quot; 검색 결과
               </h2>

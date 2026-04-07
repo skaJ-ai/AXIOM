@@ -19,6 +19,12 @@ const CONFIDENCE_BADGE_CLASS: Record<ClaimConfidence, string> = {
   medium: 'badge-warning',
 };
 
+const CONFIDENCE_LABEL: Record<ClaimConfidence, string> = {
+  high: '높음',
+  low: '낮음',
+  medium: '중간',
+};
+
 function InsightCards({ insights }: InsightCardsProps) {
   if (insights.length === 0) {
     return (
@@ -37,7 +43,7 @@ function InsightCards({ insights }: InsightCardsProps) {
           <div className="mb-2 flex items-center justify-between">
             <span className="badge badge-accent">{INSIGHT_CATEGORY_LABEL[insight.category]}</span>
             <span className={`badge ${CONFIDENCE_BADGE_CLASS[insight.confidence]}`}>
-              {insight.confidence}
+              {`확신도 ${CONFIDENCE_LABEL[insight.confidence]}`}
             </span>
           </div>
           <p className="text-sm leading-6 text-[var(--color-text)]">{insight.content}</p>

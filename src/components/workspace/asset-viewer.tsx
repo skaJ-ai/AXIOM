@@ -49,14 +49,14 @@ function getConfidenceBadgeClass(confidence: DeliverableDetail['sections'][numbe
 
 function getConfidenceLabel(confidence: DeliverableDetail['sections'][number]['confidence']) {
   if (confidence === 'high') {
-    return 'confidence 높음';
+    return '확신도 높음';
   }
 
   if (confidence === 'medium') {
-    return 'confidence 중간';
+    return '확신도 중간';
   }
 
-  return 'confidence 낮음';
+  return '확신도 낮음';
 }
 
 function AssetViewer({ initialDeliverable }: AssetViewerProps) {
@@ -76,7 +76,7 @@ function AssetViewer({ initialDeliverable }: AssetViewerProps) {
   const handleCopyClick = async () => {
     try {
       await navigator.clipboard.writeText(deliverable.renderMarkdown);
-      setCopyMessage('Markdown을 복사했습니다.');
+      setCopyMessage('원문을 복사했습니다.');
     } catch {
       setCopyMessage('복사에 실패했습니다.');
     }
@@ -233,7 +233,7 @@ function AssetViewer({ initialDeliverable }: AssetViewerProps) {
           </div>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="flex flex-col gap-2">
-              <p className="meta">Deliverable Markdown</p>
+              <p className="meta">산출물 원문</p>
               <h1 className="text-3xl font-bold text-[var(--color-text)]">{deliverable.title}</h1>
               <p className="text-sm text-[var(--color-text-secondary)]">
                 최종 업데이트: {deliverable.updatedAt.slice(0, 16).replace('T', ' ')}
@@ -241,7 +241,7 @@ function AssetViewer({ initialDeliverable }: AssetViewerProps) {
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <button className="btn-primary focus-ring" onClick={handleCopyClick} type="button">
-                Markdown 전체 복사
+                원문 전체 복사
               </button>
               <button
                 className="btn-secondary focus-ring"
@@ -325,10 +325,8 @@ function AssetViewer({ initialDeliverable }: AssetViewerProps) {
         <div className="surface p-6 shadow-[var(--shadow-2)]">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
-              <p className="meta">Back Guard</p>
-              <h2 className="mt-2 text-xl font-semibold text-[var(--color-text)]">
-                섹션별 confidence
-              </h2>
+              <p className="meta">품질 단서</p>
+              <h2 className="mt-2 text-xl font-semibold text-[var(--color-text)]">섹션별 확신도</h2>
             </div>
             <span className="badge badge-neutral">{deliverable.sections.length}개 섹션</span>
           </div>
@@ -358,7 +356,7 @@ function AssetViewer({ initialDeliverable }: AssetViewerProps) {
         <div className="surface p-6 shadow-[var(--shadow-2)]">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
-              <p className="meta">Tone Conversion</p>
+              <p className="meta">톤 변환</p>
               <h2 className="mt-2 text-xl font-semibold text-[var(--color-text)]">톤 변환</h2>
             </div>
           </div>

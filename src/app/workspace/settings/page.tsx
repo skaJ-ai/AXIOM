@@ -90,8 +90,8 @@ export default async function WorkspaceSettingsPage() {
             <span className="section-label">기본 설정</span>
             <h2 className="text-xl font-semibold text-[var(--color-text)]">사고 모드 환경</h2>
             <p className="text-sm text-[var(--color-text-secondary)]">
-              AXIOM은 발산·검증·종합·작성 4가지 사고 모드를 지원합니다. 워크스페이스는 사내망에서만
-              접근 가능하며, 모든 데이터는 조직 내부에 보관됩니다.
+              AXIOM은 발산·검증·종합·작성 4가지 사고 모드를 통해 생각의 흐름을 축적합니다.
+              워크스페이스는 사내망에서만 접근 가능하며, 모든 데이터는 조직 내부에 보관됩니다.
             </p>
           </div>
 
@@ -111,7 +111,7 @@ export default async function WorkspaceSettingsPage() {
             <li className="workspace-card-muted px-4 py-4">
               <span className="section-label">세션 연결</span>
               <p className="mt-2 text-sm text-[var(--color-text)]">
-                발산 → 검증 → 작성으로 컨텍스트 승계
+                발산 → 검증 → 종합 → 작성으로 컨텍스트 승계
               </p>
             </li>
             <li className="workspace-card-muted px-4 py-4">

@@ -32,12 +32,12 @@ export default async function WorkspaceNewPage() {
               대시보드로
             </Link>
           }
-          description="발산·검증·종합·작성 4가지 사고 모드 중 하나를 선택해 시작합니다. 이전 세션에서 이어갈 수도 있습니다."
-          eyebrow="New Session"
+          description="4가지 사고 모드 중 하나에서 시작하고, 필요하면 이전 세션의 맥락을 이어받아 다음 단계로 넘어갑니다."
+          eyebrow="새 세션"
           meta={
             <>
               <span className="badge badge-accent">4가지 사고 모드</span>
-              <span className="badge badge-neutral">private workspace only</span>
+              <span className="badge badge-neutral">랩 내부 전용</span>
             </>
           }
           title="새 작업 시작"

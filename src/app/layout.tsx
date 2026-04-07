@@ -2,15 +2,16 @@ import type { ReactNode } from 'react';
 
 import type { Metadata } from 'next';
 
+import { BRAND_DESCRIPTION, BRAND_NAME, BRAND_TAGLINE } from '@/lib/brand';
+
 import './globals.css';
 
 const metadata: Metadata = {
-  description:
-    'AXIOM는 AI와 대화하며 회사 표준 형식의 HR 산출물을 더 빠르고 일관되게 만드는 private-first 작업공간입니다.',
+  description: BRAND_DESCRIPTION,
   icons: {
-    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🌊</text></svg>',
+    icon: `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="%230f4c81"/><text x="50" y="68" text-anchor="middle" font-size="56" font-family="Arial" font-weight="700" fill="white">A</text></svg>`,
   },
-  title: 'AXIOM — HR AI Report Platform',
+  title: `${BRAND_NAME} — ${BRAND_TAGLINE}`,
 };
 
 export { metadata };

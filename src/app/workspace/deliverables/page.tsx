@@ -13,7 +13,7 @@ export default async function DeliverableListPage() {
       <div className="mx-auto flex max-w-7xl flex-col gap-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div className="flex flex-col gap-2">
-            <p className="meta">Deliverables</p>
+            <p className="meta">산출물</p>
             <h1 className="text-3xl font-bold text-[var(--color-text)]">전체 산출물</h1>
             <p className="text-sm text-[var(--color-text-secondary)]">
               워크스페이스에 누적된 모든 산출물을 확인합니다.

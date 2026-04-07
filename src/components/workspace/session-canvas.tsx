@@ -258,7 +258,7 @@ function computeGuidanceItems(session: SessionDetail): GuidanceItem[] {
     items.push({
       ctaAction: 'focus_chat',
       ctaLabel: '인터뷰 이어가기',
-      description: '인터뷰를 이어가면 AXIOM가 자동으로 채워갑니다.',
+      description: '인터뷰를 이어가면 AXIOM이 자동으로 채워갑니다.',
       id: 'many_empty_sections',
       kind: 'many_empty_sections',
       priority: 'medium',
@@ -725,7 +725,7 @@ function SessionCanvas({ initialSession }: SessionCanvasProps) {
     return (
       <div className="flex gap-3" key={message.id}>
         <div className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-teal-light)] text-xs font-bold text-[var(--color-teal)]">
-          H
+          A
         </div>
         <article className="max-w-[95%] rounded-[18px] rounded-tl-[6px] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-4 py-3 shadow-[var(--shadow-1)]">
           <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-text-tertiary)]">
@@ -909,9 +909,9 @@ function SessionCanvas({ initialSession }: SessionCanvasProps) {
         <div className="shrink-0 border-b border-[var(--color-border)] px-5 py-4">
           <div className="flex items-start justify-between gap-3">
             <div className="flex flex-col gap-2">
-              <span className="section-label">Interview</span>
+              <span className="section-label">인터뷰</span>
               <div className="flex flex-col gap-1">
-                <h2 className="text-lg font-semibold text-[var(--color-text)]">AXIOM와 인터뷰</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text)]">AXIOM과 인터뷰</h2>
                 <p className="text-sm leading-6 text-[var(--color-text-secondary)]">
                   {currentSession.template?.name ?? currentSession.modeSummary.name} · 한 번에 한
                   항목씩 답하면 캔버스가 같이 채워집니다.
@@ -935,8 +935,8 @@ function SessionCanvas({ initialSession }: SessionCanvasProps) {
             ? renderWorkspaceEmptyState({
                 description:
                   '교육 목적과 대상부터 말해 주세요. 보유한 수치나 메모가 있으면 그대로 붙여 넣어도 되고, 모르는 항목은 예시를 먼저 보여 달라고 물으면 됩니다.',
-                eyebrow: 'Interview Ready',
-                mark: 'H.',
+                eyebrow: '인터뷰 준비',
+                mark: 'A.',
                 title: '이 세션에서 무엇을 먼저 정리할까요?',
               })
             : null}
@@ -968,7 +968,7 @@ function SessionCanvas({ initialSession }: SessionCanvasProps) {
 
             <div className="flex items-center justify-between gap-3">
               <p className="text-xs leading-5 text-[var(--color-text-tertiary)]">
-                답변이 짧아도 됩니다. 모호하면 AXIOM가 한 번 더 구체화를 요청합니다.
+                답변이 짧아도 됩니다. 모호하면 AXIOM이 한 번 더 구체화를 요청합니다.
               </p>
               <button
                 className="btn-primary disabled:cursor-not-allowed disabled:opacity-50"
@@ -1008,7 +1008,7 @@ function SessionCanvas({ initialSession }: SessionCanvasProps) {
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="process-flow">
-                    <span>Template</span>
+                    <span>문서 틀</span>
                     <span className="current">
                       {currentSession.template?.name ?? currentSession.modeSummary.name}
                     </span>

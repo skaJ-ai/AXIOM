@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
 import type { AuthenticatedUser } from '@/lib/auth/types';
+import { BRAND_NAME, BRAND_SIDEBAR_SUBTITLE } from '@/lib/brand';
 import { safeFetch } from '@/lib/utils';
 
 interface WorkspaceSidebarProps {
@@ -55,9 +56,11 @@ function WorkspaceSidebar({ user }: WorkspaceSidebarProps) {
           <span className="font-bold">A</span>
         </div>
         <div className="flex flex-col">
-          <span className="text-lg font-bold tracking-tight text-[var(--color-accent)]">AXIOM</span>
+          <span className="text-lg font-bold tracking-tight text-[var(--color-accent)]">
+            {BRAND_NAME}
+          </span>
           <span className="text-[9px] font-semibold tracking-wider text-[var(--color-text-secondary)]">
-            AI INSIGHT PLATFORM
+            {BRAND_SIDEBAR_SUBTITLE}
           </span>
         </div>
       </div>
