@@ -141,7 +141,7 @@ const IDEATION_POINT_ARTICLES: IdeationPointArticle[] = [
     blocks: [
       {
         paragraphs: [
-          'HARP 문서가 HR AX Copilot에 더해주는 가장 중요한 관점은 인터뷰를 정보 수집이 아니라 의도 명확화로 본다는 점이다. 사용자가 먼저 답해야 하는 질문은 “무엇을 알고 있나”보다 “이 작업으로 어떤 결정을 만들고 싶은가”다.',
+          '선행 설계 문서가 HR AX Copilot에 더해주는 가장 중요한 관점은 인터뷰를 정보 수집이 아니라 의도 명확화로 본다는 점이다. 사용자가 먼저 답해야 하는 질문은 “무엇을 알고 있나”보다 “이 작업으로 어떤 결정을 만들고 싶은가”다.',
           'HR AX Copilot의 모드 체크리스트와 템플릿 체크리스트도 이미 같은 구조를 갖고 있다. `intent` 필드는 단순 라벨이 아니라, 시스템이 사용자의 사고를 어떤 방향으로 좁힐지 결정하는 기준점이다.',
         ],
         title: '좋은 작업은 정보보다 의도부터 묻는 데서 시작합니다',
@@ -161,7 +161,7 @@ const IDEATION_POINT_ARTICLES: IdeationPointArticle[] = [
       {
         paragraphs: [
           '이 원칙을 위키에 남겨두면 다른 플랫폼으로 옮길 때도 핵심을 놓치지 않는다. 입력 항목 이름은 바뀔 수 있지만, \"의도 우선\"이라는 계약을 잃으면 다시 일반론을 길게 말하는 챗 인터페이스로 후퇴하게 된다.',
-          '그래서 HARP의 intent-first 관점은 HR AX Copilot 위키에 충분히 추가할 만한 내용이다. 구현 세부보다 작업을 여는 질문의 순서를 설계 철학으로 남길 가치가 있다.',
+          '그래서 intent-first 관점은 HR AX Copilot 위키에 충분히 추가할 만한 내용이다. 구현 세부보다 작업을 여는 질문의 순서를 설계 철학으로 남길 가치가 있다.',
         ],
         title: '이식 시에도 가장 먼저 보존해야 할 질문 순서',
       },
@@ -172,7 +172,7 @@ const IDEATION_POINT_ARTICLES: IdeationPointArticle[] = [
       'src/lib/modes/index.ts',
       'src/lib/templates/index.ts',
       'src/lib/ai/session-chat.ts',
-      'Reference · HARP / docs/SDD.md',
+      'Reference · intent-first interview methodology note',
     ],
     summary:
       '사용자 인터뷰를 정보 수집이 아니라 의사결정 의도를 먼저 정리하는 과정으로 설계한 이유를 설명합니다.',
@@ -305,7 +305,7 @@ const IDEATION_POINT_ARTICLES: IdeationPointArticle[] = [
     blocks: [
       {
         paragraphs: [
-          'HARP SDD가 HR AX Copilot에 가장 선명하게 보태는 철학은 지식 축적을 사용자 추가 행동에 의존하지 않는다는 점이다. 좋은 시스템이라면 사용자가 \"이것도 저장해야지\"를 매번 의식하지 않아도, 확정된 결과물이 자연스럽게 다음 작업의 맥락이 되어야 한다.',
+          '선행 설계 문서가 HR AX Copilot에 가장 선명하게 보태는 철학은 지식 축적을 사용자 추가 행동에 의존하지 않는다는 점이다. 좋은 시스템이라면 사용자가 \"이것도 저장해야지\"를 매번 의식하지 않아도, 확정된 결과물이 자연스럽게 다음 작업의 맥락이 되어야 한다.',
           'HR AX Copilot 코드도 이미 이 방향에 닿아 있다. 보고서를 `final`로 확정하면 곧바로 knowledge extraction pipeline이 돌고, source와 deliverable은 memory chunk 계층으로 동기화된다.',
         ],
         title: '축적은 보상 기능이 아니라 기본 동작이어야 합니다',
@@ -325,7 +325,7 @@ const IDEATION_POINT_ARTICLES: IdeationPointArticle[] = [
       {
         paragraphs: [
           '이 개념을 다른 플랫폼으로 옮길 때도 마찬가지다. 사용자 경험은 \"저장 버튼을 더 누르게 하는 것\"이 아니라, 좋은 결과물을 확정하는 순간 그 가치가 다음 작업으로 이어지게 만드는 데서 나온다.',
-          '그래서 zero-action accumulation은 HARP에서 가져와 HR AX Copilot 위키에 남길 가치가 있다. 이건 기능 추가 제안이 아니라 장기 product behavior를 정의하는 규칙이다.',
+          '그래서 zero-action accumulation은 HR AX Copilot 위키에 남길 가치가 있다. 이건 기능 추가 제안이 아니라 장기 product behavior를 정의하는 규칙이다.',
         ],
         title: '장기 moat는 저장 습관이 아니라 축적 자동화에서 나옵니다',
       },
@@ -336,7 +336,7 @@ const IDEATION_POINT_ARTICLES: IdeationPointArticle[] = [
       'src/domains/write/actions.ts',
       'src/lib/knowledge/pipeline.ts',
       'src/lib/memory/service.ts',
-      'Reference · HARP / docs/SDD.md',
+      'Reference · zero-action accumulation design note',
     ],
     summary:
       '사용자가 추가 저장 습관을 들이지 않아도 확정된 결과물이 자동으로 조직 기억에 편입되어야 하는 이유를 설명합니다.',
@@ -496,7 +496,7 @@ const IDEATION_POINT_ARTICLES: IdeationPointArticle[] = [
     blocks: [
       {
         paragraphs: [
-          'HARP 문서의 또 다른 강한 포인트는 모든 사고 결과물이 서로 어떤 근거에서 나왔는지를 남겨야 한다는 점이다. 좋은 종합은 단순히 그럴듯한 요약이 아니라, 어떤 주장(Claim)이 어떤 source excerpt에서 출발했는지 다시 추적할 수 있어야 한다.',
+          '선행 설계 문서의 또 다른 강한 포인트는 모든 사고 결과물이 서로 어떤 근거에서 나왔는지를 남겨야 한다는 점이다. 좋은 종합은 단순히 그럴듯한 요약이 아니라, 어떤 주장(Claim)이 어떤 source excerpt에서 출발했는지 다시 추적할 수 있어야 한다.',
           'HR AX Copilot도 이미 `claim_sources` 테이블과 `ClaimWithSources` 타입을 통해 이 관계를 저장하고 있다. 즉 현재 구조는 raw chat transcript보다 typed artifact와 evidence link를 중심으로 설계되어 있다.',
         ],
         title: '좋은 주장에는 항상 다시 따라갈 수 있는 근거가 있어야 합니다',
@@ -516,7 +516,7 @@ const IDEATION_POINT_ARTICLES: IdeationPointArticle[] = [
       {
         paragraphs: [
           '이 원칙을 위키에 남기면 다른 플랫폼으로 옮길 때도 데이터를 어떤 객체 단위로 저장해야 하는지 분명해진다. 세션 로그만 저장하는 시스템과, artifact-evidence link를 남기는 시스템은 장기적으로 전혀 다른 제품이 된다.',
-          '그래서 provenance/evidence link는 HARP에서 HR AX Copilot으로 옮길 만한 추가 주제다. 현재 위키의 저장 구조와 메모리 루프 사이를 연결해 주는 핵심 개념이기도 하다.',
+          '그래서 provenance/evidence link는 HR AX Copilot에 남길 만한 추가 주제다. 현재 위키의 저장 구조와 메모리 루프 사이를 연결해 주는 핵심 개념이기도 하다.',
         ],
         title: '저장 구조와 지식 활용 사이를 연결하는 계약',
       },
@@ -528,7 +528,7 @@ const IDEATION_POINT_ARTICLES: IdeationPointArticle[] = [
       'src/domains/synthesize/types.ts',
       'src/domains/synthesize/actions.ts',
       'src/domains/validate/types.ts',
-      'Reference · HARP / docs/SDD.md',
+      'Reference · provenance and evidence design note',
     ],
     summary:
       '주장, 리뷰, 최종 표현이 각각 어떤 근거와 관점에서 나왔는지 추적 가능하게 남기는 provenance 구조를 설명합니다.',
