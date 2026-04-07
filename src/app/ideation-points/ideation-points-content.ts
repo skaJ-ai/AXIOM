@@ -62,7 +62,8 @@ const IDEATION_POINT_CATEGORY_META: Record<IdeationPointCategory, IdeationPointC
     label: '엔지니어링 하네스',
   },
   foundation: {
-    description: '디자인 토큰, 공통 문서층, 저장 구조처럼 다른 플랫폼으로 옮겨도 유지해야 할 바닥입니다.',
+    description:
+      '디자인 토큰, 공통 문서층, 저장 구조처럼 다른 플랫폼으로 옮겨도 유지해야 할 바닥입니다.',
     label: '기반 레이어',
   },
   'governance-surface': {
@@ -70,11 +71,13 @@ const IDEATION_POINT_CATEGORY_META: Record<IdeationPointCategory, IdeationPointC
     label: '거버넌스 표면',
   },
   'knowledge-layer': {
-    description: '자동 축적, provenance, retrieval, memory loop처럼 지식을 되돌려 쓰게 만드는 층입니다.',
+    description:
+      '자동 축적, provenance, retrieval, memory loop처럼 지식을 되돌려 쓰게 만드는 층입니다.',
     label: '지식 레이어',
   },
   'thinking-system': {
-    description: '의도 질문, 4모드, 방법론 선택, 업무 재설계처럼 사람의 사고 흐름을 바꾸는 설계입니다.',
+    description:
+      '의도 질문, 4모드, 방법론 선택, 업무 재설계처럼 사람의 사고 흐름을 바꾸는 설계입니다.',
     label: '사고 체계',
   },
 };

@@ -1,7 +1,14 @@
 import { notFound } from 'next/navigation';
 
 import { IdeationPointArticleView } from '../ideation-point-article';
-import { getIdeationPointBySlug } from '../ideation-points-content';
+import { IDEATION_POINT_ARTICLES, getIdeationPointBySlug } from '../ideation-points-content';
+
+// eslint-disable-next-line @typescript-eslint/naming-convention -- Next.js route segment config
+export const dynamicParams = false;
+
+export function generateStaticParams(): { slug: string }[] {
+  return IDEATION_POINT_ARTICLES.map((article) => ({ slug: article.slug }));
+}
 
 export default async function IdeationPointDetailPage({
   params,

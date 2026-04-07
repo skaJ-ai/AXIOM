@@ -35,14 +35,19 @@ const FOUNDATION_ARTICLES: IdeationPointArticle[] = [
     ],
     category: 'foundation',
     navLabel: '디자인 토큰',
-    relatedSlugs: ['markdown-canonical-layer', 'private-first-shared-workspace', 'storage-structure'],
+    relatedSlugs: [
+      'markdown-canonical-layer',
+      'private-first-shared-workspace',
+      'storage-structure',
+    ],
     slug: 'design-system',
     sources: [
       createSource('code', 'src/app/globals.css'),
       createSource('code', 'src/components/ui/button.tsx'),
       createSource('code', 'src/app/workspace/layout.tsx'),
     ],
-    summary: '무엇을 보존해야 AXIOM의 화면을 다른 플랫폼에서도 같은 제품처럼 느끼게 되는지 설명한다.',
+    summary:
+      '무엇을 보존해야 AXIOM의 화면을 다른 플랫폼에서도 같은 제품처럼 느끼게 되는지 설명한다.',
     title: '디자인 시스템',
     whyItMatters:
       '이식 시 토큰과 상태 의미를 함께 옮기지 않으면 기능은 살아남아도 제품의 판단 방식이 사라진다.',
@@ -84,8 +89,9 @@ const FOUNDATION_ARTICLES: IdeationPointArticle[] = [
       createSource('code', 'src/lib/deliverables/service.ts'),
       createSource('reference', 'C:/dev/HARP/JARVIS/07_execution_plan.md'),
     ],
-    summary: '무엇을 공통 원본으로 삼아야 생성, 편집, export가 같은 문서를 바라보게 되는지 설명한다.',
-    title: 'Markdown은 공통 언어층이다',
+    summary:
+      '무엇을 공통 원본으로 삼아야 생성, 편집, export가 같은 문서를 바라보게 되는지 설명한다.',
+    title: '마크다운은 공통 언어층이다',
     whyItMatters:
       '이식 시 canonical layer를 먼저 세우지 않으면 기능이 늘어날수록 문서의 진실이 포맷마다 분열된다.',
   },
@@ -127,7 +133,8 @@ const FOUNDATION_ARTICLES: IdeationPointArticle[] = [
       createSource('code', 'src/lib/knowledge/pipeline.ts'),
       createSource('code', 'src/lib/memory/service.ts'),
     ],
-    summary: '무엇을 raw, publication, knowledge, serving으로 분리해야 나중에 Data Lake로도 확장 가능한지 설명한다.',
+    summary:
+      '무엇을 raw, publication, knowledge, serving으로 분리해야 나중에 Data Lake로도 확장 가능한지 설명한다.',
     title: '저장 구조',
     whyItMatters:
       '이식 시 저장 경계를 흐리면 품질 문제를 고치기 어렵고, 레이크 확장도 파이프라인 재작성부터 다시 시작하게 된다.',

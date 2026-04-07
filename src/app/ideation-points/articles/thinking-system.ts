@@ -42,7 +42,8 @@ const THINKING_SYSTEM_ARTICLES: IdeationPointArticle[] = [
       createSource('code', 'src/lib/templates/index.ts'),
       createSource('code', 'src/lib/sessions/service.ts'),
     ],
-    summary: '무엇을 먼저 물어야 사용자의 자료 수집이 아니라 작업 의도를 정렬하는 인터뷰가 되는지 설명한다.',
+    summary:
+      '무엇을 먼저 물어야 사용자의 자료 수집이 아니라 작업 의도를 정렬하는 인터뷰가 되는지 설명한다.',
     title: '의도 중심 인터뷰',
     whyItMatters:
       '이식 시 질문 순서를 잃으면 같은 모델과 같은 자료를 써도 결과는 단순한 채팅 보조 수준으로 떨어진다.',
@@ -84,8 +85,9 @@ const THINKING_SYSTEM_ARTICLES: IdeationPointArticle[] = [
       createSource('code', 'src/lib/modes/index.ts'),
       createSource('reference', 'C:/dev/HARP/JARVIS/00_overview.md'),
     ],
-    summary: '무엇을 자동화할지보다 사람과 시스템의 역할을 어떻게 재배치할지가 왜 더 중요한지 설명한다.',
-    title: 'AI 도입보다 Work Redesign이 먼저다',
+    summary:
+      '무엇을 자동화할지보다 사람과 시스템의 역할을 어떻게 재배치할지가 왜 더 중요한지 설명한다.',
+    title: 'AI 도입보다 업무 재설계가 먼저다',
     whyItMatters:
       '이식 시 업무 재설계 관점을 놓치면 제품은 기능은 많지만 사용자의 실제 일하는 방식을 바꾸지 못하는 도구가 된다.',
   },
@@ -126,7 +128,8 @@ const THINKING_SYSTEM_ARTICLES: IdeationPointArticle[] = [
       createSource('code', 'src/lib/modes/types.ts'),
       createSource('code', 'src/lib/brand.ts'),
     ],
-    summary: '무엇을 별도 모드로 분리해야 사고 흐름이 섞이지 않고 다음 단계로 전달 가능한 산출물이 남는지 설명한다.',
+    summary:
+      '무엇을 별도 모드로 분리해야 사고 흐름이 섞이지 않고 다음 단계로 전달 가능한 산출물이 남는지 설명한다.',
     title: '4모드 사고 체계',
     whyItMatters:
       '이식 시 모드 전환을 artifact handoff로 설계하지 않으면, 멀티스텝 작업은 다시 긴 채팅 한 덩어리로 붕괴된다.',
@@ -168,7 +171,8 @@ const THINKING_SYSTEM_ARTICLES: IdeationPointArticle[] = [
       createSource('code', 'src/lib/templates/index.ts'),
       createSource('code', 'src/lib/ai/session-chat.ts'),
     ],
-    summary: '무엇을 방법론 라이브러리로 준비해야 인터뷰가 즉흥 조언이 아니라 재현 가능한 사고 지원이 되는지 설명한다.',
+    summary:
+      '무엇을 방법론 라이브러리로 준비해야 인터뷰가 즉흥 조언이 아니라 재현 가능한 사고 지원이 되는지 설명한다.',
     title: '방법론 라이브러리',
     whyItMatters:
       '이식 시 프레임 목록만 옮기고 호출 타이밍을 잃으면, 방법론은 검색 가능한 메모 이상이 되지 못한다.',
