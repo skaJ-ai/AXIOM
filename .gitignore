@@ -47,5 +47,13 @@ doc-pipeline/output/
 # Claude Code local config
 .claude/
 
+# Private AI workflow and planning artifacts
+.harness/
+docs/
+ideation/
+codex_wiki.md
+CLAUDE.md
+**/CLAUDE.md
+
 # NVIDIA logs (auto-generated)
 NVIDIA Corporation/

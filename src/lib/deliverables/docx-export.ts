@@ -2,7 +2,7 @@ import { AlignmentType, Document, Footer, HeadingLevel, Packer, Paragraph, TextR
 
 import type { DeliverableSection } from '@/lib/db/schema';
 
-const AI_DISCLOSURE_TEXT = '이 문서는 AXIOM AI의 도움을 받아 작성되었습니다.';
+const AI_DISCLOSURE_TEXT = '이 문서는 HR AX Copilot의 도움을 받아 작성되었습니다.';
 const BOLD_MARKER_REGEX = /\*\*(.+?)\*\*/g;
 const BULLET_LINE_REGEX = /^[-*]\s+/;
 

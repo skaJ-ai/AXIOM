@@ -16,7 +16,6 @@ ENV NPM_CONFIG_HTTP_PROXY=${NPM_PROXY}
 ENV NPM_CONFIG_HTTPS_PROXY=${NPM_PROXY}
 
 FROM base AS deps
-COPY .harness/hooks ./.harness/hooks
 COPY package.json package-lock.json ./
 RUN if [ -n "$NPM_PROXY" ]; then npm config set proxy "$NPM_PROXY" && npm config set https-proxy "$NPM_PROXY"; fi \
  && npm config set strict-ssl false \

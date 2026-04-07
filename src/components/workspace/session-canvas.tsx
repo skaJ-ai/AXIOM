@@ -258,7 +258,7 @@ function computeGuidanceItems(session: SessionDetail): GuidanceItem[] {
     items.push({
       ctaAction: 'focus_chat',
       ctaLabel: '인터뷰 이어가기',
-      description: '인터뷰를 이어가면 AXIOM이 자동으로 채워갑니다.',
+      description: '인터뷰를 이어가면 HR AX Copilot이 자동으로 채워갑니다.',
       id: 'many_empty_sections',
       kind: 'many_empty_sections',
       priority: 'medium',
@@ -729,7 +729,7 @@ function SessionCanvas({ initialSession }: SessionCanvasProps) {
         </div>
         <article className="max-w-[95%] rounded-[18px] rounded-tl-[6px] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-4 py-3 shadow-[var(--shadow-1)]">
           <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-text-tertiary)]">
-            AXIOM
+            HR AX Copilot
           </p>
           <p className="whitespace-pre-wrap text-sm leading-6 text-[var(--color-text)]">
             {visibleText}
@@ -827,7 +827,7 @@ function SessionCanvas({ initialSession }: SessionCanvasProps) {
               onClick={handleChecklistAskClick}
               type="button"
             >
-              이 항목에 대해 AXIOM에게 물어보기
+              이 항목에 대해 HR AX Copilot에게 물어보기
             </button>
           </div>
         ) : null}
@@ -911,7 +911,9 @@ function SessionCanvas({ initialSession }: SessionCanvasProps) {
             <div className="flex flex-col gap-2">
               <span className="section-label">인터뷰</span>
               <div className="flex flex-col gap-1">
-                <h2 className="text-lg font-semibold text-[var(--color-text)]">AXIOM과 인터뷰</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text)]">
+                  HR AX Copilot과 인터뷰
+                </h2>
                 <p className="text-sm leading-6 text-[var(--color-text-secondary)]">
                   {currentSession.template?.name ?? currentSession.modeSummary.name} · 한 번에 한
                   항목씩 답하면 캔버스가 같이 채워집니다.
@@ -968,7 +970,7 @@ function SessionCanvas({ initialSession }: SessionCanvasProps) {
 
             <div className="flex items-center justify-between gap-3">
               <p className="text-xs leading-5 text-[var(--color-text-tertiary)]">
-                답변이 짧아도 됩니다. 모호하면 AXIOM이 한 번 더 구체화를 요청합니다.
+                답변이 짧아도 됩니다. 모호하면 HR AX Copilot이 한 번 더 구체화를 요청합니다.
               </p>
               <button
                 className="btn-primary disabled:cursor-not-allowed disabled:opacity-50"

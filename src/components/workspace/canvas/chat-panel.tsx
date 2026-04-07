@@ -108,7 +108,7 @@ function ChatPanel({ initialSession, onMessagesChange }: ChatPanelProps) {
                 key={message.id}
               >
                 <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--color-text-tertiary)]">
-                  {message.role === 'user' ? '나' : 'AXIOM'}
+                  {message.role === 'user' ? '나' : 'HR AX Copilot'}
                 </p>
                 <p className="whitespace-pre-wrap text-sm leading-6 text-[var(--color-text)]">
                   {text}

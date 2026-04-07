@@ -1,6 +1,6 @@
 import type { ReportStatus, ReportType, ReportSection } from '@/lib/db/schema';
 
-// TODO(v0.3): Consolidate deliverables and reports into a single write domain. See Codex review blocker 5.
+// TODO(v0.3): Consolidate deliverables and reports into a single write domain.
 
 interface Report {
   createdAt: string;

@@ -11,34 +11,34 @@ interface BrandValueCard {
   title: string;
 }
 
-const BRAND_NAME = 'AXIOM';
-const BRAND_SHORT_LABEL = '랩 내부 베타';
-const BRAND_TAGLINE = '생각을 자산으로 축적하는 4모드 AI 워크벤치';
+const BRAND_NAME = 'HR AX Copilot';
+const BRAND_SHORT_LABEL = 'HR AX 플랫폼';
+const BRAND_TAGLINE = 'HR 담당자의 업무 카드와 프로세스 자산을 함께 운영하는 공통 Copilot';
 const BRAND_DESCRIPTION =
-  '발산·검증·종합·작성의 흐름을 남기고 다음 작업의 출발점으로 돌려주는 랩 내부 베타 작업공간';
-const BRAND_SIDEBAR_SUBTITLE = '조직 사고 워크벤치';
+  '업무 카드, 프로세스 자산, 근거 자료를 연결해 다음 작업의 출발점으로 돌려주는 HR AX 플랫폼의 공통 Copilot';
+const BRAND_SIDEBAR_SUBTITLE = '공통 Copilot 레이어';
 const BRAND_ELEVATOR_PITCH = [
-  'AXIOM은 발산·검증·종합·작성 4개 모드로 아이디어와 자료를 단계별로 다룹니다.',
-  '대화, 근거, 중간 주장, 최종 산출물을 한 워크스페이스에서 연결해 조직 기억으로 축적합니다.',
-  '그래서 다음 보고서와 다음 실험은 빈 화면이 아니라 이전 사고의 맥락에서 시작합니다.',
+  'HR AX Copilot은 발산·검증·종합·작성 4개 모드로 업무 카드의 의도와 근거를 단계별로 다룹니다.',
+  '모든 업무를 Agent로 만들지 못해도, 사람과 LLM이 같은 워크스페이스 맥락 위에서 계속 일할 수 있게 돕습니다.',
+  '도메인 Agent와 외부 LLM, 시스템 연동은 선택적으로 붙고 공통 Copilot은 전체 흐름을 받쳐 줍니다.',
 ] as const;
 const BRAND_MEMBER_VALUE_PROPOSITION =
-  '랩 멤버는 매번 처음부터 설명하지 않아도 됩니다. AXIOM은 이전 세션의 아이디어, 검증 흔적, 종합된 주장, 작성 초안을 다음 작업의 출발점으로 이어줍니다.';
+  'HR 담당자는 매번 처음부터 배경과 프로세스를 다시 설명하지 않아도 됩니다. HR AX Copilot은 이전 세션의 의도, 검증 흔적, 종합된 주장, 작성 초안을 다음 작업의 출발점으로 이어줍니다.';
 const BRAND_VALUE_CARDS: BrandValueCard[] = [
   {
     description:
-      '발산에서 나온 아이디어와 검증에서 드러난 반론을 함께 남겨 다음 실험의 출발점으로 재사용합니다.',
-    title: '빈 화면 대신 이전 사고의 맥락에서 시작합니다',
+      '업무 카드는 프로세스 자산과 근거 자료를 상속받아, 새 요청이 와도 빈 화면이 아니라 이전 맥락 위에서 시작합니다.',
+    title: '업무 카드가 프로세스 맥락을 이어받습니다',
   },
   {
     description:
-      '근거자료, 주장, 인사이트, 최종 산출물이 한 흐름으로 이어져 “왜 이 결론에 도달했는가”를 다시 추적할 수 있습니다.',
-    title: '결론뿐 아니라 판단 과정까지 회수할 수 있습니다',
+      '전용 Agent가 없는 구간도 Copilot이 인터뷰, 구조화, 초안 생성을 도와 사람의 작업 흐름이 끊기지 않습니다.',
+    title: 'Agent가 없는 단계도 LLM 협업이 계속됩니다',
   },
   {
     description:
-      '개인 세션에서 출발하지만 지식 구조는 축적되므로, 작은 실험도 다음 프로젝트를 위한 공용 설계 자산이 됩니다.',
-    title: '작은 실험이 조직 기억으로 누적됩니다',
+      '근거자료, 주장, 최종 산출물이 연결되어 다음 업무와 다음 프로세스 재설계의 출발점으로 다시 쓰입니다.',
+    title: '작업 결과가 다음 업무의 공용 자산으로 남습니다',
   },
 ];
 const BRAND_FOUR_MODE_STORY: BrandModeStoryItem[] = [
@@ -60,7 +60,7 @@ const BRAND_FOUR_MODE_STORY: BrandModeStoryItem[] = [
   {
     description: '정리된 재료를 보고서와 운영 문서로 옮겨 실제 실행 가능한 출력으로 마감합니다.',
     mode: 'write',
-    title: '작성은 사고를 사람과 조직이 쓸 수 있는 결과물로 바꿉니다',
+    title: '작성은 사고를 사람과 시스템이 함께 쓸 결과물로 바꿉니다',
   },
 ];
 

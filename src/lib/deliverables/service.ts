@@ -269,7 +269,7 @@ function buildGenerationPromptContext({
               message.role === 'user'
                 ? '담당자'
                 : message.role === 'assistant'
-                  ? 'AXIOM'
+                  ? 'HR AX Copilot'
                   : '시스템';
 
             return `- ${roleLabel}: ${message.content.trim().replace(/\s+/g, ' ').slice(0, 1600)}`;

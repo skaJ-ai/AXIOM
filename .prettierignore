@@ -5,5 +5,5 @@ dist
 pnpm-lock.yaml
 package-lock.json
 
-# Presentation assets (not code — excluded from harness:check)
+# Presentation assets (not code)
 *.html

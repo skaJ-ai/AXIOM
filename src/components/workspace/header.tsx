@@ -62,7 +62,7 @@ export function WorkspaceHeader({ user }: { user: AuthenticatedUser }) {
         <div className="flex items-start justify-between gap-4">
           <Link className="flex items-center gap-2" href="/workspace">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-accent)] text-white">
-              <span className="font-bold">A</span>
+              <span className="font-bold">H</span>
             </div>
             <div className="flex flex-col">
               <span className="text-xl font-bold tracking-tight text-[var(--color-accent)]">
@@ -109,7 +109,7 @@ export function WorkspaceHeader({ user }: { user: AuthenticatedUser }) {
           <div className="flex flex-wrap items-center gap-2">
             <span className="badge badge-neutral">{getCurrentAreaLabel(pathname)}</span>
             <span className="text-xs text-[var(--color-text-secondary)]">
-              랩 내부 작업공간 · {user.loginId}
+              HR AX 플랫폼 작업공간 · {user.loginId}
             </span>
           </div>
         </div>

@@ -1,15 +1,7 @@
 /**
- * Button component — 하네스 규칙 준수 예시
+ * Button component — 프로젝트 코딩 규칙 예시
  *
- * 이 파일은 CLAUDE.md의 모든 Front Guard 규칙을 준수하는 참조 구현입니다:
- * - 파일명: kebab-case (button.tsx)
- * - Named export only (no default export)
- * - Props interface: {Component}Props 패턴
- * - Boolean prop: is* 접두사
- * - Event handler: handle* (내부), on* (props)
- * - No inline anonymous functions in JSX
- * - Import order: 5-group rule
- * - Explicit types everywhere
+ * 공용 UI 컴포넌트가 따르는 기본 원칙만 남긴 참조 구현입니다.
  */
 
 import type { ReactNode } from 'react';

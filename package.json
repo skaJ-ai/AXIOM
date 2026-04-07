@@ -1,7 +1,7 @@
 {
-  "name": "axiom",
+  "name": "hr-ax-platform",
   "version": "0.2.0",
-  "description": "AXIOM — 생각을 자산으로 축적하는 4모드 AI 워크벤치. 발산·검증·종합·작성의 흐름을 남기고 다음 작업의 출발점으로 돌려주는 랩 내부 베타 작업공간.",
+  "description": "HR AX 플랫폼 — HR 담당자의 업무 카드, 프로세스 자산, 근거 자료를 함께 운영하는 work OS.",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -16,10 +16,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,mjs,json,css}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,mjs,json,css}\"",
     "typecheck": "tsc --noEmit",
-    "harness:check": "npm run lint:check && npm run format:check && npm run typecheck",
-    "harness:fix": "npm run lint:fix && npm run format",
-    "harness:install-hooks": "node .harness/hooks/install-hooks.mjs",
-    "prepare": "node .harness/hooks/install-hooks.mjs"
+    "quality:check": "npm run lint:check && npm run format:check && npm run typecheck",
+    "quality:fix": "npm run lint:fix && npm run format"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.48",

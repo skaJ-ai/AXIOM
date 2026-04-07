@@ -7,7 +7,7 @@ import {
 } from '@/lib/deliverables/service';
 import { updateDeliverableRequestSchema } from '@/lib/deliverables/validators';
 
-// TODO(v0.3): Consolidate deliverables and reports into a single write domain. See Codex review blocker 5.
+// TODO(v0.3): Consolidate deliverables and reports into a single write domain.
 
 async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {

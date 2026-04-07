@@ -53,7 +53,7 @@ function WorkspaceSidebar({ user }: WorkspaceSidebarProps) {
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-2 px-5 py-5">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-accent)] text-white">
-          <span className="font-bold">A</span>
+          <span className="font-bold">H</span>
         </div>
         <div className="flex flex-col">
           <span className="text-lg font-bold tracking-tight text-[var(--color-accent)]">

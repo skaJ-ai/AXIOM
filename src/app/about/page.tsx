@@ -16,7 +16,7 @@ import {
 import type { BrandModeStoryItem, BrandValueCard } from '@/lib/brand';
 
 interface ComparisonRow {
-  axiom: string;
+  copilot: string;
   generalAi: string;
   label: string;
 }
@@ -48,7 +48,7 @@ const PAGE_COPY = {
     href: '/workspace/new',
     label: '새 작업 시작',
   },
-  subtitle: '랩 내부 베타 브리프',
+  subtitle: 'HR AX 플랫폼 브리프',
   title: '제품 개요',
 } as const;
 
@@ -57,32 +57,32 @@ const HERO_COPY = {
   headlineSecondLine: '생각의 흔적이 다음 작업의 출발점이 됩니다.',
   label: '개요',
   subtitle:
-    'AXIOM은 일반 채팅형 AI가 놓치기 쉬운 중간 산출물을 남기고, 랩 안에서 실험한 사고를 조직 기억으로 축적하는 4모드 워크벤치입니다.',
+    'HR AX Copilot은 일반 채팅형 AI가 놓치기 쉬운 중간 산출물을 남기고, HR AX 플랫폼 안에서 작업 맥락을 조직 기억으로 축적하는 공통 Copilot입니다.',
 } as const;
 
 const COMPARISON_ROWS: ComparisonRow[] = [
   {
-    axiom: '발산·검증·종합·작성의 구조가 있어 작업 목적에 맞는 사고 단계를 유지합니다.',
+    copilot: '발산·검증·종합·작성의 구조가 있어 작업 목적에 맞는 사고 단계를 유지합니다.',
     generalAi: '하나의 채팅에서 탐색, 반론, 요약, 작성이 모두 섞여 흐릅니다.',
     label: '사고 구조',
   },
   {
-    axiom: '아이디어, 리뷰, 주장, 캔버스가 각각 데이터로 남아 다음 세션으로 이어집니다.',
+    copilot: '아이디어, 리뷰, 주장, 캔버스가 각각 데이터로 남아 다음 세션으로 이어집니다.',
     generalAi: '대화 전문은 남아도 중간 판단을 재사용할 구조가 약합니다.',
     label: '중간 산출물',
   },
   {
-    axiom: '엔티티·팩트·인사이트와 메모리 청크로 분리되어 검색과 재활용이 쉬워집니다.',
+    copilot: '엔티티·팩트·인사이트와 메모리 청크로 분리되어 검색과 재활용이 쉬워집니다.',
     generalAi: '대화 로그나 문서 파일 단위로만 남아 다시 쓰려면 사람이 재해석해야 합니다.',
     label: '축적 방식',
   },
   {
-    axiom: '이전 세션의 핵심 결과만 압축해 다음 단계 프롬프트에 주입합니다.',
+    copilot: '이전 세션의 핵심 결과만 압축해 다음 단계 프롬프트에 주입합니다.',
     generalAi: '직접 붙여 넣지 않으면 맥락이 이어지지 않습니다.',
     label: '세션 연결',
   },
   {
-    axiom: '확신도, 근거 여부 태그, 위키 문서가 같이 남아 검증 가능한 설계 자산이 됩니다.',
+    copilot: '확신도, 근거 여부 태그, 위키 문서가 같이 남아 검증 가능한 설계 자산이 됩니다.',
     generalAi: '좋은 답변과 설계 의도를 별도로 정리해야 합니다.',
     label: '검증 가능성',
   },
@@ -91,13 +91,13 @@ const COMPARISON_ROWS: ComparisonRow[] = [
 const TRUST_SIGNALS: TrustSignal[] = [
   {
     description:
-      'AXIOM은 초안과 사고 재료를 제안할 뿐이며, 최종 판단과 확정은 항상 담당자가 수행합니다.',
+      'HR AX Copilot은 초안과 사고 재료를 제안할 뿐이며, 최종 판단과 확정은 항상 담당자가 수행합니다.',
     title: '최종 결정은 사람에게 남깁니다',
   },
   {
     description:
       '각 작업은 워크스페이스 안에서 격리되고, 사내망과 내부 저장소를 전제로 설계되어 있습니다.',
-    title: '랩 내부 전용 작업공간을 유지합니다',
+    title: 'HR AX 플랫폼 내부 작업공간을 유지합니다',
   },
   {
     description:
@@ -116,11 +116,11 @@ const INTRO_SLIDES: IntroSlide[] = [
     id: 'overview',
     label: '개요',
     summary: '브랜드 정의와 3줄 엘리베이터 피치를 먼저 보여줍니다.',
-    title: 'AXIOM을 어떻게 소개할 것인가',
+    title: 'HR AX Copilot을 어떻게 소개할 것인가',
   },
   {
     id: 'comparison',
-    label: '왜 AXIOM인가',
+    label: '왜 HR AX Copilot인가',
     summary: '일반 채팅형 AI와 달리 중간 산출물과 축적 구조를 전면에 둡니다.',
     title: '답변보다 구조가 다른 제품입니다',
   },
@@ -201,7 +201,7 @@ function renderComparisonRow(row: ComparisonRow): ReactElement {
       <td className="px-5 py-4 text-sm leading-6 text-[var(--color-text-secondary)]">
         {row.generalAi}
       </td>
-      <td className="px-5 py-4 text-sm leading-6 text-[var(--color-text)]">{row.axiom}</td>
+      <td className="px-5 py-4 text-sm leading-6 text-[var(--color-text)]">{row.copilot}</td>
     </tr>
   );
 }
@@ -286,7 +286,7 @@ function renderSlideContent(slide: IntroSlide): ReactElement {
           <span className="section-label">{slide.label}</span>
           <h2 className="text-3xl font-semibold text-[var(--color-text)]">{slide.title}</h2>
           <p className="max-w-3xl text-sm leading-7 text-[var(--color-text-secondary)]">
-            AXIOM은 좋은 답변을 내는 도구라기보다, 좋은 작업 구조를 남기는 도구로 포지셔닝됩니다.
+            HR AX Copilot은 좋은 답변을 내는 도구라기보다, 좋은 작업 구조를 남기는 도구로 포지셔닝됩니다.
           </p>
         </div>
         <div className="overflow-x-auto rounded-[var(--radius-lg)] border border-[var(--color-border)]">
@@ -377,7 +377,7 @@ function renderSlideContent(slide: IntroSlide): ReactElement {
         </div>
       </div>
       <div className="workspace-card-muted flex max-w-sm flex-col gap-3">
-        <p className="meta">내부 베타</p>
+        <p className="meta">HR AX 플랫폼</p>
         <p className="text-sm leading-6 text-[var(--color-text-secondary)]">
           설명보다 중요한 것은 실제 작업과 설계 문서가 서로 이어져 있다는 점입니다.
         </p>

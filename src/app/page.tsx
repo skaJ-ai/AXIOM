@@ -12,34 +12,34 @@ import {
 import type { BrandModeStoryItem } from '@/lib/brand';
 
 interface ComparisonRow {
-  axiom: string;
+  copilot: string;
   feature: string;
   generalAi: string;
 }
 
 const COMPARISON_ROWS: ComparisonRow[] = [
   {
-    axiom: '발산·검증·종합·작성으로 사고 단계를 분리해 작업 의도를 잃지 않습니다.',
+    copilot: '발산·검증·종합·작성으로 사고 단계를 분리해 작업 의도를 잃지 않습니다.',
     feature: '사고 구조',
     generalAi: '한 대화 안에서 탐색, 반론, 요약, 작성이 뒤섞입니다.',
   },
   {
-    axiom: '아이디어, 리뷰, 주장, 캔버스가 중간 산출물로 남아 다음 단계로 이어집니다.',
+    copilot: '아이디어, 리뷰, 주장, 캔버스가 중간 산출물로 남아 다음 단계로 이어집니다.',
     feature: '중간 산출물',
     generalAi: '답변은 남아도 어떤 판단이 어떻게 만들어졌는지 다시 꺼내기 어렵습니다.',
   },
   {
-    axiom: '엔티티·팩트·인사이트와 메모리 청크로 분리되어 조직 기억으로 축적됩니다.',
+    copilot: '엔티티·팩트·인사이트와 메모리 청크로 분리되어 조직 기억으로 축적됩니다.',
     feature: '축적 단위',
     generalAi: '대화 로그나 문서 파일 단위로만 남아 재사용 경로가 약합니다.',
   },
   {
-    axiom: '이전 세션의 핵심 결과만 압축해 다음 세션의 프롬프트 맥락으로 연결합니다.',
+    copilot: '이전 세션의 핵심 결과만 압축해 다음 세션의 프롬프트 맥락으로 연결합니다.',
     feature: '이어쓰기',
     generalAi: '이전 작업을 붙여 넣지 않으면 빈 화면에서 다시 시작합니다.',
   },
   {
-    axiom: '근거자료, 확신도, 근거 여부 태그, 위키 문서까지 같은 작업공간에서 연결됩니다.',
+    copilot: '근거자료, 확신도, 근거 여부 태그, 위키 문서까지 같은 작업공간에서 연결됩니다.',
     feature: '검증 가능성',
     generalAi: '좋은 답변이 나와도 근거와 설계 의도를 별도 관리해야 합니다.',
   },
@@ -158,7 +158,7 @@ export default function HomePage() {
           <div className="relative z-10 flex flex-col gap-8">
             <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[var(--color-teal-light)] px-4 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-teal)]">
               <span>●</span>
-              AX &amp; CI Lab 랩 내부 베타
+              HR AX 플랫폼 베타
             </div>
 
             <div className="flex flex-col gap-5">
@@ -248,7 +248,7 @@ export default function HomePage() {
           <div className="mb-12 flex flex-col gap-4">
             <span className="section-label">가치 제안</span>
             <h2 className="text-3xl font-bold tracking-tight text-[var(--color-accent)] md:text-5xl">
-              랩 멤버를 위한 작업공간으로 다시 정의합니다
+              HR 담당자의 작업공간으로 다시 정의합니다
             </h2>
             <p className="max-w-3xl text-lg leading-8 text-[var(--color-text-secondary)]">
               {BRAND_MEMBER_VALUE_PROPOSITION}
@@ -272,7 +272,7 @@ export default function HomePage() {
           <div className="mb-12 flex flex-col gap-4 text-center">
             <span className="section-label">4모드 이야기</span>
             <h2 className="text-3xl font-bold tracking-tight text-[var(--color-accent)] md:text-5xl">
-              AXIOM은 대화를 하나의 채팅이 아니라 네 단계의 사고 흐름으로 다룹니다
+              HR AX Copilot은 대화를 하나의 채팅이 아니라 네 단계의 사고 흐름으로 다룹니다
             </h2>
             <p className="mx-auto max-w-3xl text-lg leading-8 text-[var(--color-text-secondary)]">
               한 번의 답변으로 끝내지 않고, 가능성 탐색부터 문서화까지 각 단계가 남는 구조를 만드는
@@ -302,13 +302,13 @@ export default function HomePage() {
 
         <section className="mx-auto max-w-7xl px-6 py-20 lg:px-8" id="comparison">
           <div className="mb-12 flex flex-col gap-4 text-center">
-            <span className="section-label">왜 AXIOM인가</span>
+            <span className="section-label">왜 HR AX Copilot인가</span>
             <h2 className="text-3xl font-bold tracking-tight text-[var(--color-accent)] md:text-5xl">
               일반 채팅형 AI와 다른 점은 답변이 아니라 구조입니다
             </h2>
             <p className="mx-auto max-w-3xl text-lg leading-8 text-[var(--color-text-secondary)]">
-              AXIOM은 더 그럴듯하게 답하는 도구가 아니라, 사고와 근거를 다음 작업에서 다시 쓸 수
-              있게 남기는 구조를 제공합니다.
+              HR AX Copilot은 더 그럴듯하게 답하는 도구가 아니라, 사고와 근거를 다음 작업에서
+              다시 쓸 수 있게 남기는 구조를 제공합니다.
             </p>
           </div>
 
@@ -340,7 +340,7 @@ export default function HomePage() {
                       {row.generalAi}
                     </td>
                     <td className="px-5 py-5 text-sm leading-7 text-[var(--color-text)]">
-                      {row.axiom}
+                      {row.copilot}
                     </td>
                   </tr>
                 ))}
@@ -360,7 +360,7 @@ export default function HomePage() {
                 </h2>
                 <p className="mt-4 text-lg leading-8 text-white/80">
                   아이데이션 포인트 위키에는 디자인 토큰, 저장 구조, 4모드 사고 체계, 자동 축적
-                  파이프라인, 세션 체이닝까지 현재 AXIOM의 핵심 개념을 옮겨 적었습니다.
+                  파이프라인, 세션 체이닝까지 현재 HR AX Copilot의 핵심 개념을 옮겨 적었습니다.
                 </p>
               </div>
 
@@ -392,7 +392,7 @@ export default function HomePage() {
             <p className="text-sm text-[var(--color-text-secondary)]">{BRAND_TAGLINE}</p>
           </div>
           <p className="text-sm text-[var(--color-text-tertiary)]">
-            발산에서 작성까지, 생각의 흐름을 남기는 랩 내부 베타 워크벤치
+            발산에서 작성까지, 생각의 흐름을 남기는 HR AX 플랫폼 공통 Copilot
           </p>
         </div>
       </footer>

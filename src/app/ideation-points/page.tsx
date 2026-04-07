@@ -17,8 +17,8 @@ export default function IdeationPointsPage() {
             아이데이션 포인트는 “무엇을 만들었는가”보다 “왜 그렇게 만들었는가”를 남깁니다
           </h1>
           <p className="max-w-4xl text-lg leading-8 text-[var(--color-text-secondary)]">
-            미래의 엔지니어가 다른 플랫폼에 AXIOM의 개념을 옮길 때, 코드 구현이 아니라 설계 철학과
-            경계 조건을 먼저 이해하도록 돕는 위키입니다.
+            미래의 엔지니어가 다른 플랫폼에 HR AX 플랫폼과 HR AX Copilot의 개념을 옮길 때,
+            코드 구현이 아니라 설계 철학과 경계 조건을 먼저 이해하도록 돕는 위키입니다.
           </p>
         </div>
       </header>
@@ -43,8 +43,9 @@ export default function IdeationPointsPage() {
         <div className="flex flex-col gap-2">
           <h2 className="text-2xl font-semibold text-[var(--color-text)]">읽는 순서 제안</h2>
           <p className="text-sm leading-7 text-[var(--color-text-secondary)]">
-            디자인과 저장 구조로 시작해 사고 체계, 파이프라인, 메타데이터, 체이닝, 메모리 루프로
-            내려가면 제품의 전체 설계가 한 줄로 이어집니다.
+            의도 중심 인터뷰와 작업공간 전략, 공통 언어로 시작해 저장 구조, 자동 축적, 업무 재설계,
+            connector/action layer 초안, governance 초안, 사고 체계, 파이프라인, 근거 연결,
+            메타데이터, 체이닝, 메모리 루프로 내려가면 제품의 전체 설계가 한 줄로 이어집니다.
           </p>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
