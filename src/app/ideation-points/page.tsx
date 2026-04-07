@@ -57,7 +57,7 @@ export default function IdeationPointsPage() {
             >
               <div className="flex items-center justify-between gap-3">
                 <span className="badge badge-accent">{article.navLabel}</span>
-                <span className="meta">{article.sourcePaths.length}개 근거 파일</span>
+                <span className="meta">{article.sources.length}개 근거 파일</span>
               </div>
               <div className="flex flex-col gap-2">
                 <h3 className="text-xl font-bold text-[var(--color-text)] group-hover:text-[var(--color-accent)]">

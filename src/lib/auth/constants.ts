@@ -1,5 +1,5 @@
 const AUTH_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
-const AUTH_COOKIE_NAME = 'harp-token';
+const AUTH_COOKIE_NAME = 'hr-ax-token';
 const AUTH_REDIRECT_PATH = '/workspace';
 
 const AUTH_COOKIE_OPTIONS = {

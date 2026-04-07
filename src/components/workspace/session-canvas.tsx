@@ -78,7 +78,7 @@ const GUIDANCE_PRIORITY_ORDER: Record<GuidancePriority, number> = {
 };
 const PREVIEW_SECTION_CONTENT_MAX_LENGTH = 120;
 const READINESS_PARTIAL_GENERATE_THRESHOLD = 70;
-const SIDEBAR_WIDTH_STORAGE_KEY = 'harp-session-sidebar-width';
+const SIDEBAR_WIDTH_STORAGE_KEY = 'hr-ax-session-sidebar-width';
 const SIDEBAR_MIN_WIDTH = 320;
 const SIDEBAR_MAX_WIDTH = 520;
 const MIN_MAIN_PANEL_WIDTH = 720;

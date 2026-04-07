@@ -27,7 +27,7 @@ async function GET() {
           url: process.env.EMBEDDING_API_URL ?? null,
         },
       },
-      service: 'harp',
+      service: 'hr-ax-platform',
       status: databaseHealth.isHealthy ? 'ok' : 'degraded',
       timestamp: new Date().toISOString(),
     },

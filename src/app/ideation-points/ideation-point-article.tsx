@@ -29,9 +29,9 @@ function IdeationPointArticleView({ article }: IdeationPointArticleProps) {
         <div className="flex flex-col gap-3">
           <p className="section-label">근거 코드</p>
           <div className="flex flex-wrap gap-2">
-            {article.sourcePaths.map((sourcePath) => (
-              <span className="badge badge-neutral" key={sourcePath}>
-                {sourcePath}
+            {article.sources.map((source) => (
+              <span className="badge badge-neutral" key={`${source.kind}:${source.path}`}>
+                {source.path}
               </span>
             ))}
           </div>

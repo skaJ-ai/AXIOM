@@ -32,7 +32,7 @@ function getChatModel() {
 
       return globalThis.fetch(input, { ...init, headers });
     },
-    name: 'harp-qwen',
+    name: 'hr-ax-qwen',
   });
 
   return provider.chat(modelName);
