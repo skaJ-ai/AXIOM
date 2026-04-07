@@ -1,8 +1,10 @@
 import { convertToModelMessages, safeValidateUIMessages, streamText } from 'ai';
 
+import { parseModeMetadata, persistModeMetadata } from '@/lib/ai/mode-metadata';
 import { getChatModel } from '@/lib/ai/provider';
 import {
   buildInterviewContext,
+  buildModeInterviewContext,
   createMetadataCommentTransform,
   extractTextFromUiMessage,
   parseAssistantMetadata,
@@ -107,13 +109,20 @@ async function POST(request: Request, { params }: { params: Promise<{ id: string
           rawAssistantText += chunk.text;
         }
       },
-      system: buildInterviewContext({
-        currentChecklist: promptContext.checklist,
-        exampleText: promptContext.exampleText,
-        recentDeliverables: promptContext.recentDeliverables,
-        sources: promptContext.sources,
-        templateType: promptContext.templateType,
-      }),
+      system: promptContext.templateType
+        ? buildInterviewContext({
+            currentChecklist: promptContext.checklist,
+            exampleText: promptContext.exampleText,
+            recentDeliverables: promptContext.recentDeliverables,
+            sources: promptContext.sources,
+            templateType: promptContext.templateType,
+          })
+        : buildModeInterviewContext({
+            currentChecklist: promptContext.checklist,
+            exampleText: promptContext.exampleText,
+            mode: promptContext.mode,
+            sources: promptContext.sources,
+          }),
       temperature: 0.4,
     });
 
@@ -136,6 +145,11 @@ async function POST(request: Request, { params }: { params: Promise<{ id: string
           uiMessageId: responseMessage.id,
           workspaceId: currentUser.workspaceId,
         });
+
+        if (promptContext.mode !== 'write') {
+          const parsedModeMetadata = parseModeMetadata(rawAssistantText);
+          await persistModeMetadata(promptContext.mode, id, parsedModeMetadata);
+        }
       },
       originalMessages: requestMessages,
       sendReasoning: false,

@@ -17,14 +17,33 @@ type MemoryChunkStatus = 'active' | 'superseded';
 type MessageMetadata = Record<string, unknown>;
 type MessageRole = 'assistant' | 'system' | 'user';
 type SessionChecklist = Record<string, boolean>;
+type SessionMode = 'diverge' | 'synthesize' | 'validate' | 'write';
 type SessionStatus = 'completed' | 'in_progress';
 type SourceType = 'data' | 'table' | 'text';
 type TemplateType = 'analysis' | 'planning' | 'result' | 'status';
 type UserRole = 'admin' | 'user';
 
+type ReportType = 'briefing' | 'operation' | 'planning';
+type IdeaStatus = 'active' | 'discarded' | 'merged';
+type ClaimConfidence = 'high' | 'low' | 'medium';
+type ReviewCategory = 'assumption' | 'evidence_gap' | 'feasibility' | 'risk';
+type ReviewSeverity = 'high' | 'low' | 'medium';
+type PersonaType = 'critic' | 'custom' | 'executive' | 'field_worker' | 'union';
+type EntityType = 'department' | 'person' | 'policy' | 'program' | 'project';
+type FactCategory = 'headcount' | 'kpi' | 'participation' | 'progress' | 'satisfaction';
+type InsightCategory = 'decision' | 'lesson' | 'recommendation' | 'risk' | 'trend';
+type ReportStatus = 'draft' | 'final' | 'promoted_asset';
+
 interface DeliverableSection {
   cited: boolean;
   confidence: DeliverableSectionConfidence;
+  content: string;
+  name: string;
+}
+
+interface ReportSection {
+  cited: boolean;
+  confidence: ClaimConfidence;
   content: string;
   name: string;
 }
@@ -89,8 +108,11 @@ const sessionsTable = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     exampleText: text('example_text'),
     id: uuid('id').defaultRandom().primaryKey(),
+    mode: text('mode').$type<SessionMode>().default('write').notNull(),
+    parentSessionId: uuid('parent_session_id'),
+    reportType: text('report_type').$type<ReportType>(),
     status: text('status').$type<SessionStatus>().default('in_progress').notNull(),
-    templateType: text('template_type').$type<TemplateType>().notNull(),
+    templateType: text('template_type').$type<TemplateType>(),
     title: text('title'),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
     workspaceId: uuid('workspace_id')
@@ -98,6 +120,7 @@ const sessionsTable = pgTable(
       .references(() => workspacesTable.id, { onDelete: 'cascade' }),
   },
   (table) => ({
+    modeIndex: index('idx_sessions_mode').on(table.mode),
     templateIndex: index('idx_sessions_template_type').on(table.templateType),
     workspaceIndex: index('idx_sessions_workspace_id').on(table.workspaceId),
   }),
@@ -210,21 +233,254 @@ const memoryChunksTable = pgTable(
   }),
 );
 
+/* ── Mode Domain Tables ── */
+
+const ideasTable = pgTable(
+  'ideas',
+  {
+    content: text('content').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    id: uuid('id').defaultRandom().primaryKey(),
+    order: integer('order').default(0).notNull(),
+    sessionId: uuid('session_id')
+      .notNull()
+      .references(() => sessionsTable.id, { onDelete: 'cascade' }),
+    status: text('status').$type<IdeaStatus>().default('active').notNull(),
+  },
+  (table) => ({
+    sessionIndex: index('idx_ideas_session_id').on(table.sessionId),
+  }),
+);
+
+const clustersTable = pgTable(
+  'clusters',
+  {
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    id: uuid('id').defaultRandom().primaryKey(),
+    label: text('label').notNull(),
+    sessionId: uuid('session_id')
+      .notNull()
+      .references(() => sessionsTable.id, { onDelete: 'cascade' }),
+    summary: text('summary'),
+  },
+  (table) => ({
+    sessionIndex: index('idx_clusters_session_id').on(table.sessionId),
+  }),
+);
+
+const clusterIdeasTable = pgTable(
+  'cluster_ideas',
+  {
+    clusterId: uuid('cluster_id')
+      .notNull()
+      .references(() => clustersTable.id, { onDelete: 'cascade' }),
+    ideaId: uuid('idea_id')
+      .notNull()
+      .references(() => ideasTable.id, { onDelete: 'cascade' }),
+  },
+  (table) => ({
+    clusterIndex: index('idx_cluster_ideas_cluster_id').on(table.clusterId),
+    ideaIndex: index('idx_cluster_ideas_idea_id').on(table.ideaId),
+  }),
+);
+
+const claimsTable = pgTable(
+  'claims',
+  {
+    confidence: text('confidence').$type<ClaimConfidence>().default('medium').notNull(),
+    content: text('content').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    id: uuid('id').defaultRandom().primaryKey(),
+    sessionId: uuid('session_id')
+      .notNull()
+      .references(() => sessionsTable.id, { onDelete: 'cascade' }),
+  },
+  (table) => ({
+    sessionIndex: index('idx_claims_session_id').on(table.sessionId),
+  }),
+);
+
+const claimSourcesTable = pgTable(
+  'claim_sources',
+  {
+    claimId: uuid('claim_id')
+      .notNull()
+      .references(() => claimsTable.id, { onDelete: 'cascade' }),
+    excerpt: text('excerpt'),
+    sourceId: uuid('source_id')
+      .notNull()
+      .references(() => sourcesTable.id, { onDelete: 'cascade' }),
+  },
+  (table) => ({
+    claimIndex: index('idx_claim_sources_claim_id').on(table.claimId),
+    sourceIndex: index('idx_claim_sources_source_id').on(table.sourceId),
+  }),
+);
+
+const reviewsTable = pgTable(
+  'reviews',
+  {
+    category: text('category').$type<ReviewCategory>().notNull(),
+    content: text('content').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    id: uuid('id').defaultRandom().primaryKey(),
+    personaName: text('persona_name').notNull(),
+    personaType: text('persona_type').$type<PersonaType>().default('critic').notNull(),
+    sessionId: uuid('session_id')
+      .notNull()
+      .references(() => sessionsTable.id, { onDelete: 'cascade' }),
+    severity: text('severity').$type<ReviewSeverity>().default('medium').notNull(),
+    suggestion: text('suggestion'),
+  },
+  (table) => ({
+    sessionIndex: index('idx_reviews_session_id').on(table.sessionId),
+  }),
+);
+
+const reportsTable = pgTable(
+  'reports',
+  {
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    id: uuid('id').defaultRandom().primaryKey(),
+    reportType: text('report_type').$type<ReportType>().notNull(),
+    sections: jsonb('sections').$type<ReportSection[]>().notNull(),
+    sessionId: uuid('session_id').references(() => sessionsTable.id, { onDelete: 'set null' }),
+    status: text('status').$type<ReportStatus>().default('draft').notNull(),
+    title: text('title').notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    version: integer('version').default(1).notNull(),
+    workspaceId: uuid('workspace_id')
+      .notNull()
+      .references(() => workspacesTable.id, { onDelete: 'cascade' }),
+  },
+  (table) => ({
+    sessionIndex: index('idx_reports_session_id').on(table.sessionId),
+    workspaceIndex: index('idx_reports_workspace_id').on(table.workspaceId),
+  }),
+);
+
+/* ── Knowledge Tables ── */
+
+const entitiesTable = pgTable(
+  'entities',
+  {
+    aliases: jsonb('aliases').$type<string[]>().default([]).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    firstSeenAt: timestamp('first_seen_at', { withTimezone: true }).defaultNow().notNull(),
+    id: uuid('id').defaultRandom().primaryKey(),
+    lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).defaultNow().notNull(),
+    name: text('name').notNull(),
+    type: text('type').$type<EntityType>().notNull(),
+    workspaceId: uuid('workspace_id')
+      .notNull()
+      .references(() => workspacesTable.id, { onDelete: 'cascade' }),
+  },
+  (table) => ({
+    nameIndex: index('idx_entities_name').on(table.name),
+    workspaceIndex: index('idx_entities_workspace_id').on(table.workspaceId),
+  }),
+);
+
+const factsTable = pgTable(
+  'facts',
+  {
+    category: text('category').$type<FactCategory>().notNull(),
+    content: text('content').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    entityId: uuid('entity_id')
+      .notNull()
+      .references(() => entitiesTable.id, { onDelete: 'cascade' }),
+    id: uuid('id').defaultRandom().primaryKey(),
+    numericValue: text('numeric_value'),
+    periodLabel: text('period_label'),
+    sourceReportId: uuid('source_report_id').references(() => reportsTable.id, {
+      onDelete: 'set null',
+    }),
+    unit: text('unit'),
+    workspaceId: uuid('workspace_id')
+      .notNull()
+      .references(() => workspacesTable.id, { onDelete: 'cascade' }),
+  },
+  (table) => ({
+    entityIndex: index('idx_facts_entity_id').on(table.entityId),
+    workspaceIndex: index('idx_facts_workspace_id').on(table.workspaceId),
+  }),
+);
+
+const insightsTable = pgTable(
+  'insights',
+  {
+    category: text('category').$type<InsightCategory>().notNull(),
+    confidence: text('confidence').$type<ClaimConfidence>().default('medium').notNull(),
+    content: text('content').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    id: uuid('id').defaultRandom().primaryKey(),
+    sourceReportId: uuid('source_report_id').references(() => reportsTable.id, {
+      onDelete: 'set null',
+    }),
+    workspaceId: uuid('workspace_id')
+      .notNull()
+      .references(() => workspacesTable.id, { onDelete: 'cascade' }),
+  },
+  (table) => ({
+    workspaceIndex: index('idx_insights_workspace_id').on(table.workspaceId),
+  }),
+);
+
+const entityInsightsTable = pgTable(
+  'entity_insights',
+  {
+    entityId: uuid('entity_id')
+      .notNull()
+      .references(() => entitiesTable.id, { onDelete: 'cascade' }),
+    insightId: uuid('insight_id')
+      .notNull()
+      .references(() => insightsTable.id, { onDelete: 'cascade' }),
+  },
+  (table) => ({
+    entityIndex: index('idx_entity_insights_entity_id').on(table.entityId),
+    insightIndex: index('idx_entity_insights_insight_id').on(table.insightId),
+  }),
+);
+
 export {
+  claimSourcesTable,
+  claimsTable,
+  clusterIdeasTable,
+  clustersTable,
   deliverablesTable,
+  entitiesTable,
+  entityInsightsTable,
+  factsTable,
+  ideasTable,
+  insightsTable,
   memoryChunksTable,
   messagesTable,
+  reportsTable,
+  reviewsTable,
   sessionsTable,
   sourcesTable,
   usersTable,
   workspacesTable,
 };
 export type {
+  ClaimConfidence,
   DeliverableSection,
   DeliverableStatus,
+  EntityType,
+  FactCategory,
+  IdeaStatus,
+  InsightCategory,
   MemoryChunkKind,
   MemoryChunkStatus,
+  PersonaType,
+  ReportSection,
+  ReportStatus,
+  ReportType,
+  ReviewCategory,
+  ReviewSeverity,
   SessionChecklist,
+  SessionMode,
   SessionStatus,
   SourceType,
   TemplateType,

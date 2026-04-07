@@ -1,4 +1,5 @@
-import type { SessionChecklist, TemplateType } from '@/lib/db/schema';
+import type { SessionChecklist, SessionMode, TemplateType } from '@/lib/db/schema';
+import { getModeByType } from '@/lib/modes';
 import type {
   SessionCanvasState,
   SessionCanvasUpdate,
@@ -30,6 +31,7 @@ interface ParsedAssistantMetadata {
 }
 
 const CHECKLIST_METADATA_MARKER = '<!-- checklist:';
+const MODE_METADATA_MARKER = '<!-- mode-meta:';
 const EXAMPLE_TEXT_PROMPT_MAX_LENGTH = 3000;
 
 function truncatePromptReference(text: string, maxLength: number): string {
@@ -123,7 +125,10 @@ function createMetadataCommentTransform(): StreamTextTransform<Record<string, ne
 
         buffer += chunk.text;
 
-        const markerIndex = buffer.indexOf(CHECKLIST_METADATA_MARKER);
+        const checklistIndex = buffer.indexOf(CHECKLIST_METADATA_MARKER);
+        const modeMetaIndex = buffer.indexOf(MODE_METADATA_MARKER);
+        const markerCandidates = [checklistIndex, modeMetaIndex].filter((index) => index >= 0);
+        const markerIndex = markerCandidates.length > 0 ? Math.min(...markerCandidates) : -1;
 
         if (markerIndex >= 0) {
           const visibleText = buffer.slice(0, markerIndex);
@@ -140,7 +145,11 @@ function createMetadataCommentTransform(): StreamTextTransform<Record<string, ne
           return;
         }
 
-        const safeBoundary = Math.max(0, buffer.length - CHECKLIST_METADATA_MARKER.length + 1);
+        const longestMarkerLength = Math.max(
+          CHECKLIST_METADATA_MARKER.length,
+          MODE_METADATA_MARKER.length,
+        );
+        const safeBoundary = Math.max(0, buffer.length - longestMarkerLength + 1);
 
         if (safeBoundary === 0) {
           return;
@@ -173,6 +182,7 @@ function parseAssistantMetadata(rawAssistantText: string): ParsedAssistantMetada
   const visibleText = rawAssistantText
     .replace(/<!--\s*checklist:(.*?)-->/gs, '')
     .replace(/<!--\s*canvas:(.*?)-->/gs, '')
+    .replace(/<!--\s*mode-meta:[a-z]+:[\s\S]*?-->/g, '')
     .trim();
 
   return {
@@ -287,8 +297,64 @@ function getMethodologySuggestions(
   return allMethodologies;
 }
 
+interface BuildModeInterviewContextOptions {
+  currentChecklist: SessionChecklist;
+  exampleText?: string | null;
+  mode: SessionMode;
+  sources: {
+    content: string;
+    label: string | null;
+    type: string | null;
+  }[];
+}
+
+function buildModeInterviewContext({
+  currentChecklist,
+  exampleText,
+  mode,
+  sources,
+}: BuildModeInterviewContextOptions): string {
+  const modeDefinition = getModeByType(mode);
+  const checklistState = JSON.stringify(currentChecklist);
+  const sourceContext =
+    sources.length > 0
+      ? sources
+          .map((source, index) => {
+            const normalizedContent = source.content.trim().replace(/\s+/g, ' ').slice(0, 1200);
+            const label = source.label ?? `자료 ${index + 1}`;
+            const sourceType = source.type ?? 'text';
+
+            return `- [${label} | ${sourceType}] ${normalizedContent}`;
+          })
+          .join('\n')
+      : '- 현재 첨부된 근거자료 없음';
+  const exampleContext =
+    exampleText && exampleText.trim().length > 0
+      ? truncatePromptReference(exampleText.trim(), EXAMPLE_TEXT_PROMPT_MAX_LENGTH)
+      : null;
+
+  return [
+    modeDefinition.systemPrompt.interview,
+    '',
+    '[현재 체크리스트 상태]',
+    checklistState,
+    '',
+    '[현재 세션 근거자료]',
+    sourceContext,
+    '',
+    ...(exampleContext
+      ? [
+          '[사용자 제공 예시 문서]',
+          '아래는 사용자가 참고용으로 제공한 예시 문서입니다.',
+          exampleContext,
+        ]
+      : []),
+  ].join('\n');
+}
+
 export {
   buildInterviewContext,
+  buildModeInterviewContext,
   createMetadataCommentTransform,
   EXAMPLE_TEXT_PROMPT_MAX_LENGTH,
   extractTextFromUiMessage,

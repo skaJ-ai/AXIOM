@@ -25,3 +25,25 @@ interface PaginatedResponse<T> {
 }
 
 export type { ApiResponse, PaginatedResponse, PaginationParams };
+
+/** Re-export schema types for convenience */
+export type {
+  ClaimConfidence,
+  DeliverableSection,
+  DeliverableStatus,
+  EntityType,
+  FactCategory,
+  IdeaStatus,
+  InsightCategory,
+  PersonaType,
+  ReportSection,
+  ReportStatus,
+  ReportType,
+  ReviewCategory,
+  ReviewSeverity,
+  SessionMode,
+  SessionStatus,
+  SourceType,
+  TemplateType,
+  UserRole,
+} from '@/lib/db/schema';

@@ -220,7 +220,7 @@ function renderWorkspaceEmptyState({
 function computeGuidanceItems(session: SessionDetail): GuidanceItem[] {
   const items: GuidanceItem[] = [];
 
-  const highWeightGaps = session.template.checklist.filter(
+  const highWeightGaps = (session.template?.checklist ?? []).filter(
     (item) => item.weight >= GUIDANCE_HIGH_WEIGHT_THRESHOLD && session.checklist[item.id] !== true,
   );
 
@@ -913,8 +913,8 @@ function SessionCanvas({ initialSession }: SessionCanvasProps) {
               <div className="flex flex-col gap-1">
                 <h2 className="text-lg font-semibold text-[var(--color-text)]">AXIOM와 인터뷰</h2>
                 <p className="text-sm leading-6 text-[var(--color-text-secondary)]">
-                  {currentSession.template.name} · 한 번에 한 항목씩 답하면 캔버스가 같이
-                  채워집니다.
+                  {currentSession.template?.name ?? currentSession.modeSummary.name} · 한 번에 한
+                  항목씩 답하면 캔버스가 같이 채워집니다.
                 </p>
               </div>
             </div>
@@ -1009,13 +1009,16 @@ function SessionCanvas({ initialSession }: SessionCanvasProps) {
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="process-flow">
                     <span>Template</span>
-                    <span className="current">{currentSession.template.name}</span>
+                    <span className="current">
+                      {currentSession.template?.name ?? currentSession.modeSummary.name}
+                    </span>
                   </span>
                   <span className={`badge ${readinessBadgeClassName}`}>
                     {readinessPercent}% 준비
                   </span>
                   <span className="badge badge-neutral">
-                    체크리스트 {completedChecklistCount}/{currentSession.template.checklist.length}
+                    체크리스트 {completedChecklistCount}/
+                    {(currentSession.template?.checklist ?? []).length}
                   </span>
                   <span className="badge badge-neutral">
                     자료 {currentSession.sources.length}개
@@ -1221,12 +1224,13 @@ function SessionCanvas({ initialSession }: SessionCanvasProps) {
                         </h2>
                       </div>
                       <span className="badge badge-accent">
-                        {completedChecklistCount}/{currentSession.template.checklist.length}
+                        {completedChecklistCount}/
+                        {(currentSession.template?.checklist ?? []).length}
                       </span>
                     </div>
 
                     <div className="grid gap-3">
-                      {currentSession.template.checklist.map(renderChecklistItem)}
+                      {(currentSession.template?.checklist ?? []).map(renderChecklistItem)}
                     </div>
                   </section>
 

@@ -266,7 +266,11 @@ function buildGenerationPromptContext({
       ? messages
           .map((message) => {
             const roleLabel =
-              message.role === 'user' ? '담당자' : message.role === 'assistant' ? 'AXIOM' : '시스템';
+              message.role === 'user'
+                ? '담당자'
+                : message.role === 'assistant'
+                  ? 'AXIOM'
+                  : '시스템';
 
             return `- ${roleLabel}: ${message.content.trim().replace(/\s+/g, ' ').slice(0, 1600)}`;
           })
@@ -510,6 +514,14 @@ async function generateDeliverableForSession({
     throw new Error('세션을 찾을 수 없습니다.');
   }
 
+  if (!sessionRow.templateType) {
+    throw new Error(
+      '이 세션에는 템플릿이 지정되지 않았습니다. 작성 모드에서 템플릿을 선택해 주세요.',
+    );
+  }
+
+  const sessionTemplateType = sessionRow.templateType;
+
   const [messageRows, sourceRows, referenceRows, latestSessionDeliverableRows] = await Promise.all([
     database
       .select({
@@ -537,7 +549,7 @@ async function generateDeliverableForSession({
       .where(
         and(
           eq(deliverablesTable.workspaceId, workspaceId),
-          eq(deliverablesTable.templateType, sessionRow.templateType),
+          eq(deliverablesTable.templateType, sessionTemplateType),
           ne(deliverablesTable.sessionId, sessionId),
         ),
       )
@@ -566,7 +578,7 @@ async function generateDeliverableForSession({
       .limit(1),
   ]);
 
-  const template = getTemplateByType(sessionRow.templateType);
+  const template = getTemplateByType(sessionTemplateType);
   const semanticReferences = await searchMemoryChunksHybrid({
     currentSessionId: sessionId,
     limit: SEMANTIC_REFERENCE_LIMIT,
@@ -576,7 +588,7 @@ async function generateDeliverableForSession({
       sessionTitle: sessionRow.title ?? template.name,
       sources: sourceRows,
     }),
-    templateType: sessionRow.templateType,
+    templateType: sessionTemplateType,
     workspaceId,
   }).catch((error) => {
     console.error('Failed to fetch semantic references for deliverable generation.', {
@@ -596,14 +608,14 @@ async function generateDeliverableForSession({
       semanticReferences,
       sessionTitle: sessionRow.title ?? template.name,
       sources: sourceRows,
-      templateType: sessionRow.templateType,
+      templateType: sessionTemplateType,
     }),
     system: template.systemPrompt.generate,
     temperature: 0.2,
   });
   const parsedDeliverable = parseDeliverableMarkdown({
     rawMarkdown: generationResult.text,
-    templateType: sessionRow.templateType,
+    templateType: sessionTemplateType,
   });
 
   if (!parsedDeliverable) {
@@ -635,7 +647,7 @@ async function generateDeliverableForSession({
           sections: parsedDeliverable.sections,
           sessionId,
           status: 'draft',
-          templateType: sessionRow.templateType,
+          templateType: sessionTemplateType,
           title: nextTitle,
           version: nextVersion,
           workspaceId,

@@ -17,49 +17,56 @@ interface ComparisonRow {
 const FEATURES: FeatureCard[] = [
   {
     description:
-      '인터뷰 답변과 근거자료를 넣으면 템플릿 기반의 구조화된 보고서 초안이 나옵니다. 프롬프트를 고민할 필요 없이, 질문에 답하면 됩니다.',
-    eyebrow: '핵심 가치',
-    title: '자료 기반 보고서 생성',
+      '흩어진 생각을 자유롭게 던지면 AI가 구조화된 아이디어와 클러스터로 정리합니다. 판단 없이 발산하고, 패턴을 발견합니다.',
+    eyebrow: '발산',
+    title: '아이디어 발산 모드',
   },
   {
     description:
-      '같은 워크스페이스에 자료와 산출물이 계속 쌓입니다. 다음 보고서를 쓸 때 이전 산출물을 자동으로 참조해 톤과 구조를 유지합니다.',
-    eyebrow: '차별점',
+      '임원·현업·비판자 등 다양한 페르소나가 기획안의 허점과 리스크를 짚어줍니다. 혼자 보지 못한 사각지대를 조명합니다.',
+    eyebrow: '검증',
     isTeal: true,
-    title: '쌓일수록 정확해지는 작업공간',
+    title: '다관점 검증 모드',
   },
   {
     description:
-      '사내 LLM을 사용하고, 모든 데이터는 내 워크스페이스 안에만 존재합니다. 외부 서버로 전송되지 않습니다.',
-    eyebrow: '보안',
-    title: 'Private-first 설계',
+      '여러 자료의 공통 패턴과 모순을 찾아 핵심 클레임을 추출합니다. 자료가 많을수록 분석은 더 정교해집니다.',
+    eyebrow: '종합',
+    title: '자료 종합 모드',
+  },
+  {
+    description:
+      '발산·검증·종합 결과를 이어받아 운영안·기획안·관련 보고로 바로 전환됩니다. 정리된 재료가 곧 보고서가 됩니다.',
+    eyebrow: '작성',
+    isTeal: true,
+    title: '보고서 작성 모드',
   },
 ];
 
 const COMPARISON_ROWS: ComparisonRow[] = [
   {
-    claude: '대화 끝나면 휘발',
-    feature: '자료 누적',
-    gauss: '매번 새 대화',
-    harp: '워크스페이스에 영구 누적',
+    claude: '단일 대화 흐름',
+    feature: '사고 모드',
+    gauss: '단일 흐름',
+    harp: '발산·검증·종합·작성 4모드',
   },
   {
-    claude: '프롬프트에 의존',
-    feature: '구조화된 보고서',
-    gauss: '자유 형식',
-    harp: '템플릿 기반 섹션별 생성',
+    claude: '대화 끝나면 휘발',
+    feature: '지식 축적',
+    gauss: '매번 새 대화',
+    harp: '엔티티·사실·인사이트 자동 추출',
   },
   {
     claude: '불가',
-    feature: '이전 산출물 참조',
+    feature: '세션 연결',
     gauss: '불가',
-    harp: '같은 유형 자동 참조',
+    harp: '발산→검증→작성 이어가기',
   },
   {
     claude: '없음',
     feature: '근거 추적',
     gauss: '없음',
-    harp: '섹션별 confidence + 근거 라벨',
+    harp: '섹션별 confidence + 출처 연결',
   },
   {
     claude: '외부 전송 필요',
@@ -117,13 +124,13 @@ export default function HomePage() {
               <span>✦</span> HR AI Report Platform
             </div>
             <h1 className="text-balance text-5xl font-extrabold leading-[1.1] tracking-tight text-[var(--color-accent)] md:text-6xl lg:text-7xl">
-              자료를 넣으면
+              생각을 넣으면
               <br />
-              <span className="text-[var(--color-teal)]">보고서</span>가 나옵니다
+              <span className="text-[var(--color-teal)]">구조</span>가 나옵니다
             </h1>
             <p className="max-w-lg text-lg font-medium leading-relaxed text-[var(--color-text-secondary)]">
-              인터뷰 답변과 근거자료를 쌓으면 AI가 구조화된 초안을 만들어줍니다. 쓸수록 이전
-              산출물을 참조해 품질이 올라갑니다.
+              발산·검증·종합·작성 4가지 사고 모드로 아이디어를 정리합니다. 그 과정에서 조직 지식이
+              자동으로 축적되어, 다음 작업이 더 빨라집니다.
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
               <Link

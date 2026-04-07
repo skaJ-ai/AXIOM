@@ -86,6 +86,16 @@
     --duration-normal: 200ms;
     --duration-slow: 300ms;
     --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+    /* Mode Colors */
+    --color-mode-diverge: #00bfa5;
+    --color-mode-validate: #d08700;
+    --color-mode-synthesize: #0969da;
+    --color-mode-write: #1b873f;
+    --color-mode-diverge-light: #e0faf6;
+    --color-mode-validate-light: #fff4d4;
+    --color-mode-synthesize-light: #ddf4ff;
+    --color-mode-write-light: #e6f6ec;
   }
 
   /* Dark mode override */
@@ -612,6 +622,75 @@
     font-size: 0.8125rem;
     font-weight: 600;
     color: var(--color-text);
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 16rem;
+    flex-shrink: 0;
+    background-color: var(--color-bg-elevated);
+    border-right: 1px solid var(--color-border-subtle);
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 30;
+    overflow-y: auto;
+  }
+
+  .sidebar-nav-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    transition:
+      background-color var(--duration-fast),
+      color var(--duration-fast);
+  }
+  .sidebar-nav-item:hover {
+    background-color: var(--color-bg-sunken);
+    color: var(--color-text);
+  }
+  .sidebar-nav-item[data-active='true'] {
+    background-color: var(--color-accent-light);
+    color: var(--color-accent);
+    font-weight: 600;
+  }
+
+  /* Topbar */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--color-border-subtle);
+    padding: var(--space-3) var(--space-6);
+  }
+  .dark .topbar {
+    background-color: rgba(20, 20, 20, 0.8);
+  }
+
+  /* Mode Badge */
+  .badge-mode-diverge {
+    background-color: var(--color-mode-diverge-light);
+    color: var(--color-mode-diverge);
+  }
+  .badge-mode-validate {
+    background-color: var(--color-mode-validate-light);
+    color: var(--color-mode-validate);
+  }
+  .badge-mode-synthesize {
+    background-color: var(--color-mode-synthesize-light);
+    color: var(--color-mode-synthesize);
+  }
+  .badge-mode-write {
+    background-color: var(--color-mode-write-light);
+    color: var(--color-mode-write);
   }
 }
 

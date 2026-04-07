@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
+import { SessionCanvasShell } from '@/components/workspace/canvas/session-canvas-shell';
 import { WorkspacePageHeader } from '@/components/workspace/page-header';
-import { SessionCanvas } from '@/components/workspace/session-canvas';
 import { requireAuthenticatedPageUser } from '@/lib/auth/middleware';
 import { getSessionDetailForWorkspace } from '@/lib/sessions/service';
 
@@ -33,11 +33,13 @@ export default async function WorkspaceSessionPage({
               </Link>
             </>
           }
-          description={`${session.template.name} 템플릿으로 진행 중인 인터뷰입니다. 중앙 작업영역에서 초안을 정리하고, 오른쪽 패널에서 질문과 근거를 이어갑니다.`}
-          eyebrow="Interview Session"
+          description={`${session.modeSummary.name}로 진행 중인 세션입니다. 중앙 작업영역에서 초안을 정리하고, 오른쪽 패널에서 질문과 근거를 이어갑니다.`}
+          eyebrow="Session Canvas"
           meta={
             <>
-              <span className="badge badge-accent">{session.template.name}</span>
+              <span className={`badge badge-mode-${session.mode}`}>
+                {session.modeSummary.badge.label}
+              </span>
               <span className="badge badge-neutral">{session.status}</span>
               <span className="badge badge-teal">메시지 {session.messageCount}개</span>
               <span className="badge badge-neutral">자료 {session.sourceCount}개</span>
@@ -47,7 +49,7 @@ export default async function WorkspaceSessionPage({
           variant="compact"
         />
 
-        <SessionCanvas initialSession={session} />
+        <SessionCanvasShell initialSession={session} />
       </div>
     </main>
   );

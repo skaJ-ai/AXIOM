@@ -54,8 +54,13 @@ async function POST(request: Request) {
 
     const session = await createSessionForWorkspace(
       currentUser.workspaceId,
-      parsedRequest.data.templateType,
-      parsedRequest.data.exampleText,
+      parsedRequest.data.mode,
+      {
+        exampleText: parsedRequest.data.exampleText,
+        parentSessionId: parsedRequest.data.parentSessionId,
+        reportType: parsedRequest.data.reportType,
+        templateType: parsedRequest.data.templateType,
+      },
     );
 
     return NextResponse.json(

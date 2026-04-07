@@ -8,7 +8,10 @@ const createSessionRequestSchema = z.object({
     .trim()
     .max(EXAMPLE_TEXT_MAX_LENGTH, `예시 문서는 ${EXAMPLE_TEXT_MAX_LENGTH}자 이내로 입력해 주세요.`)
     .optional(),
-  templateType: z.enum(['analysis', 'planning', 'result', 'status']),
+  mode: z.enum(['diverge', 'validate', 'synthesize', 'write']),
+  parentSessionId: z.string().uuid().optional(),
+  reportType: z.enum(['operation', 'planning', 'briefing']).optional(),
+  templateType: z.enum(['analysis', 'planning', 'result', 'status']).optional(),
 });
 
 const createSourceRequestSchema = z.object({

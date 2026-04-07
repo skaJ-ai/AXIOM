@@ -1,13 +1,15 @@
 import Link from 'next/link';
 
+import { DashboardKpiCard } from '@/components/workspace/dashboard-kpi-card';
+import { ModeBadge } from '@/components/workspace/mode-badge';
 import { WorkspacePageHeader } from '@/components/workspace/page-header';
-import { SessionList } from '@/components/workspace/session-list';
+import { SessionCard } from '@/components/workspace/session-card';
 import { requireAuthenticatedPageUser } from '@/lib/auth/middleware';
+import type { SessionMode } from '@/lib/db/schema';
 import { listDeliverablesByWorkspace } from '@/lib/deliverables/service';
 import { searchWorkspaceContent } from '@/lib/search/service';
 import type { WorkspaceSearchResult } from '@/lib/search/types';
 import { listSessionsByWorkspace } from '@/lib/sessions/service';
-import { getTemplateByType } from '@/lib/templates';
 
 function getSearchKindBadgeLabel(result: WorkspaceSearchResult): string {
   return result.kind === 'deliverable' ? '산출물' : '근거자료';
@@ -15,11 +17,18 @@ function getSearchKindBadgeLabel(result: WorkspaceSearchResult): string {
 
 function getSearchMetaLabel(result: WorkspaceSearchResult): string {
   if (result.kind === 'deliverable') {
-    return `${result.templateType ? getTemplateByType(result.templateType).name : 'template'} · ${result.status ?? 'draft'}`;
+    return `${result.templateType ?? 'report'} · ${result.status ?? 'draft'}`;
   }
 
   return `session source · ${result.sourceType ?? 'text'}`;
 }
+
+const MODE_QUICKSTART: { description: string; mode: SessionMode; name: string }[] = [
+  { description: '흩어진 생각을 구조화', mode: 'diverge', name: '발산' },
+  { description: '다양한 관점에서 검토', mode: 'validate', name: '검증' },
+  { description: '여러 자료의 핵심 추출', mode: 'synthesize', name: '종합' },
+  { description: '정리된 재료로 보고서 작성', mode: 'write', name: '작성' },
+];
 
 export default async function WorkspacePage({
   searchParams,
@@ -39,8 +48,18 @@ export default async function WorkspacePage({
         })
       : Promise.resolve([]),
   ]);
-  const recentSessions = sessions.slice(0, 6);
+  const recentSessions = sessions.slice(0, 8);
   const recentDeliverables = deliverables.slice(0, 6);
+  const sessionsByMode: Record<SessionMode, number> = {
+    diverge: 0,
+    synthesize: 0,
+    validate: 0,
+    write: 0,
+  };
+
+  for (const session of sessions) {
+    sessionsByMode[session.mode] += 1;
+  }
 
   return (
     <main className="px-6 py-10">
@@ -56,7 +75,7 @@ export default async function WorkspacePage({
               </Link>
             </>
           }
-          description="private-first 환경에서 세션, 근거자료, 산출물을 누적하고, 같은 유형의 이전 작업을 다시 참조할 수 있습니다."
+          description="4가지 사고 모드로 아이디어를 발산·검증·종합하고, 정리된 재료로 보고서를 작성합니다."
           eyebrow="Private Workspace"
           meta={
             <>
@@ -69,36 +88,22 @@ export default async function WorkspacePage({
           title={`${currentUser.name}님의 AXIOM 작업공간`}
         />
 
-        <section className="mb-6 grid gap-6 md:grid-cols-4">
-          <div className="workspace-card flex flex-col gap-3">
-            <span className="meta w-fit rounded border-[var(--color-border-strong)] bg-[var(--color-bg-sunken)] px-2 py-1">
-              Workspace
-            </span>
-            <div>
-              <p className="text-xl font-bold text-[var(--color-text)]">
-                {currentUser.workspaceName}
-              </p>
-              <p className="mt-1 text-sm text-[var(--color-text-secondary)]">private-first</p>
-            </div>
-          </div>
-          <div className="workspace-card flex flex-col gap-3">
-            <span className="meta w-fit rounded border-[var(--color-border-strong)] bg-[var(--color-bg-sunken)] px-2 py-1">
-              Sessions
-            </span>
-            <div>
-              <p className="text-xl font-bold text-[var(--color-text)]">{sessions.length}</p>
-              <p className="mt-1 text-sm text-[var(--color-text-secondary)]">진행 중인 대화</p>
-            </div>
-          </div>
-          <div className="workspace-card flex flex-col gap-3">
-            <span className="meta w-fit rounded border-[var(--color-border-strong)] bg-[var(--color-bg-sunken)] px-2 py-1">
-              Deliverables
-            </span>
-            <div>
-              <p className="text-xl font-bold text-[var(--color-text)]">{deliverables.length}</p>
-              <p className="mt-1 text-sm text-[var(--color-text-secondary)]">누적된 산출물</p>
-            </div>
-          </div>
+        <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+          <DashboardKpiCard
+            detail={`이번 워크스페이스 ${sessions.length}개`}
+            label="Sessions"
+            value={sessions.length}
+          />
+          <DashboardKpiCard
+            detail={`발산 ${sessionsByMode.diverge} · 검증 ${sessionsByMode.validate} · 종합 ${sessionsByMode.synthesize} · 작성 ${sessionsByMode.write}`}
+            label="모드 분포"
+            value={`${sessionsByMode.diverge + sessionsByMode.validate + sessionsByMode.synthesize + sessionsByMode.write}`}
+          />
+          <DashboardKpiCard
+            detail="누적된 보고서/산출물"
+            label="Deliverables"
+            value={deliverables.length}
+          />
           <div className="workspace-card-muted flex flex-col justify-center gap-3">
             <form action="/workspace" className="flex flex-col gap-3">
               <input
@@ -115,8 +120,32 @@ export default async function WorkspacePage({
           </div>
         </section>
 
+        <section className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <h2 className="font-headline text-xl font-bold text-[var(--color-text)]">빠른 시작</h2>
+            <Link
+              className="text-sm font-semibold text-[var(--color-accent)] hover:underline"
+              href="/workspace/new"
+            >
+              새 작업 만들기 →
+            </Link>
+          </div>
+          <div className="grid gap-3 md:grid-cols-4">
+            {MODE_QUICKSTART.map((entry) => (
+              <Link
+                className="workspace-card group flex flex-col gap-2 transition hover:-translate-y-1 hover:border-[var(--color-accent)]"
+                href="/workspace/new"
+                key={entry.mode}
+              >
+                <ModeBadge label={entry.name} mode={entry.mode} />
+                <p className="text-sm text-[var(--color-text-secondary)]">{entry.description}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
+
         {query.length > 0 ? (
-          <section className="mb-6 flex flex-col gap-4">
+          <section className="flex flex-col gap-4">
             <div className="flex items-center gap-3">
               <p className="meta">Workspace Search</p>
               <h2 className="text-xl font-bold text-[var(--color-text)]">
@@ -166,30 +195,32 @@ export default async function WorkspacePage({
         <div className="grid gap-6 xl:grid-cols-2">
           <section className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-accent-light)] text-[var(--color-accent)]">
-                  <span className="font-bold">✦</span>
-                </span>
-                <h2 className="font-headline text-xl font-bold text-[var(--color-text)]">
-                  최근 작업
-                </h2>
-              </div>
+              <h2 className="font-headline text-xl font-bold text-[var(--color-text)]">
+                최근 세션
+              </h2>
               <span className="badge badge-neutral">{recentSessions.length}</span>
             </div>
 
-            <SessionList sessions={recentSessions} />
+            {recentSessions.length === 0 ? (
+              <div className="workspace-card-muted p-6 text-center">
+                <p className="text-sm text-[var(--color-text-secondary)]">
+                  아직 시작한 세션이 없습니다. 위의 빠른 시작에서 모드를 골라 시작해 보세요.
+                </p>
+              </div>
+            ) : (
+              <div className="grid gap-3">
+                {recentSessions.map((session) => (
+                  <SessionCard key={session.id} session={session} />
+                ))}
+              </div>
+            )}
           </section>
 
           <section className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-teal-light)] text-[var(--color-teal)]">
-                  <span className="font-bold">✦</span>
-                </span>
-                <h2 className="font-headline text-xl font-bold text-[var(--color-text)]">
-                  최근 산출물
-                </h2>
-              </div>
+              <h2 className="font-headline text-xl font-bold text-[var(--color-text)]">
+                최근 산출물
+              </h2>
               <div className="flex items-center gap-2">
                 <Link
                   className="text-sm font-semibold text-[var(--color-accent)] hover:underline"
@@ -204,7 +235,7 @@ export default async function WorkspacePage({
             {recentDeliverables.length === 0 ? (
               <div className="workspace-card-muted p-6 text-center">
                 <p className="text-sm text-[var(--color-text-secondary)]">
-                  아직 생성된 산출물이 없습니다. 세션에서 정리하기를 눌러 첫 draft를 만들어 보세요.
+                  아직 생성된 산출물이 없습니다. 작성 모드 세션에서 보고서를 생성해 보세요.
                 </p>
               </div>
             ) : (
@@ -216,9 +247,7 @@ export default async function WorkspacePage({
                     key={deliverable.id}
                   >
                     <div className="mb-2 flex items-center justify-between">
-                      <span className="meta">
-                        {getTemplateByType(deliverable.templateType).name}
-                      </span>
+                      <span className="meta">{deliverable.templateType ?? 'report'}</span>
                       <div className="flex items-center gap-2">
                         <span className="badge badge-neutral">{deliverable.status}</span>
                         <span className="badge badge-teal font-bold">v{deliverable.version}</span>

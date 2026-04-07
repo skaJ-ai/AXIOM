@@ -1,5 +1,12 @@
-import type { SessionChecklist, SessionStatus, SourceType, TemplateType } from '@/lib/db/schema';
+import type {
+  SessionChecklist,
+  SessionMode,
+  SessionStatus,
+  SourceType,
+  TemplateType,
+} from '@/lib/db/schema';
 import type { DeliverableSummary } from '@/lib/deliverables/types';
+import type { ModeBadge, ModeChecklistItem, ModePanelData } from '@/lib/modes';
 import type {
   MethodologyCard,
   TemplateBadge,
@@ -68,14 +75,26 @@ interface SessionTemplateSummary {
   type: TemplateType;
 }
 
+interface SessionModeSummary {
+  badge: ModeBadge;
+  checklist: ModeChecklistItem[];
+  description: string;
+  icon: string;
+  mode: SessionMode;
+  name: string;
+}
+
 interface SessionSummary {
   checklist: SessionChecklist;
   createdAt: string;
   id: string;
   messageCount: number;
+  mode: SessionMode;
+  modeSummary: SessionModeSummary;
+  parentSessionId: string | null;
   sourceCount: number;
   status: SessionStatus;
-  template: SessionTemplateSummary;
+  template: SessionTemplateSummary | null;
   title: string;
   updatedAt: string;
 }
@@ -86,6 +105,7 @@ interface SessionDetail extends SessionSummary {
   exampleText: string | null;
   latestDeliverable: DeliverableSummary | null;
   messages: SessionChatMessage[];
+  panelData: ModePanelData | null;
   readinessPercent: number;
   recentReferences: DeliverableSummary[];
   sources: SessionSourceSummary[];
@@ -93,7 +113,10 @@ interface SessionDetail extends SessionSummary {
 
 interface CreateSessionRequestBody {
   exampleText?: string;
-  templateType: TemplateType;
+  mode: SessionMode;
+  parentSessionId?: string;
+  reportType?: string;
+  templateType?: TemplateType;
 }
 
 interface CreateSourceRequestBody {
@@ -112,6 +135,7 @@ export type {
   SessionDetail,
   SessionMessageMetadata,
   SessionMethodologySuggestion,
+  SessionModeSummary,
   SessionSourceSummary,
   SessionSummary,
   SessionTemplateSummary,

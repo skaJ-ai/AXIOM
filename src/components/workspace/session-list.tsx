@@ -10,11 +10,13 @@ import { safeFetch } from '@/lib/utils';
 interface SessionListSession {
   id: string;
   messageCount: number;
-  sourceCount: number;
-  status: string;
-  template: {
+  mode: string;
+  modeSummary: {
+    badge: { label: string };
     name: string;
   };
+  sourceCount: number;
+  status: string;
   title: string;
   updatedAt: string;
 }
@@ -90,7 +92,7 @@ function SessionList({ sessions }: SessionListProps) {
             key={session.id}
           >
             <div className="mb-2 flex items-center justify-between">
-              <span className="meta">{session.template.name}</span>
+              <span className="meta">{session.modeSummary.name}</span>
               <div className="flex items-center gap-2">
                 <span className="badge badge-neutral">{session.status}</span>
                 {isConfirming ? (

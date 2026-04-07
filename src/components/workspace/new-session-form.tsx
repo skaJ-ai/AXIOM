@@ -41,6 +41,7 @@ function NewSessionForm({ templates }: NewSessionFormProps) {
     setErrorMessage('');
 
     const requestBody: CreateSessionRequestBody = {
+      mode: 'write',
       templateType: selectedTemplateType,
     };
 
