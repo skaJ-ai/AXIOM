@@ -4,7 +4,7 @@ import {
   IDEATION_POINT_ARTICLES,
   IDEATION_POINT_CATEGORY_ORDER,
 } from '@/app/ideation-points/ideation-points-content';
-import { BRAND_NAME, BRAND_SHORT_LABEL, BRAND_TAGLINE } from '@/lib/brand';
+import { BRAND_NAME, BRAND_SHORT_LABEL } from '@/lib/brand';
 
 import { WikiSidebar } from './wiki-sidebar';
 
@@ -21,20 +21,20 @@ function WikiExplorer({ basePath, children }: WikiExplorerProps) {
           <div className="flex flex-col gap-3">
             <div className="flex flex-wrap items-center gap-3">
               <span className="badge badge-accent">{BRAND_SHORT_LABEL}</span>
-              <span className="badge badge-neutral">공유용 설계 위키</span>
+              <span className="badge badge-neutral">구현용 설계 위키</span>
               <span className="badge badge-neutral">{IDEATION_POINT_ARTICLES.length}개 항목</span>
               <span className="badge badge-neutral">
                 {IDEATION_POINT_CATEGORY_ORDER.length}개 카테고리
               </span>
             </div>
             <div className="space-y-2">
-              <p className="section-label">Transferable Ideation Notes</p>
+              <p className="section-label">Build Notes</p>
               <h1 className="font-headline text-2xl font-extrabold tracking-tight text-[var(--color-accent)] md:text-3xl xl:text-[2.5rem]">
-                {BRAND_NAME} 설계 위키
+                {BRAND_NAME} 구현용 위키
               </h1>
               <p className="max-w-5xl text-sm leading-7 text-[var(--color-text-secondary)] md:text-base">
-                {BRAND_TAGLINE}을 구성하는 판단을 코드 설명이 아니라 공유 가능한 설계 언어로
-                정리했습니다. 팀 공유 시 기능 소개보다 먼저 읽히게 해야 할 구조만 남긴 버전입니다.
+                기술 설계, 구현 메모, 구조 판단을 개발자와 구현 LLM이 참고할 수 있게 정리한
+                버전입니다. 팀 공유용 쉬운 설명층은 별도 공유용 위키에서 관리합니다.
               </p>
             </div>
           </div>

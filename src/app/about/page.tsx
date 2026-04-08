@@ -42,7 +42,7 @@ const PAGE_COPY = {
   keyboardHint: '좌우 방향키로 이동',
   primaryAction: {
     href: '/wiki',
-    label: '설계 위키 열기',
+    label: '공유용 위키 열기',
   },
   secondaryAction: {
     href: '/workspace/new',
@@ -106,7 +106,7 @@ const TRUST_SIGNALS: TrustSignal[] = [
   },
   {
     description:
-      '설계 위키에 개념과 설계 의도를 남겨, 구현을 옮겨도 철학이 유지되게 합니다.',
+      '공유용 위키에 제품 개념을 남기고, 구현용 위키에 설계 의도를 따로 남겨 대상별로 다르게 읽히게 합니다.',
     title: '코드 밖의 설계 의도도 문서화합니다',
   },
 ];
@@ -145,7 +145,7 @@ const INTRO_SLIDES: IntroSlide[] = [
   {
     id: 'cta',
     label: '다음 단계',
-    summary: '워크벤치를 열거나 설계 위키로 들어가는 두 갈래 진입점을 제공합니다.',
+    summary: '워크벤치를 열거나 공유용 위키로 들어가는 두 갈래 진입점을 제공합니다.',
     title: '작업과 문서를 함께 열어 둡니다',
   },
 ];
@@ -363,7 +363,7 @@ function renderSlideContent(slide: IntroSlide): ReactElement {
           <span className="section-label">{slide.label}</span>
           <h2 className="text-3xl font-semibold text-[var(--color-text)]">{slide.title}</h2>
           <p className="max-w-3xl text-sm leading-7 text-[var(--color-text-secondary)]">
-            제품을 써 보고 싶다면 워크벤치를 열고, 개념을 옮겨 적고 싶다면 설계 위키
+            제품을 써 보고 싶다면 워크벤치를 열고, 개념을 옮겨 적고 싶다면 공유용 위키
             위키부터 읽으면 됩니다.
           </p>
         </div>

@@ -1,4 +1,4 @@
-import { WikiView } from '@/components/wiki/wiki-view';
+import { SharedWikiView } from '@/components/shared-wiki/shared-wiki-view';
 
 export default async function PublicWikiPage({
   params,
@@ -7,5 +7,11 @@ export default async function PublicWikiPage({
 }) {
   const { slug } = await params;
 
-  return <WikiView basePath="/wiki" slugSegments={slug} />;
+  return (
+    <SharedWikiView
+      basePath="/wiki"
+      buildBasePath="/wiki/implementation"
+      slugSegments={slug}
+    />
+  );
 }

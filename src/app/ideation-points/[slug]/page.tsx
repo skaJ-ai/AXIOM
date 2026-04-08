@@ -7,5 +7,5 @@ export default async function LegacyIdeationPointDetailPage({
 }) {
   const { slug } = await params;
 
-  redirect(`/wiki/${slug}`);
+  redirect(`/wiki/implementation/${slug}`);
 }

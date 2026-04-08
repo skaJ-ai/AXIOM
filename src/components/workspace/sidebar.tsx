@@ -24,14 +24,14 @@ const AUTH_NAV_ITEMS: WorkspaceNavItem[] = [
   { href: '/workspace/new', label: '새 작업', shortLabel: 'NW' },
   { href: '/workspace/reports', label: '리포트', shortLabel: 'RP' },
   { href: '/workspace/knowledge', label: '지식 라이브러리', shortLabel: 'KB' },
-  { href: '/workspace/wiki', label: '설계 위키', shortLabel: 'WK' },
+  { href: '/workspace/wiki', label: '공유 위키', shortLabel: 'WK' },
   { href: '/workspace/settings', label: '설정', shortLabel: 'ST' },
 ];
 
 const GUEST_NAV_ITEMS: WorkspaceNavItem[] = [
   { href: '/', label: '홈', shortLabel: 'HM' },
   { href: '/about', label: '제품 개요', shortLabel: 'AB' },
-  { href: '/wiki', label: '설계 위키', shortLabel: 'WK' },
+  { href: '/wiki', label: '공유 위키', shortLabel: 'WK' },
   { href: '/login', label: '로그인', shortLabel: 'IN' },
 ];
 
@@ -117,7 +117,7 @@ function WorkspaceSidebar({ user }: WorkspaceSidebarProps) {
         ) : (
           <div className="flex flex-col gap-3">
             <div>
-              <p className="text-sm font-bold text-[var(--color-text)]">공개 설계 위키</p>
+              <p className="text-sm font-bold text-[var(--color-text)]">공유용 위키</p>
               <p className="text-[10px] leading-5 text-[var(--color-text-secondary)]">
                 위키는 로그인 없이 읽고, 실제 작업은 로그인 후 이어집니다.
               </p>

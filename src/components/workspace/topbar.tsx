@@ -15,6 +15,13 @@ interface TopbarMeta {
 }
 
 function getTopbarMeta(pathname: string, user: AuthenticatedUser | null): TopbarMeta {
+  if (
+    pathname.startsWith('/workspace/wiki/implementation') ||
+    pathname.startsWith('/wiki/implementation')
+  ) {
+    return { eyebrow: 'Build Wiki', title: '구현용 위키' };
+  }
+
   if (pathname.startsWith('/workspace/session/')) {
     return { eyebrow: 'Session Canvas', title: '세션 캔버스' };
   }
@@ -40,7 +47,7 @@ function getTopbarMeta(pathname: string, user: AuthenticatedUser | null): Topbar
   }
 
   if (pathname.startsWith('/workspace/wiki') || pathname.startsWith('/wiki')) {
-    return { eyebrow: 'Shared Knowledge', title: '설계 위키' };
+    return { eyebrow: 'Shared Knowledge', title: '공유용 위키' };
   }
 
   if (pathname.startsWith('/about')) {
@@ -75,7 +82,7 @@ function WorkspaceTopbar({ user }: WorkspaceTopbarProps) {
           {user ? (
             <>
               <Link className="btn-secondary px-4 py-2 text-xs" href="/workspace/wiki">
-                설계 위키
+                공유 위키
               </Link>
               <Link className="btn-teal px-4 py-2 text-xs" href="/workspace/new">
                 새 작업

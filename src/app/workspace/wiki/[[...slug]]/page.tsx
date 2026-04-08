@@ -1,4 +1,4 @@
-import { WikiView } from '@/components/wiki/wiki-view';
+import { SharedWikiView } from '@/components/shared-wiki/shared-wiki-view';
 
 export default async function WorkspaceWikiPage({
   params,
@@ -7,5 +7,11 @@ export default async function WorkspaceWikiPage({
 }) {
   const { slug } = await params;
 
-  return <WikiView basePath="/workspace/wiki" slugSegments={slug} />;
+  return (
+    <SharedWikiView
+      basePath="/workspace/wiki"
+      buildBasePath="/workspace/wiki/implementation"
+      slugSegments={slug}
+    />
+  );
 }

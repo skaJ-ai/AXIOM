@@ -135,7 +135,7 @@ export default function HomePage() {
               className="text-sm font-semibold text-[var(--color-text-secondary)] transition hover:text-[var(--color-accent)]"
               href="/wiki"
             >
-              설계 위키
+              공유 위키
             </Link>
           </nav>
 
@@ -188,7 +188,7 @@ export default function HomePage() {
                 <span>→</span>
               </Link>
               <Link className="btn-secondary px-7 py-4 text-base" href="/wiki">
-                설계 위키 보기
+                공유 위키 보기
               </Link>
             </div>
           </div>
@@ -357,8 +357,9 @@ export default function HomePage() {
                   제품 설명보다 먼저, 개념 구조를 위키로 남깁니다
                 </h2>
                 <p className="mt-4 text-lg leading-8 text-white/80">
-                  설계 위키에는 디자인 토큰, 저장 구조, 4모드 사고 체계, 자동 축적
-                  파이프라인, 세션 체이닝까지 현재 HR AX Copilot의 핵심 개념을 옮겨 적었습니다.
+                  공유 위키에는 HR AX 플랫폼이 무엇인지, HR AX Copilot이 어떤 역할을 하는지,
+                  업무 카드와 프로세스가 어떻게 연결되는지처럼 팀원이 먼저 이해해야 할 내용을
+                  쉬운 말로 정리했습니다.
                 </p>
               </div>
 
@@ -367,7 +368,7 @@ export default function HomePage() {
                   className="hover:opacity-92 rounded-lg bg-white px-8 py-4 text-base font-bold text-[var(--color-accent)] transition"
                   href="/wiki"
                 >
-                  설계 위키 열기
+                  공유 위키 열기
                 </Link>
                 <Link
                   className="rounded-lg border border-white/30 px-8 py-4 text-base font-bold text-white transition hover:bg-white/10"

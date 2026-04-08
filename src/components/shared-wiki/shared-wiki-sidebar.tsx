@@ -5,17 +5,18 @@ import { type ChangeEvent, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
+import { getWikiArticleHref } from '@/components/wiki/wiki-paths';
+
 import {
-  IDEATION_POINT_CATEGORY_META,
-  IDEATION_POINT_CATEGORY_ORDER,
-  type IdeationPointArticle,
-} from '@/app/ideation-points/ideation-points-content';
+  SHARED_WIKI_CATEGORY_META,
+  SHARED_WIKI_CATEGORY_ORDER,
+  type SharedWikiArticle,
+} from './shared-wiki-content';
 
-import { getWikiArticleHref } from './wiki-paths';
-
-interface WikiSidebarProps {
-  articles: IdeationPointArticle[];
+interface SharedWikiSidebarProps {
+  articles: SharedWikiArticle[];
   basePath: string;
+  buildBasePath: string;
 }
 
 const MOBILE_DRAWER_OPEN_LABEL = '목차 열기';
@@ -25,7 +26,7 @@ function normalizeSearchTerm(value: string): string {
   return value.trim().toLowerCase();
 }
 
-function matchesSearchTerm(article: IdeationPointArticle, normalizedSearchTerm: string): boolean {
+function matchesSearchTerm(article: SharedWikiArticle, normalizedSearchTerm: string): boolean {
   if (normalizedSearchTerm.length === 0) {
     return true;
   }
@@ -35,7 +36,7 @@ function matchesSearchTerm(article: IdeationPointArticle, normalizedSearchTerm: 
   return searchSpace.includes(normalizedSearchTerm);
 }
 
-function WikiSidebar({ articles, basePath }: WikiSidebarProps) {
+function SharedWikiSidebar({ articles, basePath, buildBasePath }: SharedWikiSidebarProps) {
   const pathname = usePathname();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -43,10 +44,10 @@ function WikiSidebar({ articles, basePath }: WikiSidebarProps) {
   const filteredArticles = articles.filter((article) =>
     matchesSearchTerm(article, normalizedSearchTerm),
   );
-  const groupedArticles = IDEATION_POINT_CATEGORY_ORDER.map((category) => ({
+  const groupedArticles = SHARED_WIKI_CATEGORY_ORDER.map((category) => ({
     articles: filteredArticles.filter((article) => article.category === category),
     category,
-    meta: IDEATION_POINT_CATEGORY_META[category],
+    meta: SHARED_WIKI_CATEGORY_META[category],
   })).filter((group) => group.articles.length > 0);
   const isOverviewActive = pathname === basePath;
 
@@ -72,7 +73,7 @@ function WikiSidebar({ articles, basePath }: WikiSidebarProps) {
           {MOBILE_DRAWER_OPEN_LABEL}
         </button>
         <p className="text-sm leading-6 text-[var(--color-text-secondary)]">
-          카테고리별로 묶인 {articles.length}개 항목
+          처음 읽는 사람 기준 {articles.length}개 항목
         </p>
       </div>
 
@@ -85,35 +86,33 @@ function WikiSidebar({ articles, basePath }: WikiSidebarProps) {
       <aside className={drawerPanelClassName}>
         <div className="wiki-panel-muted flex flex-col gap-4 p-5">
           <div className="space-y-2">
-            <p className="section-label">Build Wiki</p>
+            <p className="section-label">Shared Wiki</p>
             <h2 className="font-headline text-2xl font-bold tracking-tight text-[var(--color-text)]">
-              구현용 위키
+              팀 공유용 위키
             </h2>
             <p className="text-sm leading-7 text-[var(--color-text-secondary)]">
-              개발자와 구현 LLM이 설계 판단, 파일 구조, 운영 원칙을 참고하는 기술 메모 영역입니다.
+              비개발자도 읽을 수 있게 제품 개념과 운영 원칙만 쉬운 말로 정리한 버전입니다.
             </p>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
             <div className="rounded-[1.1rem] bg-white/82 px-4 py-4 shadow-[var(--shadow-1)]">
-              <p className="meta">VISIBLE</p>
-              <p className="mt-2 font-headline text-2xl font-bold text-[var(--color-text)]">
-                {filteredArticles.length}
-              </p>
-            </div>
-            <div className="rounded-[1.1rem] bg-white/82 px-4 py-4 shadow-[var(--shadow-1)]">
-              <p className="meta">TOTAL</p>
+              <p className="meta">ARTICLES</p>
               <p className="mt-2 font-headline text-2xl font-bold text-[var(--color-text)]">
                 {articles.length}
               </p>
             </div>
             <div className="rounded-[1.1rem] bg-white/82 px-4 py-4 shadow-[var(--shadow-1)]">
-              <p className="meta">GROUPS</p>
-              <p className="mt-2 font-headline text-2xl font-bold text-[var(--color-text)]">
-                {groupedArticles.length}
+              <p className="meta">VIEW</p>
+              <p className="mt-2 text-sm font-semibold leading-6 text-[var(--color-text)]">
+                공유용 설명
               </p>
             </div>
           </div>
+
+          <Link className="btn-secondary text-center text-xs" href={buildBasePath} onClick={handleCloseDrawer}>
+            구현용 위키 보기
+          </Link>
         </div>
 
         <div className="flex items-start justify-between gap-3 xl:hidden">
@@ -132,7 +131,7 @@ function WikiSidebar({ articles, basePath }: WikiSidebarProps) {
             autoComplete="off"
             className="focus-ring mt-2 w-full rounded-[1rem] border border-transparent bg-white/84 px-4 py-3 text-sm text-[var(--color-text)] outline-none shadow-[var(--shadow-1)] transition placeholder:text-[var(--color-text-tertiary)]"
             onChange={handleSearchChange}
-            placeholder="항목 검색"
+            placeholder="쉬운 설명 찾기"
             type="search"
             value={searchTerm}
           />
@@ -145,7 +144,7 @@ function WikiSidebar({ articles, basePath }: WikiSidebarProps) {
             href={basePath}
             onClick={handleCloseDrawer}
           >
-            위키 개요
+            처음 읽는 순서
           </Link>
 
           {groupedArticles.map((group) => (
@@ -173,20 +172,11 @@ function WikiSidebar({ articles, basePath }: WikiSidebarProps) {
               </div>
             </div>
           ))}
-
-          {groupedArticles.length === 0 ? (
-            <div className="sidebar-nav-empty">
-              <p className="font-semibold text-[var(--color-text)]">검색 결과가 없습니다.</p>
-              <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">
-                다른 키워드로 다시 찾아보거나 개요에서 읽는 순서를 확인하세요.
-              </p>
-            </div>
-          ) : null}
         </nav>
       </aside>
     </>
   );
 }
 
-export { WikiSidebar };
-export type { WikiSidebarProps };
+export { SharedWikiSidebar };
+export type { SharedWikiSidebarProps };
