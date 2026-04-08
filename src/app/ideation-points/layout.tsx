@@ -10,9 +10,9 @@ import { IdeationPointsSidebar } from './ideation-points-sidebar';
 
 export default function IdeationPointsLayout({ children }: { children: ReactNode }) {
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(212,228,247,0.94),_transparent_30%),radial-gradient(circle_at_top_right,_rgba(224,250,246,0.82),_transparent_24%),var(--color-bg)] px-4 py-4 md:px-6 md:py-6 lg:px-8 lg:py-8">
-      <div className="mx-auto flex max-w-[1560px] flex-col gap-6">
-        <header className="wiki-shell-surface px-6 py-6 lg:px-8 lg:py-8 xl:px-10 xl:py-9">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(212,228,247,0.94),_transparent_30%),radial-gradient(circle_at_top_right,_rgba(224,250,246,0.82),_transparent_24%),var(--color-bg)]">
+      <div className="flex flex-col gap-4 xl:gap-0">
+        <header className="wiki-shell-surface px-4 py-4 md:px-6 md:py-6 xl:rounded-none xl:px-8 xl:py-8 2xl:px-10 2xl:py-9">
           <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px] xl:items-end">
             <div className="flex flex-col gap-5">
               <div className="flex flex-wrap items-center gap-3">
@@ -58,10 +58,10 @@ export default function IdeationPointsLayout({ children }: { children: ReactNode
           </div>
         </header>
 
-        <div className="grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)] 2xl:grid-cols-[360px_minmax(0,1fr)]">
+        <div className="grid gap-4 px-4 pb-4 md:px-6 md:pb-6 xl:grid-cols-[340px_minmax(0,1fr)] xl:gap-0 xl:px-0 xl:pb-0 2xl:grid-cols-[360px_minmax(0,1fr)]">
           <IdeationPointsSidebar articles={IDEATION_POINT_ARTICLES} />
 
-          <section className="wiki-shell-surface px-5 py-6 md:px-8 md:py-8 xl:px-10 xl:py-10 2xl:px-12 2xl:py-12">
+          <section className="wiki-shell-surface px-5 py-6 md:px-8 md:py-8 xl:min-h-screen xl:rounded-none xl:px-10 xl:py-10 2xl:px-12 2xl:py-12">
             {children}
           </section>
         </div>
