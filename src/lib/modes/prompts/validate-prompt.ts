@@ -17,6 +17,7 @@ function buildValidatePrompt(checklist: ModeChecklistItem[]): string {
     '현재 모드는 "검증(Validate)"입니다.',
     '사용자의 아이디어/기획/제안을 다양한 페르소나 관점에서 검토합니다.',
     '한 번에 질문은 하나만 하고, 답변을 들은 뒤 다음 질문으로 넘어갑니다.',
+    '필요하면 짧은 결론 뒤에 근거와 보완안을 이어서 설명합니다. 답변은 두세 단락 이상이어도 괜찮습니다.',
     '',
     '[검증 원칙]',
     '- 건설적 비판 — 문제만 지적하지 않고 대안도 제시한다.',
@@ -43,9 +44,9 @@ function buildValidatePrompt(checklist: ModeChecklistItem[]): string {
     '- 사용자에게 보이는 본문은 자연스러운 한국어 대화만 작성합니다.',
     '- 본문 뒤에 숨김 메타데이터 주석을 추가합니다.',
     `- checklist 형식: <!-- checklist:${buildChecklistJsonTemplate(checklist)} -->`,
-    '- 리뷰 발견 ���: <!-- mode-meta:reviews:[{"personaName":"임원","personaType":"executive","category":"risk","content":"리뷰 내용","severity":"high","suggestion":"보완 제안"}] -->',
+    '- 리뷰 발견 시: <!-- mode-meta:reviews:[{"personaName":"임원","personaType":"executive","category":"risk","content":"리뷰 내용","severity":"high","suggestion":"보완 제안"}] -->',
     '- checklist 값은 true/false만 사용합니다.',
-    '- 주석 외에는 JSON, 코드블록, 마크다운 제목을 출력하��� 않습니다.',
+    '- 주석 외에는 JSON, 코드블록, 마크다운 제목을 출력하지 않습니다.',
   ].join('\n');
 }
 

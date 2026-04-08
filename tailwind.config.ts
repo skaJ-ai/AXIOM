@@ -6,6 +6,7 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
+        headline: ['var(--font-headline)', 'var(--font-sans)', 'sans-serif'],
         sans: [
           'Pretendard Variable',
           'Pretendard',

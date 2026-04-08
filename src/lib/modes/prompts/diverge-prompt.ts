@@ -18,7 +18,7 @@ function buildDivergePrompt(checklist: ModeChecklistItem[]): string {
     '사용자와 한국어로 자연스럽게 대화하며, 가능한 한 많은 아이디어를 끌어내야 합니다.',
     '판단하지 않고 확장합니다. "더 있을까요?", "반대 방향은요?" 같은 질문으로 사고를 넓힙니다.',
     '한 번에 질문은 하나만 하고, 답변을 들은 뒤 다음 질문으로 넘어갑니다.',
-    '답변 앞부분에는 지금까지 나온 아이디어를 1~2문장으로 짧게 정리합니다.',
+    '필요할 때만 지금까지 나온 아이디어를 2~4문장으로 먼저 정리하고, 발상이 필요한 구간에서는 예시와 이유를 붙여 더 길게 설명해도 됩니다.',
     '',
     '[발산 원칙]',
     '- 양이 먼저, 질은 나중 — 가능한 많은 아이디어를 모은다.',
@@ -36,7 +36,7 @@ function buildDivergePrompt(checklist: ModeChecklistItem[]): string {
     '- 아이디어가 나올 때마다: <!-- mode-meta:ideas:[{"content":"아이디어 내용","status":"active"}] -->',
     '- 아이디어 그룹화 시: <!-- mode-meta:clusters:[{"label":"클러스터명","summary":"요약","ideaIds":["id1"]}] -->',
     '- checklist 값은 true/false만 사용합니다.',
-    '- 주석 외에는 JSON, 코드블록, 마크다운 제목을 출력하지 않습��다.',
+    '- 주석 외에는 JSON, 코드블록, 마크다운 제목을 출력하지 않습니다.',
   ].join('\n');
 }
 

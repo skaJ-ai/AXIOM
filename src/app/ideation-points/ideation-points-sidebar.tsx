@@ -65,7 +65,7 @@ function IdeationPointsSidebar({ articles }: IdeationPointsSidebarProps) {
 
   return (
     <>
-      <div className="flex items-center justify-between gap-3 lg:hidden">
+      <div className="flex items-center justify-between gap-3 xl:hidden">
         <button className="btn-secondary focus-ring" onClick={handleOpenDrawer} type="button">
           {MOBILE_DRAWER_OPEN_LABEL}
         </button>
@@ -81,16 +81,42 @@ function IdeationPointsSidebar({ articles }: IdeationPointsSidebarProps) {
       />
 
       <aside className={drawerPanelClassName}>
-        <div className="flex items-start justify-between gap-3 border-b border-[var(--color-border-subtle)] pb-4">
-          <div className="flex flex-col gap-2">
-            <p className="section-label">위키 내비게이션</p>
-            <p className="text-sm leading-6 text-[var(--color-text-secondary)]">
+        <div className="wiki-panel-muted flex flex-col gap-4 p-5">
+          <div className="space-y-2">
+            <p className="section-label">Reading Console</p>
+            <h2 className="font-headline text-2xl font-bold tracking-tight text-[var(--color-text)]">
+              아이데이션 위키
+            </h2>
+            <p className="text-sm leading-7 text-[var(--color-text-secondary)]">
               개념 축으로 묶어 읽고, 필요하면 검색으로 바로 진입합니다.
             </p>
           </div>
 
+          <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+            <div className="rounded-[1.1rem] bg-white/82 px-4 py-4 shadow-[var(--shadow-1)]">
+              <p className="meta">VISIBLE</p>
+              <p className="mt-2 font-headline text-2xl font-bold text-[var(--color-text)]">
+                {filteredArticles.length}
+              </p>
+            </div>
+            <div className="rounded-[1.1rem] bg-white/82 px-4 py-4 shadow-[var(--shadow-1)]">
+              <p className="meta">TOTAL</p>
+              <p className="mt-2 font-headline text-2xl font-bold text-[var(--color-text)]">
+                {articles.length}
+              </p>
+            </div>
+            <div className="rounded-[1.1rem] bg-white/82 px-4 py-4 shadow-[var(--shadow-1)]">
+              <p className="meta">GROUPS</p>
+              <p className="mt-2 font-headline text-2xl font-bold text-[var(--color-text)]">
+                {groupedArticles.length}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-start justify-between gap-3 xl:hidden">
           <button
-            className="btn-secondary focus-ring lg:hidden"
+            className="btn-secondary focus-ring"
             onClick={handleCloseDrawer}
             type="button"
           >
@@ -98,11 +124,11 @@ function IdeationPointsSidebar({ articles }: IdeationPointsSidebarProps) {
           </button>
         </div>
 
-        <label className="sidebar-nav-search mt-4">
+        <label className="sidebar-nav-search">
           <span className="section-label">검색</span>
           <input
             autoComplete="off"
-            className="focus-ring mt-2 w-full rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-text)] outline-none transition placeholder:text-[var(--color-text-tertiary)]"
+            className="focus-ring mt-2 w-full rounded-[1rem] border border-transparent bg-white/84 px-4 py-3 text-sm text-[var(--color-text)] outline-none shadow-[var(--shadow-1)] transition placeholder:text-[var(--color-text-tertiary)]"
             onChange={handleSearchChange}
             placeholder="항목 검색"
             type="search"
@@ -110,9 +136,9 @@ function IdeationPointsSidebar({ articles }: IdeationPointsSidebarProps) {
           />
         </label>
 
-        <nav className="mt-5 flex flex-col gap-4">
+        <nav className="flex flex-col gap-4">
           <Link
-            className="sidebar-nav-item"
+            className="sidebar-nav-item rounded-[1.25rem] bg-[var(--color-accent-light)]/74 px-4 py-4 shadow-[var(--shadow-1)]"
             data-active={isOverviewActive}
             href={IDEATION_POINTS_ROOT_PATH}
             onClick={handleCloseDrawer}
@@ -121,7 +147,7 @@ function IdeationPointsSidebar({ articles }: IdeationPointsSidebarProps) {
           </Link>
 
           {groupedArticles.map((group) => (
-            <div className="sidebar-nav-group" key={group.category}>
+            <div className="wiki-panel-muted p-4" key={group.category}>
               <div className="sidebar-nav-group-header">
                 <div>
                   <p className="sidebar-nav-group-title">{group.meta.label}</p>
@@ -130,10 +156,10 @@ function IdeationPointsSidebar({ articles }: IdeationPointsSidebarProps) {
                 <span className="sidebar-nav-group-count">{group.articles.length}</span>
               </div>
 
-              <div className="mt-2 flex flex-col gap-1">
+              <div className="mt-4 flex flex-col gap-2">
                 {group.articles.map((article) => (
                   <Link
-                    className="sidebar-nav-item"
+                    className="sidebar-nav-item rounded-[1rem] bg-white/74 px-4 py-3 shadow-[var(--shadow-1)]"
                     data-active={pathname === `${IDEATION_POINTS_ROOT_PATH}/${article.slug}`}
                     href={`${IDEATION_POINTS_ROOT_PATH}/${article.slug}`}
                     key={article.slug}

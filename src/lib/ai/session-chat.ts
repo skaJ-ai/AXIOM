@@ -32,8 +32,6 @@ interface ParsedAssistantMetadata {
   visibleText: string;
 }
 
-const CHECKLIST_METADATA_MARKER = '<!-- checklist:';
-const MODE_METADATA_MARKER = '<!-- mode-meta:';
 const EXAMPLE_TEXT_PROMPT_MAX_LENGTH = 3000;
 const PARENT_ARTIFACT_TEXT_MAX_LENGTH = 400;
 const PARENT_ARTIFACTS_HEADING = '## \uC774\uC804 \uC138\uC158 \uACB0\uACFC\uBB3C';
@@ -205,11 +203,11 @@ function createMetadataCommentTransform(): {
   const factory: StreamTextTransform<Record<string, never>> = () => {
     let buffer = '';
     let currentTextId = '';
-    let isMetadataStarted = false;
+    let isInsideComment = false;
 
     return new TransformStream({
       flush(controller) {
-        if (!isMetadataStarted && buffer.length > 0 && currentTextId.length > 0) {
+        if (!isInsideComment && buffer.length > 0 && currentTextId.length > 0) {
           controller.enqueue({
             id: currentTextId,
             text: buffer,
@@ -225,48 +223,50 @@ function createMetadataCommentTransform(): {
 
         currentTextId = chunk.id;
         rawAccumulator += chunk.text;
-
-        if (isMetadataStarted) {
-          return;
-        }
-
         buffer += chunk.text;
+        let visibleText = '';
 
-        const checklistIndex = buffer.indexOf(CHECKLIST_METADATA_MARKER);
-        const modeMetaIndex = buffer.indexOf(MODE_METADATA_MARKER);
-        const markerCandidates = [checklistIndex, modeMetaIndex].filter((index) => index >= 0);
-        const markerIndex = markerCandidates.length > 0 ? Math.min(...markerCandidates) : -1;
+        while (buffer.length > 0) {
+          if (isInsideComment) {
+            const commentEndIndex = buffer.indexOf('-->');
 
-        if (markerIndex >= 0) {
-          const visibleText = buffer.slice(0, markerIndex);
+            if (commentEndIndex < 0) {
+              break;
+            }
 
-          if (visibleText.length > 0) {
-            controller.enqueue({
-              ...chunk,
-              text: visibleText,
-            });
+            buffer = buffer.slice(commentEndIndex + 3);
+            isInsideComment = false;
+            continue;
           }
 
-          buffer = '';
-          isMetadataStarted = true;
-          return;
+          const commentStartIndex = buffer.indexOf('<!--');
+
+          if (commentStartIndex < 0) {
+            const safeBoundary = Math.max(0, buffer.length - 3);
+
+            if (safeBoundary === 0) {
+              break;
+            }
+
+            visibleText += buffer.slice(0, safeBoundary);
+            buffer = buffer.slice(safeBoundary);
+            break;
+          }
+
+          if (commentStartIndex > 0) {
+            visibleText += buffer.slice(0, commentStartIndex);
+          }
+
+          buffer = buffer.slice(commentStartIndex + 4);
+          isInsideComment = true;
         }
 
-        const longestMarkerLength = Math.max(
-          CHECKLIST_METADATA_MARKER.length,
-          MODE_METADATA_MARKER.length,
-        );
-        const safeBoundary = Math.max(0, buffer.length - longestMarkerLength + 1);
-
-        if (safeBoundary === 0) {
-          return;
+        if (visibleText.length > 0) {
+          controller.enqueue({
+            ...chunk,
+            text: visibleText,
+          });
         }
-
-        controller.enqueue({
-          ...chunk,
-          text: buffer.slice(0, safeBoundary),
-        });
-        buffer = buffer.slice(safeBoundary);
       },
     });
   };
