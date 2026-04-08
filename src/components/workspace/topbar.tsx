@@ -3,49 +3,94 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-function getCurrentBreadcrumb(pathname: string): string {
+import type { AuthenticatedUser } from '@/lib/auth/types';
+
+interface WorkspaceTopbarProps {
+  user: AuthenticatedUser | null;
+}
+
+interface TopbarMeta {
+  eyebrow: string;
+  title: string;
+}
+
+function getTopbarMeta(pathname: string, user: AuthenticatedUser | null): TopbarMeta {
   if (pathname.startsWith('/workspace/session/')) {
-    return '세션 캔버스';
+    return { eyebrow: 'Session Canvas', title: '세션 캔버스' };
   }
 
   if (pathname.startsWith('/workspace/asset/')) {
-    return '산출물 뷰어';
+    return { eyebrow: 'Reports', title: '리포트 뷰어' };
   }
 
   if (pathname.startsWith('/workspace/knowledge')) {
-    return '지식 브라우저';
+    return { eyebrow: 'Knowledge Layer', title: '지식 라이브러리' };
   }
 
   if (pathname.startsWith('/workspace/settings')) {
-    return '설정';
+    return { eyebrow: 'Preferences', title: '설정' };
   }
 
   if (pathname.startsWith('/workspace/new')) {
-    return '새 작업';
+    return { eyebrow: 'Session Setup', title: '새 작업' };
   }
 
-  if (pathname.startsWith('/workspace/deliverables')) {
-    return '산출물 목록';
+  if (pathname.startsWith('/workspace/reports')) {
+    return { eyebrow: 'Reports', title: '리포트' };
   }
 
-  return '대시보드';
+  if (pathname.startsWith('/workspace/wiki') || pathname.startsWith('/wiki')) {
+    return { eyebrow: 'Shared Knowledge', title: '설계 위키' };
+  }
+
+  if (pathname.startsWith('/about')) {
+    return { eyebrow: 'Product Brief', title: '제품 개요' };
+  }
+
+  return user
+    ? { eyebrow: 'Workspace', title: '워크벤치' }
+    : { eyebrow: 'Public Surface', title: '공개 위키' };
 }
 
-function WorkspaceTopbar() {
+function WorkspaceTopbar({ user }: WorkspaceTopbarProps) {
   const pathname = usePathname();
-  const breadcrumb = getCurrentBreadcrumb(pathname);
+  const breadcrumb = getTopbarMeta(pathname, user);
 
   return (
     <header className="topbar">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="badge badge-neutral text-[10px]">{breadcrumb}</span>
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="min-w-0">
+          <p className="meta">{breadcrumb.eyebrow}</p>
+          <div className="mt-1 flex flex-wrap items-center gap-3">
+            <h1 className="font-headline text-xl font-bold tracking-tight text-[var(--color-text)]">
+              {breadcrumb.title}
+            </h1>
+            <span className="badge badge-neutral">
+              {user ? user.workspaceName : '공유용 보기'}
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <Link className="btn-teal px-4 py-2 text-xs" href="/workspace/new">
-            새 작업
-          </Link>
+          {user ? (
+            <>
+              <Link className="btn-secondary px-4 py-2 text-xs" href="/workspace/wiki">
+                설계 위키
+              </Link>
+              <Link className="btn-teal px-4 py-2 text-xs" href="/workspace/new">
+                새 작업
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link className="btn-secondary px-4 py-2 text-xs" href="/">
+                홈
+              </Link>
+              <Link className="btn-teal px-4 py-2 text-xs" href="/login">
+                로그인
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>
@@ -53,3 +98,4 @@ function WorkspaceTopbar() {
 }
 
 export { WorkspaceTopbar };
+export type { WorkspaceTopbarProps };

@@ -133,9 +133,9 @@ export default function HomePage() {
             </Link>
             <Link
               className="text-sm font-semibold text-[var(--color-text-secondary)] transition hover:text-[var(--color-accent)]"
-              href="/ideation-points"
+              href="/wiki"
             >
-              아이데이션 포인트
+              설계 위키
             </Link>
           </nav>
 
@@ -187,8 +187,8 @@ export default function HomePage() {
                 작업공간 열기
                 <span>→</span>
               </Link>
-              <Link className="btn-secondary px-7 py-4 text-base" href="/ideation-points">
-                아이데이션 포인트 보기
+              <Link className="btn-secondary px-7 py-4 text-base" href="/wiki">
+                설계 위키 보기
               </Link>
             </div>
           </div>
@@ -357,7 +357,7 @@ export default function HomePage() {
                   제품 설명보다 먼저, 개념 구조를 위키로 남깁니다
                 </h2>
                 <p className="mt-4 text-lg leading-8 text-white/80">
-                  아이데이션 포인트 위키에는 디자인 토큰, 저장 구조, 4모드 사고 체계, 자동 축적
+                  설계 위키에는 디자인 토큰, 저장 구조, 4모드 사고 체계, 자동 축적
                   파이프라인, 세션 체이닝까지 현재 HR AX Copilot의 핵심 개념을 옮겨 적었습니다.
                 </p>
               </div>
@@ -365,9 +365,9 @@ export default function HomePage() {
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Link
                   className="hover:opacity-92 rounded-lg bg-white px-8 py-4 text-base font-bold text-[var(--color-accent)] transition"
-                  href="/ideation-points"
+                  href="/wiki"
                 >
-                  아이데이션 포인트 열기
+                  설계 위키 열기
                 </Link>
                 <Link
                   className="rounded-lg border border-white/30 px-8 py-4 text-base font-bold text-white transition hover:bg-white/10"

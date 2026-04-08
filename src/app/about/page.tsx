@@ -41,8 +41,8 @@ const PAGE_COPY = {
   },
   keyboardHint: '좌우 방향키로 이동',
   primaryAction: {
-    href: '/ideation-points',
-    label: '아이데이션 포인트 열기',
+    href: '/wiki',
+    label: '설계 위키 열기',
   },
   secondaryAction: {
     href: '/workspace/new',
@@ -106,7 +106,7 @@ const TRUST_SIGNALS: TrustSignal[] = [
   },
   {
     description:
-      '아이데이션 포인트 위키에 개념과 설계 의도를 남겨, 구현을 옮겨도 철학이 유지되게 합니다.',
+      '설계 위키에 개념과 설계 의도를 남겨, 구현을 옮겨도 철학이 유지되게 합니다.',
     title: '코드 밖의 설계 의도도 문서화합니다',
   },
 ];
@@ -363,7 +363,7 @@ function renderSlideContent(slide: IntroSlide): ReactElement {
           <span className="section-label">{slide.label}</span>
           <h2 className="text-3xl font-semibold text-[var(--color-text)]">{slide.title}</h2>
           <p className="max-w-3xl text-sm leading-7 text-[var(--color-text-secondary)]">
-            제품을 써 보고 싶다면 워크벤치를 열고, 개념을 옮겨 적고 싶다면 아이데이션 포인트
+            제품을 써 보고 싶다면 워크벤치를 열고, 개념을 옮겨 적고 싶다면 설계 위키
             위키부터 읽으면 됩니다.
           </p>
         </div>

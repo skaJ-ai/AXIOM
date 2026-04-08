@@ -1,3 +1,5 @@
+import 'server-only';
+
 import { hash } from 'bcryptjs';
 import { eq } from 'drizzle-orm';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';

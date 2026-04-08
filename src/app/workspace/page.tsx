@@ -100,11 +100,7 @@ export default async function WorkspacePage({
             label="모드 분포"
             value={`${sessionsByMode.diverge + sessionsByMode.validate + sessionsByMode.synthesize + sessionsByMode.write}`}
           />
-          <DashboardKpiCard
-            detail="누적된 보고서/산출물"
-            label="산출물"
-            value={deliverables.length}
-          />
+          <DashboardKpiCard detail="누적된 리포트와 산출물" label="리포트" value={deliverables.length} />
           <div className="workspace-card-muted flex flex-col justify-center gap-3">
             <form action="/workspace" className="flex flex-col gap-3">
               <input
@@ -220,12 +216,12 @@ export default async function WorkspacePage({
           <section className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <h2 className="font-headline text-xl font-bold text-[var(--color-text)]">
-                최근 산출물
+                최근 리포트
               </h2>
               <div className="flex items-center gap-2">
                 <Link
                   className="text-sm font-semibold text-[var(--color-accent)] hover:underline"
-                  href="/workspace/deliverables"
+                  href="/workspace/reports"
                 >
                   전체 보기 →
                 </Link>
