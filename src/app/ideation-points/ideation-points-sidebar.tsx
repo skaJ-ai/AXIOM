@@ -85,10 +85,10 @@ function IdeationPointsSidebar({ articles }: IdeationPointsSidebarProps) {
           <div className="space-y-2">
             <p className="section-label">Reading Console</p>
             <h2 className="font-headline text-2xl font-bold tracking-tight text-[var(--color-text)]">
-              아이데이션 위키
+              HR AX 플랫폼 위키
             </h2>
             <p className="text-sm leading-7 text-[var(--color-text-secondary)]">
-              개념 축으로 묶어 읽고, 필요하면 검색으로 바로 진입합니다.
+              설계 판단과 운영 원칙을 카테고리로 묶어 읽고, 필요하면 검색으로 바로 진입합니다.
             </p>
           </div>
 

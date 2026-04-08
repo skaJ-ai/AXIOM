@@ -50,7 +50,7 @@ const READING_SEQUENCE = [
   },
   {
     description:
-      '공유 작업공간, 사람 확정권, 신뢰 등급, 하네스를 읽어 조직 배포 관점의 표면을 마무리합니다.',
+      '공유 작업공간, 사람 확정권, 신뢰 등급, 실행 규칙을 읽어 조직 배포 관점의 표면을 마무리합니다.',
     slugs: [
       'private-first-shared-workspace',
       'human-in-the-loop',
@@ -102,7 +102,8 @@ export default function IdeationPointsPage() {
             </h1>
             <p className="max-w-[58rem] text-lg leading-8 text-[var(--color-text-secondary)]">
               이 페이지는 지금 구현된 화면보다, 나중에 HR AX 플랫폼으로 통합되더라도 유지해야 하는
-              사고 체계와 지식 구조를 먼저 읽히게 하도록 재구성했습니다. 팀 공유 시에는 각 항목의
+              사고 체계와 지식 구조를 먼저 읽히게 하도록 재구성했습니다. 시각 언어도 같은 원칙을
+              따라 표면 위계와 읽기 리듬을 설명하는 쪽으로 정리했고, 팀 공유 시에는 각 항목의
               기능보다 왜 그런 경계를 두었는지를 읽히는 용도로 쓰는 편이 좋습니다.
             </p>
           </div>

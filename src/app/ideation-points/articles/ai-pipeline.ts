@@ -9,7 +9,7 @@ const AI_PIPELINE_ARTICLES: IdeationPointArticle[] = [
     blocks: [
       {
         paragraphs: [
-          'AXIOM은 보이는 답변과 숨겨진 구조화 데이터를 한 응답 안에 겹쳐 싣는다. `mode-meta`, `checklist`, `canvas` 마커는 사용자에게는 자연스러운 대화처럼 보이지만 시스템에는 다음 상태를 갱신할 수 있는 패킷이 된다.',
+          'HR AX Copilot은 보이는 답변과 숨겨진 구조화 데이터를 한 응답 안에 겹쳐 싣는다. `mode-meta`, `checklist`, `canvas` 마커는 사용자에게는 자연스러운 대화처럼 보이지만 시스템에는 다음 상태를 갱신할 수 있는 패킷이 된다.',
           '이 설계의 장점은 자연어와 구조화 출력을 별도 호출로 나누지 않는다는 점이다. 한 번의 생성이 사람의 읽기 경험과 시스템의 상태 동기화를 동시에 만족시킨다.',
         ],
         title: '사람용 채널과 기계용 채널을 한 응답에 겹쳐 놓는다',
@@ -95,7 +95,7 @@ const AI_PIPELINE_ARTICLES: IdeationPointArticle[] = [
     blocks: [
       {
         paragraphs: [
-          '계층형 요약의 목적은 원문을 버리는 것이 아니라, 원문 위에 operational memory를 한 층 더 얹는 데 있다. HARP 설계의 `session_digests`와 `template_weekly_rollups`는 이 생각을 명확하게 드러낸다.',
+          '계층형 요약의 목적은 원문을 버리는 것이 아니라, 원문 위에 operational memory를 한 층 더 얹는 데 있다. 선행 요약 설계 메모의 `session_digests`와 `template_weekly_rollups`는 이 생각을 명확하게 드러낸다.',
           '세션 요약은 단순한 대화 축약본이 아니다. 최근 대화, checklist 상태, source enrichment, 최신 deliverable을 함께 읽고 이번 세션이 무엇을 결정했고 무엇이 비어 있는지를 압축한다.',
         ],
         title: '요약은 원문 대체가 아니라 압축 레이어다',
@@ -124,7 +124,7 @@ const AI_PIPELINE_ARTICLES: IdeationPointArticle[] = [
     relatedSlugs: ['parent-session-chaining', 'context-tiering', 'knowledge-accumulation-pipeline'],
     slug: 'hierarchical-summaries',
     sources: [
-      createSource('reference', 'C:/dev/HARP/docs/feature-hierarchical-summaries.md'),
+      createSource('reference', '계층형 요약 설계 메모'),
       createSource('code', 'src/lib/sessions/service.ts'),
       createSource('code', 'src/lib/deliverables/service.ts'),
     ],
@@ -138,7 +138,7 @@ const AI_PIPELINE_ARTICLES: IdeationPointArticle[] = [
     blocks: [
       {
         paragraphs: [
-          '컨텍스트 티어링은 더 많은 참고문서를 넣는 기법이 아니라, 어떤 맥락을 어느 해상도로 넣을지 계층화하는 설계다. HARP 문서가 제안한 3-tier 구조는 이 원칙을 잘 보여 준다.',
+          '컨텍스트 티어링은 더 많은 참고문서를 넣는 기법이 아니라, 어떤 맥락을 어느 해상도로 넣을지 계층화하는 설계다. 선행 컨텍스트 티어링 메모가 제안한 3-tier 구조는 이 원칙을 잘 보여 준다.',
           'Tier 1은 현재 세션의 대화와 근거자료를 전량 주입하고, Tier 2는 최근 동일 유형 산출물을 상세에서 구조 순으로 축약해 넣는다. 최신 것은 전체, 그 이전 것은 요약, 더 오래된 것은 섹션 구조만 보여 주는 식이다.',
         ],
         title: '맥락은 많을수록 좋은 것이 아니라 해상도가 맞아야 한다',
@@ -167,7 +167,7 @@ const AI_PIPELINE_ARTICLES: IdeationPointArticle[] = [
     relatedSlugs: ['hierarchical-summaries', 'hybrid-retrieval', 'parent-session-chaining'],
     slug: 'context-tiering',
     sources: [
-      createSource('reference', 'C:/dev/HARP/docs/feature-context-tiering.md'),
+      createSource('reference', '컨텍스트 티어링 설계 메모'),
       createSource('code', 'src/lib/deliverables/service.ts'),
       createSource('code', 'src/lib/ai/session-chat.ts'),
     ],
@@ -181,8 +181,8 @@ const AI_PIPELINE_ARTICLES: IdeationPointArticle[] = [
     blocks: [
       {
         paragraphs: [
-          'source enrichment는 raw source를 더 많이 저장하는 일이 아니라, 나중에 evidence trace와 retrieval이 사용할 구조를 먼저 빚어 두는 작업이다. HARP 실행 계획이 `source_blocks`, `deliverable_section_evidence`를 제안하는 이유도 여기에 있다.',
-          'AXIOM의 현재 구현은 parser와 deliverable section metadata를 통해 이 방향의 초석을 이미 갖고 있다. section의 confidence와 cited 여부는 단순 표시가 아니라 나중에 더 정교한 evidence 구조로 갈 수 있는 발판이다.',
+          'source enrichment는 raw source를 더 많이 저장하는 일이 아니라, 나중에 evidence trace와 retrieval이 사용할 구조를 먼저 빚어 두는 작업이다. 선행 실행 계획 초안이 `source_blocks`, `deliverable_section_evidence`를 제안하는 이유도 여기에 있다.',
+          '현재 구현은 parser와 deliverable section metadata를 통해 이 방향의 초석을 이미 갖고 있다. section의 confidence와 cited 여부는 단순 표시가 아니라 나중에 더 정교한 evidence 구조로 갈 수 있는 발판이다.',
         ],
         title: '원문 수집에서 끝내지 않고 재사용 가능한 구조를 만든다',
       },
@@ -216,7 +216,7 @@ const AI_PIPELINE_ARTICLES: IdeationPointArticle[] = [
     sources: [
       createSource('code', 'src/lib/deliverables/parser.ts'),
       createSource('code', 'src/lib/deliverables/service.ts'),
-      createSource('reference', 'C:/dev/HARP/JARVIS/07_execution_plan.md'),
+      createSource('reference', '실행 계획 초안'),
     ],
     summary:
       '무엇을 source enrichment로 미리 구조화해야 retrieval, evidence trace, export가 나중에 붙을 수 있는지 설명한다.',

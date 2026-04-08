@@ -108,12 +108,12 @@ function IdeationPointArticleView({ article }: IdeationPointArticleProps) {
 
         <aside className="flex flex-col gap-5 xl:sticky xl:top-6 xl:self-start">
           <section className="wiki-panel-muted flex flex-col gap-4 p-6">
-            <div className="space-y-2">
-              <p className="section-label">Evidence Trail</p>
-              <h2 className="font-headline text-2xl font-bold tracking-tight text-[var(--color-text)]">
-                근거 파일
-              </h2>
-            </div>
+              <div className="space-y-2">
+                <p className="section-label">Evidence Trail</p>
+                <h2 className="font-headline text-2xl font-bold tracking-tight text-[var(--color-text)]">
+                  근거 자료
+                </h2>
+              </div>
 
             <div className="grid gap-3">
               {article.sources.map((source) => (
@@ -124,7 +124,7 @@ function IdeationPointArticleView({ article }: IdeationPointArticleProps) {
                   <span className={`badge ${SOURCE_BADGE_CLASS_NAME[source.kind]}`}>
                     {SOURCE_LABEL[source.kind]}
                   </span>
-                  <p className="mt-3 break-all font-mono text-xs leading-6 text-[var(--color-text-secondary)]">
+                  <p className="mt-3 break-words text-sm leading-6 text-[var(--color-text-secondary)]">
                     {source.path}
                   </p>
                 </div>

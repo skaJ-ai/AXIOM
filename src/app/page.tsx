@@ -154,7 +154,7 @@ export default function HomePage() {
       </header>
 
       <main className="pt-24">
-        <section className="relative mx-auto grid max-w-7xl items-center gap-16 px-6 py-20 lg:grid-cols-[1.05fr_0.95fr] lg:gap-20 lg:px-8 lg:py-28">
+        <section className="relative mx-auto grid max-w-[min(92rem,calc(100vw-3rem))] items-center gap-16 px-6 py-24 lg:grid-cols-[minmax(0,1.08fr)_minmax(440px,0.92fr)] lg:gap-24 lg:px-8 lg:py-32">
           <div className="relative z-10 flex flex-col gap-8">
             <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[var(--color-teal-light)] px-4 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-teal)]">
               <span>●</span>
@@ -162,15 +162,14 @@ export default function HomePage() {
             </div>
 
             <div className="flex flex-col gap-5">
-              <h1 className="text-balance text-5xl font-extrabold leading-[1.04] tracking-tight text-[var(--color-accent)] md:text-6xl lg:text-7xl">
+              <h1 className="font-headline text-balance break-keep max-w-[12ch] text-[clamp(3.5rem,7vw,6.8rem)] font-extrabold leading-[0.92] tracking-[-0.055em] text-[var(--color-accent)]">
                 생각이 흩어지지 않게,
-                <br />
-                <span className="text-[var(--color-teal)]">다음 작업의 출발점</span>으로 남깁니다
+                <span className="text-[var(--color-teal)]"> 다음 작업의 출발점으로</span> 남깁니다
               </h1>
-              <p className="max-w-2xl text-lg font-semibold leading-8 text-[var(--color-text)]">
+              <p className="max-w-xl text-xl font-medium leading-9 text-[var(--color-text)]">
                 {BRAND_TAGLINE}
               </p>
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-3 lg:max-w-4xl">
                 {BRAND_ELEVATOR_PITCH.map((line, index) => (
                   <article className="workspace-card-muted flex flex-col gap-2 p-4" key={line}>
                     <span className="meta">{`3줄 피치 0${index + 1}`}</span>
@@ -194,11 +193,11 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="group relative">
+          <div className="group relative lg:justify-self-end lg:pl-6">
             <div className="absolute -inset-8 opacity-60 blur-3xl transition duration-700 group-hover:opacity-80">
               <div className="h-full w-full rounded-[3rem] bg-[radial-gradient(circle_at_top_left,_var(--color-accent-light),_transparent_52%),radial-gradient(circle_at_bottom_right,_var(--color-teal-light),_transparent_46%)]" />
             </div>
-            <div className="relative overflow-hidden rounded-[2rem] border border-[var(--color-border-subtle)] bg-[var(--color-bg-elevated)] p-8 shadow-[var(--shadow-4)]">
+            <div className="relative overflow-hidden rounded-[2.4rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(245,245,247,0.98))] p-8 shadow-[var(--shadow-4)]">
               <div className="mb-6 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <div className="h-3 w-3 rounded-full bg-[var(--color-teal)]" />
@@ -209,10 +208,7 @@ export default function HomePage() {
 
               <div className="grid gap-3 md:grid-cols-2">
                 {BRAND_FOUR_MODE_STORY.map((story) => (
-                  <article
-                    className={`rounded-[var(--radius-md)] border p-4 ${getModeCardClassName(story.mode)}`}
-                    key={story.mode}
-                  >
+                  <article className={`rounded-[1.1rem] p-4 shadow-[var(--shadow-1)] ${getModeCardClassName(story.mode)}`} key={story.mode}>
                     <div className="mb-3 flex items-center justify-between gap-3">
                       <span className={getModeBadgeClassName(story.mode)}>
                         {story.title.split(' ')[0]}
@@ -229,7 +225,7 @@ export default function HomePage() {
                 ))}
               </div>
 
-              <div className="mt-6 rounded-[var(--radius-lg)] border border-[var(--color-border-subtle)] bg-[var(--color-bg-sunken)] p-5">
+              <div className="mt-6 rounded-[1.4rem] bg-[rgba(245,245,247,0.9)] p-5 shadow-[var(--shadow-1)]">
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <span className="section-label">사고 누적 루프</span>
                   <span className="badge badge-neutral">세션 → 지식 → 다음 세션</span>
@@ -247,7 +243,7 @@ export default function HomePage() {
         <section className="mx-auto max-w-7xl px-6 py-20 lg:px-8" id="lab-value">
           <div className="mb-12 flex flex-col gap-4">
             <span className="section-label">가치 제안</span>
-            <h2 className="text-3xl font-bold tracking-tight text-[var(--color-accent)] md:text-5xl">
+            <h2 className="font-headline text-balance text-3xl font-bold leading-[1.06] tracking-tight text-[var(--color-accent)] md:text-5xl">
               HR 담당자의 작업공간으로 다시 정의합니다
             </h2>
             <p className="max-w-3xl text-lg leading-8 text-[var(--color-text-secondary)]">
@@ -259,7 +255,9 @@ export default function HomePage() {
             {BRAND_VALUE_CARDS.map((card) => (
               <article className="workspace-card flex flex-col gap-4" key={card.title}>
                 <span className="badge badge-accent w-fit">랩 멤버 가치</span>
-                <h3 className="text-xl font-bold text-[var(--color-text)]">{card.title}</h3>
+                <h3 className="font-headline text-2xl font-bold leading-[1.1] tracking-tight text-[var(--color-text)]">
+                  {card.title}
+                </h3>
                 <p className="text-sm leading-7 text-[var(--color-text-secondary)]">
                   {card.description}
                 </p>
@@ -271,7 +269,7 @@ export default function HomePage() {
         <section className="mx-auto max-w-7xl px-6 py-20 lg:px-8" id="modes">
           <div className="mb-12 flex flex-col gap-4 text-center">
             <span className="section-label">4모드 이야기</span>
-            <h2 className="text-3xl font-bold tracking-tight text-[var(--color-accent)] md:text-5xl">
+            <h2 className="font-headline text-balance text-3xl font-bold leading-[1.04] tracking-tight text-[var(--color-accent)] md:text-5xl">
               HR AX Copilot은 대화를 하나의 채팅이 아니라 네 단계의 사고 흐름으로 다룹니다
             </h2>
             <p className="mx-auto max-w-3xl text-lg leading-8 text-[var(--color-text-secondary)]">
@@ -289,7 +287,7 @@ export default function HomePage() {
                   </span>
                   <span className="meta">{getModeMetaLabel(story.mode)}</span>
                 </div>
-                <h3 className="text-xl font-bold leading-7 text-[var(--color-text)]">
+                <h3 className="font-headline text-2xl font-bold leading-[1.1] tracking-tight text-[var(--color-text)]">
                   {story.title}
                 </h3>
                 <p className="flex-1 text-sm leading-7 text-[var(--color-text-secondary)]">
@@ -303,7 +301,7 @@ export default function HomePage() {
         <section className="mx-auto max-w-7xl px-6 py-20 lg:px-8" id="comparison">
           <div className="mb-12 flex flex-col gap-4 text-center">
             <span className="section-label">왜 HR AX Copilot인가</span>
-            <h2 className="text-3xl font-bold tracking-tight text-[var(--color-accent)] md:text-5xl">
+            <h2 className="font-headline text-balance text-3xl font-bold leading-[1.04] tracking-tight text-[var(--color-accent)] md:text-5xl">
               일반 채팅형 AI와 다른 점은 답변이 아니라 구조입니다
             </h2>
             <p className="mx-auto max-w-3xl text-lg leading-8 text-[var(--color-text-secondary)]">
@@ -355,7 +353,7 @@ export default function HomePage() {
             <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
               <div className="max-w-3xl">
                 <span className="badge badge-teal mb-4">다음 단계</span>
-                <h2 className="text-4xl font-extrabold leading-tight text-white md:text-5xl">
+                <h2 className="font-headline text-balance text-4xl font-extrabold leading-[1.04] tracking-tight text-white md:text-5xl">
                   제품 설명보다 먼저, 개념 구조를 위키로 남깁니다
                 </h2>
                 <p className="mt-4 text-lg leading-8 text-white/80">

@@ -9,7 +9,7 @@ const THINKING_SYSTEM_ARTICLES: IdeationPointArticle[] = [
     blocks: [
       {
         paragraphs: [
-          'AXIOM의 인터뷰는 정보를 수집하는 폼이 아니라 작업의 의도를 정렬하는 장치다. `buildInterviewContext`는 체크리스트와 자료와 예시 문서를 넣지만, 실제로 모델이 먼저 묻도록 만드는 것은 template와 mode가 가진 질문 순서다.',
+          'HR AX Copilot의 인터뷰는 정보를 수집하는 폼이 아니라 작업의 의도를 정렬하는 장치다. `buildInterviewContext`는 체크리스트와 자료와 예시 문서를 넣지만, 실제로 모델이 먼저 묻도록 만드는 것은 template와 mode가 가진 질문 순서다.',
           '이 설계는 사용자가 무엇을 알고 있는지보다 무엇을 만들려는지에 집중한다. 좋은 초안은 자료가 많을 때보다 의도가 선명할 때 더 빨리 나온다.',
         ],
         title: '좋은 작업은 정보보다 의도부터 묻는다',
@@ -52,7 +52,7 @@ const THINKING_SYSTEM_ARTICLES: IdeationPointArticle[] = [
     blocks: [
       {
         paragraphs: [
-          'AXIOM의 가치는 AI를 더 많이 쓰게 하는 데 있지 않다. 실제 업무 흐름을 다시 설계해 사람이 어떤 순간에 발산하고, 검증하고, 종합하고, 확정하는지를 재배치하는 데 있다.',
+          'HR AX Copilot의 가치는 AI를 더 많이 쓰게 하는 데 있지 않다. 실제 업무 흐름을 다시 설계해 사람이 어떤 순간에 발산하고, 검증하고, 종합하고, 확정하는지를 재배치하는 데 있다.',
           '이 관점은 교육보다 워크플로우를 바꾼다. 사용자가 프롬프트를 잘 쓰도록 훈련하는 대신, 제품이 구조화된 흐름과 가드를 제공해 일을 다른 방식으로 하게 만든다.',
         ],
         title: '학습보다 흐름을 바꾸는 쪽이 제품 가치다',
@@ -60,7 +60,7 @@ const THINKING_SYSTEM_ARTICLES: IdeationPointArticle[] = [
       {
         paragraphs: [
           'Work Redesign은 기능 다발이 아니라 역할 재배치다. 사람은 의도, 판단, 승인에 집중하고, 시스템은 분류, 초안화, 회수, 반복 정리에 집중한다.',
-          '그래서 AXIOM은 범용 비서보다 강한 작업공간이 된다. 기능을 많이 넣는 대신 작업이 흘러가는 순서를 고정하면, 사용자는 어떤 버튼을 눌러야 하는지가 아니라 다음에 어떤 사고를 해야 하는지 알게 된다.',
+          '그래서 HR AX Copilot은 범용 비서보다 강한 작업공간이 된다. 기능을 많이 넣는 대신 작업이 흘러가는 순서를 고정하면, 사용자는 어떤 버튼을 눌러야 하는지가 아니라 다음에 어떤 사고를 해야 하는지 알게 된다.',
         ],
         title: '시스템은 반복을, 사람은 판단을 맡는다',
       },
@@ -83,7 +83,7 @@ const THINKING_SYSTEM_ARTICLES: IdeationPointArticle[] = [
     sources: [
       createSource('code', 'src/lib/brand.ts'),
       createSource('code', 'src/lib/modes/index.ts'),
-      createSource('reference', 'C:/dev/HARP/JARVIS/00_overview.md'),
+      createSource('reference', '초기 제품 북극성 메모'),
     ],
     summary:
       '무엇을 자동화할지보다 사람과 시스템의 역할을 어떻게 재배치할지가 왜 더 중요한지 설명한다.',
@@ -103,7 +103,7 @@ const THINKING_SYSTEM_ARTICLES: IdeationPointArticle[] = [
       {
         paragraphs: [
           '중앙 카탈로그가 필요한 이유는 각 모드가 갖는 목적, 산출물, 체크리스트를 제품 전체에서 일관되게 관리해야 하기 때문이다. `src/lib/modes/index.ts`는 사실상 사고 운영체제의 표준 라이브러리 역할을 한다.',
-          '이 구조 덕분에 AXIOM은 새 모드를 추가할 때도 탭 하나를 늘리는 대신, 어떤 산출물이 남고 다음 모드로 무엇이 전달되는지를 먼저 정의하게 된다.',
+          '이 구조 덕분에 HR AX Copilot은 새 모드를 추가할 때도 탭 하나를 늘리는 대신, 어떤 산출물이 남고 다음 모드로 무엇이 전달되는지를 먼저 정의하게 된다.',
         ],
         title: '중앙 카탈로그는 사고 운영체제의 표준 라이브러리다',
       },
@@ -139,13 +139,13 @@ const THINKING_SYSTEM_ARTICLES: IdeationPointArticle[] = [
       {
         paragraphs: [
           '방법론 라이브러리는 모델이 똑똑해 보이게 하는 장식이 아니다. 인터뷰 중 사용자가 막히는 순간에 어떤 사고 프레임을 제안할지 제품이 준비해 두는 개입 장치다.',
-          'HARP의 `methodology-reference.md`가 중요한 이유도 여기에 있다. 피라미드 원칙, SCQA, 5 Whys, Logic Model 같은 프레임을 미리 정리해 두면 AI는 즉흥적으로 조언하는 대신 검증된 사고 도구를 꺼내 쓸 수 있다.',
+          '선행 방법론 라이브러리 초안이 중요한 이유도 여기에 있다. 피라미드 원칙, SCQA, 5 Whys, Logic Model 같은 프레임을 미리 정리해 두면 AI는 즉흥적으로 조언하는 대신 검증된 사고 도구를 꺼내 쓸 수 있다.',
         ],
         title: '방법론은 모델 장식이 아니라 사고 개입 라이브러리다',
       },
       {
         paragraphs: [
-          'AXIOM에서 이 라이브러리는 템플릿과 모드 사이를 잇는 다리다. 특정 템플릿이 어떤 구조적 질문을 필요로 하는지, 그리고 사용자가 어떤 프레임으로 생각을 확장해야 하는지를 연결한다.',
+          'HR AX Copilot에서 이 라이브러리는 템플릿과 모드 사이를 잇는 다리다. 특정 템플릿이 어떤 구조적 질문을 필요로 하는지, 그리고 사용자가 어떤 프레임으로 생각을 확장해야 하는지를 연결한다.',
           '이 때문에 방법론은 문서 부록이 아니라 인터뷰 설계의 일부가 된다. 좋은 라이브러리는 많이 모으는 것보다 언제 어떤 프레임을 추천할지 명확해야 한다.',
         ],
         title: '추천 타이밍이 라이브러리의 품질을 결정한다',
@@ -167,7 +167,7 @@ const THINKING_SYSTEM_ARTICLES: IdeationPointArticle[] = [
     relatedSlugs: ['intent-first-interview', 'four-mode-thinking', 'hierarchical-summaries'],
     slug: 'methodology-library',
     sources: [
-      createSource('reference', 'C:/dev/HARP/docs/methodology-reference.md'),
+      createSource('reference', '방법론 라이브러리 초안'),
       createSource('code', 'src/lib/templates/index.ts'),
       createSource('code', 'src/lib/ai/session-chat.ts'),
     ],

@@ -58,8 +58,8 @@ const IDEATION_POINT_CATEGORY_META: Record<IdeationPointCategory, IdeationPointC
     label: 'AI 파이프라인',
   },
   'engineering-harness': {
-    description: '멱등성과 계층형 컨텍스트 규칙으로 구현 결과를 통제하는 하네스 레이어입니다.',
-    label: '엔지니어링 하네스',
+    description: '실행 규칙, 운영 가이드 계층, 품질 가드처럼 결과 변동을 줄이는 운영 레이어입니다.',
+    label: '실행 규율',
   },
   foundation: {
     description:

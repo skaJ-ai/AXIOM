@@ -10,7 +10,7 @@ const KNOWLEDGE_LAYER_ARTICLES: IdeationPointArticle[] = [
       {
         paragraphs: [
           'Zero-Action Accumulation은 사용자가 따로 저장 버튼을 누르지 않아도, 확정된 작업이 다음 작업의 자산으로 남아야 한다는 제품 철학이다. 축적을 보상 기능으로 두면 사용자는 바쁠수록 기록하지 않고, 결국 시스템은 비어 있는 저장소가 된다.',
-          '따라서 AXIOM은 축적을 사용자 습관이 아니라 기본 동작으로 보려 한다. 사람이 확정하고 시스템이 뒤에서 축적하는 구조가 핵심이다.',
+          '따라서 HR AX 플랫폼은 축적을 사용자 습관이 아니라 기본 동작으로 보려 한다. 사람이 확정하고 시스템이 뒤에서 축적하는 구조가 핵심이다.',
         ],
         title: '축적은 추가 행동이 아니라 기본 동작이어야 한다',
       },
@@ -40,7 +40,7 @@ const KNOWLEDGE_LAYER_ARTICLES: IdeationPointArticle[] = [
     sources: [
       createSource('code', 'src/lib/knowledge/pipeline.ts'),
       createSource('code', 'src/domains/write/actions.ts'),
-      createSource('reference', 'C:/dev/HARP/JARVIS/00_overview.md'),
+      createSource('reference', '초기 플랫폼 북극성 메모'),
     ],
     summary:
       '무엇을 제품의 기본 동작으로 만들어야 사용자의 별도 저장 행동 없이도 장기 자산이 쌓이는지 설명한다.',
@@ -52,7 +52,7 @@ const KNOWLEDGE_LAYER_ARTICLES: IdeationPointArticle[] = [
     blocks: [
       {
         paragraphs: [
-          '지식 축적 파이프라인은 zero-action 철학의 구현 버전이다. 현재 AXIOM에서는 `finalizeReport`가 끝난 뒤 `runKnowledgeExtractionPipeline`이 돌아가며 entity, fact, insight를 만든다.',
+          '지식 축적 파이프라인은 zero-action 철학의 구현 버전이다. 현재 HR AX 플랫폼에서는 `finalizeReport`가 끝난 뒤 `runKnowledgeExtractionPipeline`이 돌아가며 entity, fact, insight를 만든다.',
           '핵심은 축적 시점을 대화 중간이 아니라 출판 경계에 두는 것이다. 확정되지 않은 초안과 대화는 아직 조직 자산이 아니므로 장기 지식으로 승격시키지 않는다.',
         ],
         title: '축적은 대화 중간이 아니라 출판 경계에서 시작한다',
@@ -102,7 +102,7 @@ const KNOWLEDGE_LAYER_ARTICLES: IdeationPointArticle[] = [
       },
       {
         paragraphs: [
-          'AXIOM의 현재 구조에서 이 개념은 section metadata, source, deliverable, report, insight 사이의 연결 가능성으로 드러난다. 아직 evidence panel이 완성되지 않았더라도, 이 경계를 지금부터 보존해야 나중에 reviewer 흐름을 붙일 수 있다.',
+          '현재 구조에서 이 개념은 section metadata, source, deliverable, report, insight 사이의 연결 가능성으로 드러난다. 아직 evidence panel이 완성되지 않았더라도, 이 경계를 지금부터 보존해야 나중에 reviewer 흐름을 붙일 수 있다.',
           '즉 provenance는 지식 저장과 UI 검수를 잇는 계약이다. 저장 구조가 아무리 좋아도 다시 추적할 수 없다면 조직 안에서 신뢰 자산이 되기 어렵다.',
         ],
         title: '저장 구조와 검수 UI를 잇는 가장 얇은 다리',
@@ -126,7 +126,7 @@ const KNOWLEDGE_LAYER_ARTICLES: IdeationPointArticle[] = [
     sources: [
       createSource('code', 'src/lib/deliverables/parser.ts'),
       createSource('code', 'src/lib/knowledge/pipeline.ts'),
-      createSource('reference', 'C:/dev/HARP/JARVIS/07_execution_plan.md'),
+      createSource('reference', '출처 계보 설계 메모'),
     ],
     summary:
       '무엇을 provenance와 evidence link로 남겨야 섹션과 주장에 다시 따라갈 수 있는 근거 경로가 생기는지 설명한다.',
@@ -181,7 +181,7 @@ const KNOWLEDGE_LAYER_ARTICLES: IdeationPointArticle[] = [
     blocks: [
       {
         paragraphs: [
-          'Hybrid retrieval의 핵심은 벡터 검색을 붙이는 것이 아니라, lexical search와 semantic search를 둘 다 계산한 뒤 use case에 따라 다른 점수 결합을 쓰는 데 있다. HARP 문서는 검색 대상 테이블을 `memory_chunks` 하나로 통합하고, 그 위에서 workspace search와 generation retrieval을 분리한다.',
+          'Hybrid retrieval의 핵심은 벡터 검색을 붙이는 것이 아니라, lexical search와 semantic search를 둘 다 계산한 뒤 use case에 따라 다른 점수 결합을 쓰는 데 있다. 선행 검색 설계 메모도 검색 대상 테이블을 `memory_chunks` 하나로 통합하고, 그 위에서 workspace search와 generation retrieval을 분리한다.',
           '이 설계는 검색 정확도와 생성 맥락 품질이 같은 문제가 아니라는 점을 인정한다. 사용자가 찾는 화면 검색은 lexical precision이 더 중요하고, 모델이 참고할 문맥 검색은 semantic relevance가 더 중요하다.',
         ],
         title: '검색 하나로 모든 목적을 해결하려 하지 않는다',
@@ -193,7 +193,7 @@ const KNOWLEDGE_LAYER_ARTICLES: IdeationPointArticle[] = [
           '정규화 규칙: lexical은 max-min normalization, semantic은 cosine similarity를 0~1로 재매핑한다.',
         ],
         paragraphs: [
-          'AXIOM의 `searchMemoryChunksHybrid`는 이 공식을 실제 코드로 번역하고 있다. generation mode에서는 template match와 deliverable section 보너스를 더 강하게 주고, workspace mode에서는 lexical precision을 앞세운다.',
+          '현재 `searchMemoryChunksHybrid`는 이 공식을 실제 코드로 번역하고 있다. generation mode에서는 template match와 deliverable section 보너스를 더 강하게 주고, workspace mode에서는 lexical precision을 앞세운다.',
         ],
         title: '점수 결합은 수학이 아니라 사용 목적의 선언이다',
       },
@@ -214,7 +214,7 @@ const KNOWLEDGE_LAYER_ARTICLES: IdeationPointArticle[] = [
     relatedSlugs: ['vector-memory-schema', 'context-tiering', 'memory-loop'],
     slug: 'hybrid-retrieval',
     sources: [
-      createSource('reference', 'C:/dev/HARP/docs/feature-hybrid-retrieval.md'),
+      createSource('reference', '하이브리드 검색 설계 메모'),
       createSource('code', 'src/lib/memory/retrieval.ts'),
       createSource('code', 'src/lib/search/service.ts'),
       createSource('code', 'src/lib/deliverables/service.ts'),
