@@ -23,6 +23,13 @@ const FOUNDATION_ARTICLES: IdeationPointArticle[] = [
       },
       {
         paragraphs: [
+          '다만 카드 자체는 화려할 필요가 없다. 기본 workspace card는 흰 배경, 얇은 outline, 작은 radius, 약한 hover shadow 정도의 단정한 사각형으로 두고, 정보 밀도와 리듬은 내부 타이포와 간격으로 조절하는 편이 더 오래 간다.',
+          '즉 포인트는 카드 장식을 늘리는 것이 아니라, 단순한 사각형 카드가 반복되어도 화면이 지저분해지지 않도록 위계와 간격을 안정적으로 유지하는 것이다. 이 방식은 위키와 템플릿 셀렉터처럼 카드가 많은 화면에서 특히 유리하다.',
+        ],
+        title: '기본 카드는 단순한 사각형일수록 오래 간다',
+      },
+      {
+        paragraphs: [
           '타이포그래피도 장식이 아니라 판단 체계다. headline용 Manrope와 body용 실용 폰트의 이원화는, 내비게이션과 메타데이터는 조용히 두고 섹션 제목과 핵심 문장을 또렷하게 세우기 위한 편집적 장치다.',
           '또한 intentional asymmetry는 단순히 비대칭으로 보이게 만드는 것이 아니라, 넓은 작업면에서 어디를 먼저 읽어야 하는지 시선을 유도하는 설계 원칙이다. 위키처럼 정보량이 많은 화면에서는 이 비대칭이 읽기 리듬을 만든다.',
         ],
@@ -32,6 +39,7 @@ const FOUNDATION_ARTICLES: IdeationPointArticle[] = [
         bullets: [
           '색, 간격, 반경, 배지 의미는 플랫폼 중립 토큰으로 관리한다.',
           '경계는 선보다 surface hierarchy와 negative space로 만든다.',
+          '기본 카드 스타일은 gradient보다 white surface + subtle border + soft shadow를 우선한다.',
           'headline과 body의 역할을 분리해 정보 밀도와 읽기 리듬을 함께 잡는다.',
         ],
         paragraphs: [
