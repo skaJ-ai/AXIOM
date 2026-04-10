@@ -1,8 +1,6 @@
 import 'server-only';
 
 import { sql } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/node-postgres';
-import { Pool } from 'pg';
 
 import * as schema from './schema';
 
@@ -14,9 +12,12 @@ interface DatabaseHealth {
 }
 
 type DatabaseClient = NodePgDatabase<typeof schema>;
+type DatabasePool = import('pg').Pool;
+type NodePostgresModule = typeof import('drizzle-orm/node-postgres');
+type PgModule = typeof import('pg');
 
 let databaseClient: DatabaseClient | null = null;
-let databasePool: Pool | null = null;
+let databasePool: DatabasePool | null = null;
 
 function getDatabaseUrl(): string {
   const databaseUrl = process.env.DATABASE_URL;
@@ -28,10 +29,24 @@ function getDatabaseUrl(): string {
   return databaseUrl;
 }
 
-function getPool(): Pool {
+function getRuntimeRequire(): NodeJS.Require {
+  return eval('require') as NodeJS.Require;
+}
+
+function getPgModule(): PgModule {
+  return getRuntimeRequire()('pg') as PgModule;
+}
+
+function getNodePostgresModule(): NodePostgresModule {
+  return getRuntimeRequire()('drizzle-orm/node-postgres') as NodePostgresModule;
+}
+
+function getPool(): DatabasePool {
   if (databasePool) {
     return databasePool;
   }
+
+  const { Pool } = getPgModule();
 
   databasePool = new Pool({
     connectionString: getDatabaseUrl(),
@@ -45,6 +60,7 @@ function getDb(): DatabaseClient {
     return databaseClient;
   }
 
+  const { drizzle } = getNodePostgresModule();
   databaseClient = drizzle(getPool(), { schema });
 
   return databaseClient;

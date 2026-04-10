@@ -15,7 +15,7 @@
     "lint:check": "eslint . --max-warnings=0",
     "format": "prettier --write \"**/*.{ts,tsx,js,mjs,json,css}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,mjs,json,css}\"",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit --incremental false --project tsconfig.typecheck.json",
     "quality:check": "npm run lint:check && npm run format:check && npm run typecheck",
     "quality:fix": "npm run lint:fix && npm run format"
   },

@@ -2,12 +2,23 @@ import 'server-only';
 
 import { hash } from 'bcryptjs';
 import { eq } from 'drizzle-orm';
-import { migrate } from 'drizzle-orm/node-postgres/migrator';
 
 import { getDb } from '@/lib/db';
 import { usersTable, workspacesTable } from '@/lib/db/schema';
 
+type NodePostgresMigratorModule = typeof import('drizzle-orm/node-postgres/migrator');
+
 let bootstrapPromise: Promise<void> | null = null;
+
+function getRuntimeRequire(): NodeJS.Require {
+  return eval('require') as NodeJS.Require;
+}
+
+function getNodePostgresMigratorModule(): NodePostgresMigratorModule {
+  return getRuntimeRequire()(
+    'drizzle-orm/node-postgres/migrator',
+  ) as NodePostgresMigratorModule;
+}
 
 async function ensureAdminAccount(): Promise<void> {
   const adminLoginId = process.env.ADMIN_LOGIN_ID;
@@ -61,6 +72,7 @@ async function runApplicationBootstrap(): Promise<void> {
   if (!bootstrapPromise) {
     bootstrapPromise = (async () => {
       const database = getDb();
+      const { migrate } = getNodePostgresMigratorModule();
 
       await migrate(database, { migrationsFolder: './drizzle' });
       await ensureAdminAccount();
