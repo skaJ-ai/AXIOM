@@ -18,6 +18,7 @@ const KNOWLEDGE_LAYER_ARTICLES: IdeationPointArticle[] = [
         paragraphs: [
           '이 철학은 구현 세부와 구분해서 봐야 한다. pipeline이 어떻게 돌아가는지는 다음 단계의 문제이고, zero-action은 왜 제품이 저장 책임을 사용자에게 넘기지 말아야 하는지를 설명한다.',
           '제품 차원에서 보면 이것은 moat 전략이기도 하다. 좋은 작업이 반복될수록 더 많은 자산이 남는 구조여야 팀 전체의 품질이 시간이 지날수록 오른다.',
+          '이때 축적은 전사 단일 저장소보다 personal/team/department scope를 가진 버킷 위에 쌓일 때 더 강하다. 사용자가 자신의 작업이 어디에 남고 누가 다시 볼 수 있는지 예측할 수 있어야, 민감한 문맥도 실제로 들어온다.',
         ],
         title: '사람은 확정하고 시스템은 축적하는 역할 분담',
       },
@@ -26,6 +27,7 @@ const KNOWLEDGE_LAYER_ARTICLES: IdeationPointArticle[] = [
           '축적은 opt-in 기능보다 default behavior여야 한다.',
           '사용자에게 저장 습관을 요구하는 제품은 장기적으로 자산이 쌓이지 않는다.',
           '축적 시점은 사람이 책임지는 확정 경계와 연결되어야 한다.',
+          '축적 단위는 flat shared pool이 아니라 권한이 명확한 knowledge bucket이어야 한다.',
         ],
         paragraphs: [
           '다른 플랫폼에서도 이 원칙을 먼저 고정하면, 나중의 knowledge feature는 부가 기능이 아니라 제품의 자연스러운 후속 동작이 된다.',
@@ -61,6 +63,7 @@ const KNOWLEDGE_LAYER_ARTICLES: IdeationPointArticle[] = [
         paragraphs: [
           '이 파이프라인이 지키는 실용적 원칙은 세 가지다. 첫째, 원문을 먼저 읽고 그 다음에 entity와 fact를 만든다. 둘째, 기존 entity와 중복되면 재사용한다. 셋째, insight는 사람이 볼 가치가 있는 해석 단위로 저장한다.',
           '즉 파이프라인은 단순한 NLP 후처리가 아니라, 어떤 종류의 정보를 장기 자산으로 인정할지 판단하는 분류기다.',
+          '2단계 RAG는 결국 이 파이프라인의 품질에 의존한다. 매뉴얼 답변이나 기술 지원처럼 전문 응답을 만들려면 raw chat log보다 승인된 asset과 구조화된 fact를 우선 retrieval 대상으로 삼아야 한다.',
         ],
         title: '확정본 뒤에서 움직이는 이유는 자산 품질을 지키기 위해서다',
       },
@@ -69,6 +72,7 @@ const KNOWLEDGE_LAYER_ARTICLES: IdeationPointArticle[] = [
           '출판 전 텍스트는 작업재, 출판 후 텍스트는 축적 후보로 본다.',
           'entity, fact, insight는 각각 다른 재사용 목적을 가진다.',
           '중복 제거와 기존 자산 재사용이 축적 파이프라인의 필수 기능이다.',
+          'RAG 서빙층은 draft보다 confirmed asset을 우선 회수해야 한다.',
         ],
         paragraphs: [
           '다른 플랫폼에서도 축적 파이프라인을 모델 호출 뒤에 바로 붙이지 말고, 어떤 승인 경계를 통과한 뒤에만 장기 지식을 만들지 먼저 정해야 한다.',
@@ -183,6 +187,7 @@ const KNOWLEDGE_LAYER_ARTICLES: IdeationPointArticle[] = [
         paragraphs: [
           'Hybrid retrieval의 핵심은 벡터 검색을 붙이는 것이 아니라, lexical search와 semantic search를 둘 다 계산한 뒤 use case에 따라 다른 점수 결합을 쓰는 데 있다. 선행 검색 설계 메모도 검색 대상 테이블을 `memory_chunks` 하나로 통합하고, 그 위에서 workspace search와 generation retrieval을 분리한다.',
           '이 설계는 검색 정확도와 생성 맥락 품질이 같은 문제가 아니라는 점을 인정한다. 사용자가 찾는 화면 검색은 lexical precision이 더 중요하고, 모델이 참고할 문맥 검색은 semantic relevance가 더 중요하다.',
+          '여기에 조직 스코프가 추가되면 relevance보다 eligibility가 먼저 온다. 아무리 점수가 높아도 사용자에게 허용되지 않은 부서 버킷이나 confidential scope라면 후보 집합에서 먼저 제외해야 한다.',
         ],
         title: '검색 하나로 모든 목적을 해결하려 하지 않는다',
       },
@@ -202,6 +207,7 @@ const KNOWLEDGE_LAYER_ARTICLES: IdeationPointArticle[] = [
           '`memory_chunks`는 source와 deliverable_section을 함께 검색하는 통합 표면이다.',
           '`SEMANTIC_REFERENCE_LIMIT = 4`, `SEMANTIC_REFERENCE_MAX_LENGTH = 320`은 생성 프롬프트에 의미 기반 자산을 얇게 붙이는 안전장치다.',
           'recent deliverable tier와 semantic block을 따로 유지해야 모델이 두 종류의 맥락을 분리해 해석한다.',
+          'retrieval candidate set은 personal/team/department/confidential scope 필터 뒤에 scoring한다.',
         ],
         paragraphs: [
           '다른 플랫폼에 옮길 때도 먼저 어떤 검색 목적이 있는지 분리한 뒤 weight를 잡아야 한다. hybrid는 기술 선택이 아니라 relevance를 어떻게 정의할지에 대한 제품 결정이다.',

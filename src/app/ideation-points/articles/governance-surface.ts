@@ -18,6 +18,7 @@ const GOVERNANCE_SURFACE_ARTICLES: IdeationPointArticle[] = [
         paragraphs: [
           '공유는 로그 복제가 아니라 자산 승격에서 시작한다. 개인 세션의 대화 전체를 조직에 노출하는 것이 아니라, 검토 가능한 보고서와 검증된 asset만 팀 공간으로 올리는 방식이 더 안전하다.',
           '이 때문에 shared workspace 설계는 UI 권한보다 승격 기준을 먼저 정해야 한다. 무엇이 개인 메모이고 무엇이 공유 자산인지 경계가 서야 권한 모델도 선명해진다.',
+          '조직형 제품으로 확장할수록 이 shared surface는 flat한 공유 폴더보다 부서별·개인별 버킷 집합에 가까워진다. 그래야 과공유 없이도 축적 자산을 계속 늘릴 수 있다.',
         ],
         title: '공유는 원문 노출보다 승격 경계를 먼저 정해야 한다',
       },
@@ -26,6 +27,7 @@ const GOVERNANCE_SURFACE_ARTICLES: IdeationPointArticle[] = [
           'private-first는 폐쇄성이 아니라 안전한 초기 작업 표면이다.',
           'shared workspace는 세션 로그 복제보다 asset promotion 흐름으로 여는 편이 낫다.',
           '권한 모델은 공유 타이밍보다 승격 기준과 함께 설계해야 한다.',
+          '승격은 공개 범위 확대와 동일하지 않다. 같은 자산도 버킷 범위는 다를 수 있다.',
         ],
         paragraphs: [
           '이식 시에도 팀 기능을 먼저 만들기보다 개인 공간과 조직 자산 사이의 승격 표면을 먼저 설계하는 것이 보수적이고 실전적이다.',
@@ -61,6 +63,7 @@ const GOVERNANCE_SURFACE_ARTICLES: IdeationPointArticle[] = [
         paragraphs: [
           '왜 시스템명보다 액션 타입으로 분류하느냐 하면, 연동 대상은 계속 바뀌지만 위험의 종류는 상대적으로 안정적이기 때문이다. 메일이든 일정이든 포털이든 결국 import, read, write, export, notify 같은 경계 위에 올라온다.',
           '따라서 connector layer는 구현 디테일보다는 제품의 안전한 실행면을 먼저 정의하는 곳이 된다. 실제 구현이 바뀌어도 action boundary가 유지되면 거버넌스 모델은 재사용된다.',
+          '특히 Python/CLI를 이용한 실행 자동화로 갈수록 read-only helper, draft generation, approval-gated execution을 더 엄격히 나눠야 한다. "비개발자도 자동화"라는 비전은 가능하지만, 그 전제는 실행 표면을 세밀하게 통제하는 것이다.',
         ],
         title: '도구는 바뀌어도 위험 경계는 유지되어야 한다',
       },
@@ -104,6 +107,7 @@ const GOVERNANCE_SURFACE_ARTICLES: IdeationPointArticle[] = [
         paragraphs: [
           '거버넌스 매트릭스는 최소한 역할, 자산 등급, 공간 범위, 행위 종류를 교차시켜야 한다. 같은 editor라도 개인 초안에 대한 편집과 팀 표준 자산에 대한 편집은 전혀 다른 위험을 가진다.',
           '따라서 governance는 권한 표 하나가 아니라 제품의 모든 surface에 스며드는 분류 체계가 된다. export, promote, share, approve는 각기 다른 규칙을 가져야 한다.',
+          '실무적으로는 role만으로 부족하고, asset이 어떤 bucket에 속하는지와 사용자가 그 bucket에 대해 어떤 action을 할 수 있는지를 함께 계산해야 한다.',
         ],
         title: '역할보다 자산 등급과 공간 범위를 함께 봐야 한다',
       },
@@ -111,7 +115,7 @@ const GOVERNANCE_SURFACE_ARTICLES: IdeationPointArticle[] = [
         bullets: [
           '역할 축: viewer, editor, reviewer, approver, publisher',
           '자산 축: raw source, draft, final deliverable, promoted asset, verified standard asset',
-          '공간 축: personal, team, org, confidential',
+          '공간 축: personal, team, department, org, confidential bucket',
         ],
         paragraphs: [
           '이식 시에도 사용자 테이블에 role 하나 넣고 끝내지 말고, 어떤 자산이 어느 surface를 통과할 때 다른 정책을 적용받는지부터 설계해야 한다.',
@@ -199,12 +203,13 @@ const GOVERNANCE_SURFACE_ARTICLES: IdeationPointArticle[] = [
         paragraphs: [
           '현재 상태값인 draft, final, promoted_asset은 이 사다리의 초기 버전이다. 여기에 verified standard asset 같은 상위 계층을 추가하면 조직 공통 자산과 개인 작업 결과를 더 명확히 분리할 수 있다.',
           '중요한 것은 등급이 많아지는 것이 아니라 승격 조건이 명확해지는 것이다. 어떤 review를 거쳤는지, 어떤 provenance를 가졌는지, 누가 승인했는지가 신뢰 등급의 재료가 된다.',
+          '또한 승격이 곧 전사 공개를 뜻해서는 안 된다. 같은 promoted asset이어도 팀 버킷에 머물 수 있고, verified standard asset만 조직 표준 버킷으로 올라가는 식의 분리가 필요하다.',
         ],
         title: '상태값은 재사용 권한과 검증 강도를 함께 말해야 한다',
       },
       {
         bullets: [
-          '초안은 개인 생산성 자산, promoted asset은 팀 재사용 자산, verified standard asset은 조직 표준 자산으로 본다.',
+          '초안은 개인 생산성 자산, promoted asset은 팀 재사용 자산, verified standard asset은 조직 표준 자산으로 보고 각 등급은 서로 다른 버킷 범위를 가진다.',
           '등급 승격은 상태 변경이 아니라 검토와 근거를 통과한 결과여야 한다.',
           '검색과 추천도 자산 등급을 반영해야 조직 기억이 오염되지 않는다.',
         ],
