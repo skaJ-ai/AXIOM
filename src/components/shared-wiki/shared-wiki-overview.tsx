@@ -22,8 +22,8 @@ const READING_SEQUENCE = [
     title: '먼저 큰 그림 보기',
   },
   {
-    description: '업무 카드, 프로세스, Working Group이 어떻게 연결되는지 읽습니다.',
-    slugs: ['work-card-and-process', 'working-group-role'],
+    description: '업무 카드, 프로세스, Working Group과 함께 회사 안의 암묵지가 왜 중요한지도 읽습니다.',
+    slugs: ['work-card-and-process', 'working-group-role', 'why-tacit-knowledge-matters'],
     title: '일하는 방식 이해하기',
   },
   {
@@ -32,8 +32,12 @@ const READING_SEQUENCE = [
     title: '자동화 원칙 읽기',
   },
   {
-    description: '사람 승인 경계와 기록의 중요성을 읽고 운영 관점을 정리합니다.',
-    slugs: ['human-approval-boundary', 'why-records-matter'],
+    description: '사람 승인 경계, 노하우 충돌 처리, 기록의 중요성을 읽고 운영 관점을 정리합니다.',
+    slugs: [
+      'human-approval-boundary',
+      'how-knowledge-conflicts-are-handled',
+      'why-records-matter',
+    ],
     title: '안심하고 쓰는 조건 이해하기',
   },
 ];

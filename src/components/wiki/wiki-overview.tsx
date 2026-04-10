@@ -47,21 +47,24 @@ const READING_SEQUENCE = [
   },
   {
     description:
-      '무행동 축적, provenance, hybrid retrieval, memory loop를 읽어 기억과 재사용 구조를 연결합니다.',
+      '암묵지 수집, 맥락 태깅, 무행동 축적, provenance, memory loop를 읽어 기억과 재사용 구조를 연결합니다.',
     slugs: [
+      'tacit-knowledge-capture',
+      'context-graph-for-work-knowledge',
       'zero-action-accumulation',
       'knowledge-accumulation-pipeline',
-      'hybrid-retrieval',
+      'provenance-and-evidence-links',
       'memory-loop',
     ],
     title: '지식 루프 연결하기',
   },
   {
     description:
-      '공유 작업공간, 사람 확정권, 신뢰 등급, 실행 규칙을 읽어 조직 배포 관점의 표면을 마무리합니다.',
+      '공유 작업공간, 사람 확정권, 지식 충돌 해결, 신뢰 등급, 실행 규칙을 읽어 조직 배포 관점의 표면을 마무리합니다.',
     slugs: [
       'private-first-shared-workspace',
       'human-in-the-loop',
+      'knowledge-conflict-resolution',
       'trust-tier-promotion',
       'harness-engineering-idempotency',
     ],

@@ -146,6 +146,55 @@ const GOVERNANCE_SURFACE_ARTICLES: IdeationPointArticle[] = [
     blocks: [
       {
         paragraphs: [
+          '조직 지식에서 충돌은 예외가 아니라 기본값이다. 같은 주제를 두고도 팀마다 다른 관행이 남고, 같은 팀 안에서도 시니어와 주니어가 다른 기준을 말할 수 있다.',
+          '문제는 이 충돌을 단일 truth로 억지 통합하는 순간 시작된다. 플랫폼은 먼저 어떤 종류의 충돌인지 분류할 수 있어야 한다.',
+        ],
+        title: '충돌은 오류가 아니라 조직 지식을 다루는 기본 조건이다',
+      },
+      {
+        paragraphs: [
+          '실전 흐름은 세 단계가 적절하다. 첫째, 명백한 사실 오류를 제거한다. 둘째, 적용 부서나 상황이 다른 것은 맥락을 갈라 각각의 자산으로 둔다. 셋째, 같은 조건에서 기준이 충돌하면 reviewer나 approver가 조직 규칙으로 결정한다.',
+          '이때 필요한 것은 단순 댓글 기능이 아니라 review queue다. 새로 포착된 노하우 후보가 어느 버킷에 들어가야 하는지, 충돌 상태인지, 표준 자산으로 승격 가능한지를 사람이 볼 수 있어야 한다.',
+        ],
+        title: '사실 검수, 맥락 분리, 조직 결정의 세 단계가 필요하다',
+      },
+      {
+        bullets: [
+          '틀린 정보는 제거한다.',
+          '다른 상황의 정보는 분리해서 함께 보존한다.',
+          '같은 조건 충돌은 reviewer/approver가 결정한다.',
+          '새 후보 지식은 review queue를 거친 뒤에만 상위 자산으로 승격한다.',
+        ],
+        paragraphs: [
+          '이식 시 conflict resolution이 없으면 축적이 많아질수록 knowledge layer는 richer해지는 것이 아니라 noisier해진다.',
+        ],
+        title: '지식 품질은 축적량보다 충돌 처리 구조에서 갈린다',
+      },
+    ],
+    category: 'governance-surface',
+    navLabel: '지식 충돌 해결',
+    relatedSlugs: [
+      'governance-draft',
+      'human-in-the-loop',
+      'trust-tier-promotion',
+    ],
+    slug: 'knowledge-conflict-resolution',
+    sources: [
+      createSource('reference', '암묵지 충돌 해결 메모'),
+      createSource('reference', '우선순위 로드맵 메모'),
+      createSource('code', 'src/domains/knowledge/actions.ts'),
+      createSource('code', 'src/lib/db/schema.ts'),
+    ],
+    summary:
+      '무엇을 fact 오류, 맥락 차이, 동일 조건 충돌로 나눠 다뤄야 축적이 많아질수록 지식 품질이 더 좋아지는지 설명한다.',
+    title: '지식 충돌 해결 흐름',
+    whyItMatters:
+      '이식 시 충돌 해결 흐름이 없으면 retrieval과 추천은 빨라질수록 서로 다른 노하우를 한데 섞어 조직 신뢰를 잃는다.',
+  },
+  {
+    blocks: [
+      {
+        paragraphs: [
           'Human-in-the-loop는 사람이 매번 다시 쓰게 하는 퇴행이 아니라, 어떤 순간에 최종 확정권을 되돌려 받을지를 분명히 하는 설계다. 현재 보고서 finalize 이후에만 knowledge pipeline이 도는 구조는 이 원칙을 코드로 표현한 예다.',
           '즉 사람의 역할은 모델을 보조하는 것이 아니라, 조직 자산이 되는 순간을 선언하는 것이다. 이 한 단계가 있어야 자동 축적과 자산 승격이 정당성을 가진다.',
         ],

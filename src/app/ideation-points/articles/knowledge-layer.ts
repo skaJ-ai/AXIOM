@@ -54,6 +54,105 @@ const KNOWLEDGE_LAYER_ARTICLES: IdeationPointArticle[] = [
     blocks: [
       {
         paragraphs: [
+          '현재 축적 구조는 finalize 이후의 확정 자산을 중심으로 잘 설계되어 있지만, 회사만의 판단 기준은 그보다 앞단의 대화와 지시 안에 더 많이 숨어 있다. 무엇을 빼라고 했는지, 왜 이 표현을 바꾸라고 했는지, 누구 보고용인지 같은 정보는 대개 최종 산출물만 보면 사라진다.',
+          '그래서 조직형 Copilot은 출판 후 지식 축적만으로 충분하지 않다. 업무 카드 위에서 사람과 Copilot이 주고받은 의도, 예외, 제약을 별도 캡처 레이어로 남기는 설계가 필요하다.',
+        ],
+        title: '확정본 축적만으로는 회사의 실제 노하우를 다 담기 어렵다',
+      },
+      {
+        paragraphs: [
+          '이 레이어는 raw chat log 전체를 곧바로 장기 자산으로 승격하자는 뜻이 아니다. 오히려 work card 단위로 intent event를 얇게 추출해, “대상 독자”, “예외 조건”, “사용한 판단 기준”, “민감도”, “누가 말한 것인지”를 구조화된 후보로 남기자는 제안에 가깝다.',
+          '현재 `getSessionPromptContext`와 chat route는 이미 parentArtifacts, sources, checklist를 다루고 있으므로, 이 경계는 새로운 시스템을 완전히 만드는 일보다 기존 대화면 옆에 intent capture를 붙이는 문제에 가깝다.',
+        ],
+        title: '필요한 것은 대화 저장소보다 의도 캡처 레이어다',
+      },
+      {
+        bullets: [
+          'raw chat 전체와 장기 지식은 같은 층이 아니다.',
+          '업무 카드별 intent event를 별도 후보 자산으로 남겨야 한다.',
+          '무엇을 남길지는 대상 독자, 예외, 보고 맥락, 금지 조건 같은 메타데이터로 좁혀야 한다.',
+          'capture는 대화 중에도 가능하지만, 장기 승격은 별도 검토 경계를 통과해야 한다.',
+        ],
+        paragraphs: [
+          '이식 시 post-publish pipeline만 만들면 generic knowledge base는 생겨도 조직 고유의 판단 기준은 끝내 포착되지 않는다.',
+        ],
+        title: '채팅 로그와 회사 노하우 사이에 한 겹 더 있어야 한다',
+      },
+    ],
+    category: 'knowledge-layer',
+    navLabel: '암묵지 수집',
+    relatedSlugs: [
+      'zero-action-accumulation',
+      'knowledge-accumulation-pipeline',
+      'context-graph-for-work-knowledge',
+    ],
+    slug: 'tacit-knowledge-capture',
+    sources: [
+      createSource('code', 'src/app/api/sessions/[id]/chat/route.ts'),
+      createSource('code', 'src/lib/ai/session-chat.ts'),
+      createSource('code', 'src/lib/knowledge/pipeline.ts'),
+      createSource('reference', '암묵지 수집 방법론 메모'),
+    ],
+    summary:
+      '무엇을 단순 chat log가 아니라 업무 카드 위의 intent event로 포착해야 회사 고유의 판단 기준이 자산으로 남는지 설명한다.',
+    title: '암묵지 수집 레이어',
+    whyItMatters:
+      '이식 시 최종 산출물만 축적하면 회사만의 판단 기준과 예외 처리 노하우는 결국 시스템 밖에 남는다.',
+  },
+  {
+    blocks: [
+      {
+        paragraphs: [
+          'Context graph라는 표현은 거창해 보이지만, 출발점은 완전한 그래프 엔진이 아니라 “이 지식이 어느 상황에서 유효한가”를 잃지 않는 태깅 구조다. 조직 안에서는 같은 문장도 부서, 직급, 대상 독자, 보고 목적에 따라 의미가 달라진다.',
+          '따라서 knowledge layer는 내용을 많이 모으는 것보다 먼저, 그 내용에 어떤 맥락 꼬리표를 붙일지를 정해야 한다. 그렇지 않으면 retrieval은 빠르게 평평한 shared pool로 무너진다.',
+        ],
+        title: '그래프보다 먼저 필요한 것은 맥락을 잃지 않는 태깅 구조다',
+      },
+      {
+        paragraphs: [
+          '초기 버전에서 필요한 핵심 태그는 speaker, owner team, audience, process step, exception condition, confidence, approval status, bucket scope 정도다. 이 정도만 있어도 “같은 노하우처럼 보이지만 실제로는 다른 상황”을 분리할 수 있다.',
+          '현재의 memory chunk, entity, fact, deliverable, source 구조는 이미 일부 단서를 갖고 있다. 다음 단계는 이를 더 거대한 관계도보다 “맥락이 붙은 검색 후보”로 발전시키는 일이다.',
+        ],
+        title: '초기 context graph는 태그 집합으로 시작하는 편이 실전적이다',
+      },
+      {
+        bullets: [
+          'speaker: 누가 말했는가',
+          'scope: 어느 부서/버킷에 속하는가',
+          'audience: 누구를 대상으로 한 판단인가',
+          'situation: 어떤 프로세스 단계와 예외 조건인가',
+          'status: 검토/승인 여부는 어디까지 왔는가',
+        ],
+        paragraphs: [
+          '이식 시 full graph를 먼저 만들려 하기보다, retrieval eligibility를 결정하는 최소 태그 세트를 먼저 고정하는 편이 더 안전하다.',
+        ],
+        title: '맥락 태그는 검색 품질보다 먼저 접근 자격을 결정한다',
+      },
+    ],
+    category: 'knowledge-layer',
+    navLabel: '맥락 태깅',
+    relatedSlugs: [
+      'tacit-knowledge-capture',
+      'provenance-and-evidence-links',
+      'hybrid-retrieval',
+    ],
+    slug: 'context-graph-for-work-knowledge',
+    sources: [
+      createSource('code', 'src/lib/db/schema.ts'),
+      createSource('code', 'src/lib/memory/retrieval.ts'),
+      createSource('code', 'src/lib/search/service.ts'),
+      createSource('reference', '컨텍스트 그래프 설계 메모'),
+    ],
+    summary:
+      '무엇을 full graph보다 먼저 맥락 태그로 고정해야 회사 지식이 평평한 shared pool로 무너지지 않는지 설명한다.',
+    title: '업무 지식을 위한 맥락 그래프 전 단계',
+    whyItMatters:
+      '이식 시 화자와 상황 정보 없이 지식을 합치면 retrieval 품질보다 먼저 조직 신뢰가 무너지기 쉽다.',
+  },
+  {
+    blocks: [
+      {
+        paragraphs: [
           '지식 축적 파이프라인은 zero-action 철학의 구현 버전이다. 현재 HR AX 플랫폼에서는 `finalizeReport`가 끝난 뒤 `runKnowledgeExtractionPipeline`이 돌아가며 entity, fact, insight를 만든다.',
           '핵심은 축적 시점을 대화 중간이 아니라 출판 경계에 두는 것이다. 확정되지 않은 초안과 대화는 아직 조직 자산이 아니므로 장기 지식으로 승격시키지 않는다.',
         ],
