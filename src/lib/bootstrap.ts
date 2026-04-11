@@ -15,9 +15,7 @@ function getRuntimeRequire(): NodeJS.Require {
 }
 
 function getNodePostgresMigratorModule(): NodePostgresMigratorModule {
-  return getRuntimeRequire()(
-    'drizzle-orm/node-postgres/migrator',
-  ) as NodePostgresMigratorModule;
+  return getRuntimeRequire()('drizzle-orm/node-postgres/migrator') as NodePostgresMigratorModule;
 }
 
 async function ensureAdminAccount(): Promise<void> {

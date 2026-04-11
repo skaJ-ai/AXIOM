@@ -96,13 +96,13 @@ function SharedWikiSidebar({ articles, basePath, buildBasePath }: SharedWikiSide
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-            <div className="rounded-[1.1rem] bg-white/82 px-4 py-4 shadow-[var(--shadow-1)]">
+            <div className="bg-white/82 rounded-[1.1rem] px-4 py-4 shadow-[var(--shadow-1)]">
               <p className="meta">ARTICLES</p>
               <p className="mt-2 font-headline text-2xl font-bold text-[var(--color-text)]">
                 {articles.length}
               </p>
             </div>
-            <div className="rounded-[1.1rem] bg-white/82 px-4 py-4 shadow-[var(--shadow-1)]">
+            <div className="bg-white/82 rounded-[1.1rem] px-4 py-4 shadow-[var(--shadow-1)]">
               <p className="meta">VIEW</p>
               <p className="mt-2 text-sm font-semibold leading-6 text-[var(--color-text)]">
                 공유용 설명
@@ -110,17 +110,17 @@ function SharedWikiSidebar({ articles, basePath, buildBasePath }: SharedWikiSide
             </div>
           </div>
 
-          <Link className="btn-secondary text-center text-xs" href={buildBasePath} onClick={handleCloseDrawer}>
+          <Link
+            className="btn-secondary text-center text-xs"
+            href={buildBasePath}
+            onClick={handleCloseDrawer}
+          >
             구현용 위키 보기
           </Link>
         </div>
 
         <div className="flex items-start justify-between gap-3 xl:hidden">
-          <button
-            className="btn-secondary focus-ring"
-            onClick={handleCloseDrawer}
-            type="button"
-          >
+          <button className="btn-secondary focus-ring" onClick={handleCloseDrawer} type="button">
             {MOBILE_DRAWER_CLOSE_LABEL}
           </button>
         </div>
@@ -129,7 +129,7 @@ function SharedWikiSidebar({ articles, basePath, buildBasePath }: SharedWikiSide
           <span className="section-label">검색</span>
           <input
             autoComplete="off"
-            className="focus-ring mt-2 w-full rounded-[1rem] border border-transparent bg-white/84 px-4 py-3 text-sm text-[var(--color-text)] outline-none shadow-[var(--shadow-1)] transition placeholder:text-[var(--color-text-tertiary)]"
+            className="focus-ring bg-white/84 mt-2 w-full rounded-[1rem] border border-transparent px-4 py-3 text-sm text-[var(--color-text)] shadow-[var(--shadow-1)] outline-none transition placeholder:text-[var(--color-text-tertiary)]"
             onChange={handleSearchChange}
             placeholder="쉬운 설명 찾기"
             type="search"
@@ -139,7 +139,7 @@ function SharedWikiSidebar({ articles, basePath, buildBasePath }: SharedWikiSide
 
         <nav className="flex flex-col gap-4">
           <Link
-            className="sidebar-nav-item rounded-[1.25rem] bg-[var(--color-accent-light)]/74 px-4 py-4 shadow-[var(--shadow-1)]"
+            className="sidebar-nav-item bg-[var(--color-accent-light)]/74 rounded-[1.25rem] px-4 py-4 shadow-[var(--shadow-1)]"
             data-active={isOverviewActive}
             href={basePath}
             onClick={handleCloseDrawer}
@@ -160,7 +160,7 @@ function SharedWikiSidebar({ articles, basePath, buildBasePath }: SharedWikiSide
               <div className="mt-4 flex flex-col gap-2">
                 {group.articles.map((article) => (
                   <Link
-                    className="sidebar-nav-item rounded-[1rem] bg-white/74 px-4 py-3 shadow-[var(--shadow-1)]"
+                    className="sidebar-nav-item bg-white/74 rounded-[1rem] px-4 py-3 shadow-[var(--shadow-1)]"
                     data-active={pathname === getWikiArticleHref(basePath, article.slug)}
                     href={getWikiArticleHref(basePath, article.slug)}
                     key={article.slug}

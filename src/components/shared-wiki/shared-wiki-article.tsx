@@ -18,15 +18,9 @@ function isArticle(value: SharedWikiArticle | undefined): value is SharedWikiArt
   return value !== undefined;
 }
 
-function SharedWikiArticleView({
-  article,
-  basePath,
-  buildBasePath,
-}: SharedWikiArticleViewProps) {
+function SharedWikiArticleView({ article, basePath, buildBasePath }: SharedWikiArticleViewProps) {
   const categoryMeta = SHARED_WIKI_CATEGORY_META[article.category];
-  const relatedArticles = article.relatedSlugs
-    .map(getSharedWikiArticleBySlug)
-    .filter(isArticle);
+  const relatedArticles = article.relatedSlugs.map(getSharedWikiArticleBySlug).filter(isArticle);
 
   return (
     <article className="flex flex-col gap-12">
@@ -38,7 +32,7 @@ function SharedWikiArticleView({
 
         <div className="space-y-4">
           <p className="section-label">For Non-Developers</p>
-          <h1 className="font-headline text-balance text-4xl font-extrabold leading-[1.05] tracking-tight text-[var(--color-text)] md:text-5xl xl:text-[3.15rem]">
+          <h1 className="text-balance font-headline text-4xl font-extrabold leading-[1.05] tracking-tight text-[var(--color-text)] md:text-5xl xl:text-[3.15rem]">
             {article.title}
           </h1>
           <p className="max-w-[58rem] text-lg leading-9 text-[var(--color-text-secondary)]">
@@ -49,7 +43,10 @@ function SharedWikiArticleView({
 
       <div className="flex min-w-0 flex-col gap-8">
         {article.blocks.map((block, index) => (
-          <section className="border-t border-[var(--color-border-subtle)] pt-8 first:border-t-0 first:pt-0" key={block.title}>
+          <section
+            className="border-t border-[var(--color-border-subtle)] pt-8 first:border-t-0 first:pt-0"
+            key={block.title}
+          >
             <div className="space-y-5">
               <div className="space-y-2">
                 <p className="meta">{`SECTION 0${index + 1}`}</p>
@@ -90,8 +87,8 @@ function SharedWikiArticleView({
             구현팀은 기술 위키를 별도로 봅니다
           </h2>
           <p className="text-sm leading-7 text-[var(--color-text-secondary)]">
-            이 페이지는 팀 공유용 설명층입니다. 컴포넌트 구조, 데이터 흐름, 구현 메모는 별도
-            구현용 위키에서 관리합니다.
+            이 페이지는 팀 공유용 설명층입니다. 컴포넌트 구조, 데이터 흐름, 구현 메모는 별도 구현용
+            위키에서 관리합니다.
           </p>
         </div>
 

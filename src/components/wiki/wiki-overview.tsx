@@ -6,10 +6,7 @@ import {
   IDEATION_POINT_CATEGORY_ORDER,
   getIdeationPointArticlesByCategory,
 } from '@/app/ideation-points/ideation-points-content';
-import {
-  BRAND_ELEVATOR_PITCH,
-  BRAND_MEMBER_VALUE_PROPOSITION,
-} from '@/lib/brand';
+import { BRAND_ELEVATOR_PITCH, BRAND_MEMBER_VALUE_PROPOSITION } from '@/lib/brand';
 
 import { getWikiArticleHref } from './wiki-paths';
 
@@ -94,16 +91,16 @@ function WikiOverview({ basePath }: WikiOverviewProps) {
 
           <div className="space-y-4">
             <p className="section-label">Shared Architecture Notes</p>
-            <h1 className="font-headline text-balance text-4xl font-extrabold leading-[1.04] tracking-tight text-[var(--color-text)] md:text-5xl xl:text-[3.35rem]">
+            <h1 className="text-balance font-headline text-4xl font-extrabold leading-[1.04] tracking-tight text-[var(--color-text)] md:text-5xl xl:text-[3.35rem]">
               기능 소개보다 먼저,
               <br />
               <span className="text-[var(--color-accent)]">옮겨도 남아야 할 설계 판단</span>을
               공유하는 위키
             </h1>
             <p className="max-w-[64rem] text-lg leading-8 text-[var(--color-text-secondary)]">
-              이 페이지는 나중에 HR AX 플랫폼으로 통합되더라도 유지해야 하는 사고 체계와 지식
-              구조를 먼저 읽히게 하도록 재구성했습니다. 팀 공유 시에는 각 항목의 기능보다 왜 그런
-              경계를 두었는지를 읽히는 용도로 쓰는 편이 좋습니다.
+              이 페이지는 나중에 HR AX 플랫폼으로 통합되더라도 유지해야 하는 사고 체계와 지식 구조를
+              먼저 읽히게 하도록 재구성했습니다. 팀 공유 시에는 각 항목의 기능보다 왜 그런 경계를
+              두었는지를 읽히는 용도로 쓰는 편이 좋습니다.
             </p>
           </div>
         </div>
@@ -115,7 +112,10 @@ function WikiOverview({ basePath }: WikiOverviewProps) {
           </p>
           <ul className="grid gap-3">
             {BRAND_ELEVATOR_PITCH.map((line, index) => (
-              <li className="flex gap-3 text-sm leading-7 text-[var(--color-text-secondary)]" key={line}>
+              <li
+                className="flex gap-3 text-sm leading-7 text-[var(--color-text-secondary)]"
+                key={line}
+              >
                 <span className="meta pt-1">{`0${index + 1}`}</span>
                 <span>{line}</span>
               </li>
@@ -179,8 +179,8 @@ function WikiOverview({ basePath }: WikiOverviewProps) {
             처음 공유할 때는 이 순서가 가장 덜 헷갈립니다
           </h2>
           <p className="max-w-3xl text-sm leading-7 text-[var(--color-text-secondary)]">
-            아래 경로는 낯선 사람도 위키의 구조를 빠르게 이해할 수 있게 만든 보수적 순서입니다.
-            각 단계는 대표 항목으로 바로 이어집니다.
+            아래 경로는 낯선 사람도 위키의 구조를 빠르게 이해할 수 있게 만든 보수적 순서입니다. 각
+            단계는 대표 항목으로 바로 이어집니다.
           </p>
         </div>
 

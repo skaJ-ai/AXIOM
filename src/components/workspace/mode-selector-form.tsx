@@ -132,7 +132,7 @@ function ModeSelectorForm({ modes, parentSessionOptions }: ModeSelectorFormProps
                 <span className="text-3xl">{mode.icon}</span>
               </div>
 
-              <h3 className="font-headline mb-2 text-xl font-bold text-[var(--color-text)]">
+              <h3 className="mb-2 font-headline text-xl font-bold text-[var(--color-text)]">
                 {mode.name}
               </h3>
               <p className="mb-4 text-sm leading-relaxed text-[var(--color-text-secondary)]">

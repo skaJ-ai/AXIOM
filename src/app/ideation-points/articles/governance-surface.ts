@@ -173,11 +173,7 @@ const GOVERNANCE_SURFACE_ARTICLES: IdeationPointArticle[] = [
     ],
     category: 'governance-surface',
     navLabel: '지식 충돌 해결',
-    relatedSlugs: [
-      'governance-draft',
-      'human-in-the-loop',
-      'trust-tier-promotion',
-    ],
+    relatedSlugs: ['governance-draft', 'human-in-the-loop', 'trust-tier-promotion'],
     slug: 'knowledge-conflict-resolution',
     sources: [
       createSource('reference', '암묵지 충돌 해결 메모'),

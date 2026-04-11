@@ -43,7 +43,7 @@ function IdeationPointArticleView({ article }: IdeationPointArticleProps) {
 
           <div className="space-y-4">
             <p className="section-label">Transferable Design Decision</p>
-            <h1 className="font-headline text-balance text-4xl font-extrabold leading-[1.05] tracking-tight text-[var(--color-text)] md:text-5xl xl:text-[3.4rem]">
+            <h1 className="text-balance font-headline text-4xl font-extrabold leading-[1.05] tracking-tight text-[var(--color-text)] md:text-5xl xl:text-[3.4rem]">
               {article.title}
             </h1>
             <p className="max-w-[58rem] text-lg leading-9 text-[var(--color-text-secondary)]">
@@ -59,7 +59,10 @@ function IdeationPointArticleView({ article }: IdeationPointArticleProps) {
 
       <div className="flex min-w-0 flex-col gap-8">
         {article.blocks.map((block, index) => (
-          <section className="border-t border-[var(--color-border-subtle)] pt-8 first:border-t-0 first:pt-0" key={block.title}>
+          <section
+            className="border-t border-[var(--color-border-subtle)] pt-8 first:border-t-0 first:pt-0"
+            key={block.title}
+          >
             <div className="flex min-w-0 flex-col gap-5">
               <div className="space-y-3">
                 <div className="flex items-center gap-3">

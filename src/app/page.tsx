@@ -162,7 +162,7 @@ export default function HomePage() {
             </div>
 
             <div className="flex flex-col gap-5">
-              <h1 className="font-headline text-balance break-keep max-w-[12ch] text-[clamp(3.5rem,7vw,6.8rem)] font-extrabold leading-[0.92] tracking-[-0.055em] text-[var(--color-accent)]">
+              <h1 className="max-w-[12ch] text-balance break-keep font-headline text-[clamp(3.5rem,7vw,6.8rem)] font-extrabold leading-[0.92] tracking-[-0.055em] text-[var(--color-accent)]">
                 생각이 흩어지지 않게,
                 <span className="text-[var(--color-teal)]"> 다음 작업의 출발점으로</span> 남깁니다
               </h1>
@@ -208,7 +208,10 @@ export default function HomePage() {
 
               <div className="grid gap-3 md:grid-cols-2">
                 {BRAND_FOUR_MODE_STORY.map((story) => (
-                  <article className={`rounded-[1.1rem] p-4 shadow-[var(--shadow-1)] ${getModeCardClassName(story.mode)}`} key={story.mode}>
+                  <article
+                    className={`rounded-[1.1rem] p-4 shadow-[var(--shadow-1)] ${getModeCardClassName(story.mode)}`}
+                    key={story.mode}
+                  >
                     <div className="mb-3 flex items-center justify-between gap-3">
                       <span className={getModeBadgeClassName(story.mode)}>
                         {story.title.split(' ')[0]}
@@ -243,7 +246,7 @@ export default function HomePage() {
         <section className="mx-auto max-w-7xl px-6 py-20 lg:px-8" id="lab-value">
           <div className="mb-12 flex flex-col gap-4">
             <span className="section-label">가치 제안</span>
-            <h2 className="font-headline text-balance text-3xl font-bold leading-[1.06] tracking-tight text-[var(--color-accent)] md:text-5xl">
+            <h2 className="text-balance font-headline text-3xl font-bold leading-[1.06] tracking-tight text-[var(--color-accent)] md:text-5xl">
               HR 담당자의 작업공간으로 다시 정의합니다
             </h2>
             <p className="max-w-3xl text-lg leading-8 text-[var(--color-text-secondary)]">
@@ -269,7 +272,7 @@ export default function HomePage() {
         <section className="mx-auto max-w-7xl px-6 py-20 lg:px-8" id="modes">
           <div className="mb-12 flex flex-col gap-4 text-center">
             <span className="section-label">4모드 이야기</span>
-            <h2 className="font-headline text-balance text-3xl font-bold leading-[1.04] tracking-tight text-[var(--color-accent)] md:text-5xl">
+            <h2 className="text-balance font-headline text-3xl font-bold leading-[1.04] tracking-tight text-[var(--color-accent)] md:text-5xl">
               HR AX Copilot은 대화를 하나의 채팅이 아니라 네 단계의 사고 흐름으로 다룹니다
             </h2>
             <p className="mx-auto max-w-3xl text-lg leading-8 text-[var(--color-text-secondary)]">
@@ -301,12 +304,12 @@ export default function HomePage() {
         <section className="mx-auto max-w-7xl px-6 py-20 lg:px-8" id="comparison">
           <div className="mb-12 flex flex-col gap-4 text-center">
             <span className="section-label">왜 HR AX Copilot인가</span>
-            <h2 className="font-headline text-balance text-3xl font-bold leading-[1.04] tracking-tight text-[var(--color-accent)] md:text-5xl">
+            <h2 className="text-balance font-headline text-3xl font-bold leading-[1.04] tracking-tight text-[var(--color-accent)] md:text-5xl">
               일반 채팅형 AI와 다른 점은 답변이 아니라 구조입니다
             </h2>
             <p className="mx-auto max-w-3xl text-lg leading-8 text-[var(--color-text-secondary)]">
-              HR AX Copilot은 더 그럴듯하게 답하는 도구가 아니라, 사고와 근거를 다음 작업에서
-              다시 쓸 수 있게 남기는 구조를 제공합니다.
+              HR AX Copilot은 더 그럴듯하게 답하는 도구가 아니라, 사고와 근거를 다음 작업에서 다시
+              쓸 수 있게 남기는 구조를 제공합니다.
             </p>
           </div>
 
@@ -353,13 +356,13 @@ export default function HomePage() {
             <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
               <div className="max-w-3xl">
                 <span className="badge badge-teal mb-4">다음 단계</span>
-                <h2 className="font-headline text-balance text-4xl font-extrabold leading-[1.04] tracking-tight text-white md:text-5xl">
+                <h2 className="text-balance font-headline text-4xl font-extrabold leading-[1.04] tracking-tight text-white md:text-5xl">
                   제품 설명보다 먼저, 개념 구조를 위키로 남깁니다
                 </h2>
                 <p className="mt-4 text-lg leading-8 text-white/80">
-                  공유 위키에는 HR AX 플랫폼이 무엇인지, HR AX Copilot이 어떤 역할을 하는지,
-                  업무 카드와 프로세스가 어떻게 연결되는지처럼 팀원이 먼저 이해해야 할 내용을
-                  쉬운 말로 정리했습니다.
+                  공유 위키에는 HR AX 플랫폼이 무엇인지, HR AX Copilot이 어떤 역할을 하는지, 업무
+                  카드와 프로세스가 어떻게 연결되는지처럼 팀원이 먼저 이해해야 할 내용을 쉬운 말로
+                  정리했습니다.
                 </p>
               </div>
 

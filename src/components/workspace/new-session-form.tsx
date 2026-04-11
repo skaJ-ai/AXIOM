@@ -126,7 +126,7 @@ function NewSessionForm({ templates }: NewSessionFormProps) {
         </div>
 
         <h3
-          className={`font-headline mb-2 text-lg font-bold transition-colors group-hover:text-[var(--color-accent)] ${isSelected ? 'text-[var(--color-accent)]' : 'text-[var(--color-text)]'}`}
+          className={`mb-2 font-headline text-lg font-bold transition-colors group-hover:text-[var(--color-accent)] ${isSelected ? 'text-[var(--color-accent)]' : 'text-[var(--color-text)]'}`}
         >
           {template.name}
         </h3>

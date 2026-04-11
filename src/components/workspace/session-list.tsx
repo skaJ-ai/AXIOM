@@ -127,7 +127,7 @@ function SessionList({ sessions }: SessionListProps) {
               </div>
             </div>
             <Link href={`/workspace/session/${session.id}`}>
-              <h3 className="font-headline mb-2 text-lg font-bold text-[var(--color-text)] group-hover:text-[var(--color-accent)]">
+              <h3 className="mb-2 font-headline text-lg font-bold text-[var(--color-text)] group-hover:text-[var(--color-accent)]">
                 {session.title}
               </h3>
               <div className="flex items-center justify-between text-sm text-[var(--color-text-secondary)]">

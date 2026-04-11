@@ -100,7 +100,11 @@ export default async function WorkspacePage({
             label="모드 분포"
             value={`${sessionsByMode.diverge + sessionsByMode.validate + sessionsByMode.synthesize + sessionsByMode.write}`}
           />
-          <DashboardKpiCard detail="누적된 리포트와 산출물" label="리포트" value={deliverables.length} />
+          <DashboardKpiCard
+            detail="누적된 리포트와 산출물"
+            label="리포트"
+            value={deliverables.length}
+          />
           <div className="workspace-card-muted flex flex-col justify-center gap-3">
             <form action="/workspace" className="flex flex-col gap-3">
               <input
@@ -250,7 +254,7 @@ export default async function WorkspacePage({
                         <span className="badge badge-teal font-bold">v{deliverable.version}</span>
                       </div>
                     </div>
-                    <h3 className="font-headline mb-2 text-lg font-bold text-[var(--color-text)] group-hover:text-[var(--color-teal)]">
+                    <h3 className="mb-2 font-headline text-lg font-bold text-[var(--color-text)] group-hover:text-[var(--color-teal)]">
                       {deliverable.title}
                     </h3>
                     <p className="mb-4 line-clamp-2 text-sm leading-6 text-[var(--color-text-secondary)]">

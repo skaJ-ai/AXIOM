@@ -72,9 +72,7 @@ function WorkspaceTopbar({ user }: WorkspaceTopbarProps) {
             <h1 className="font-headline text-xl font-bold tracking-tight text-[var(--color-text)]">
               {breadcrumb.title}
             </h1>
-            <span className="badge badge-neutral">
-              {user ? user.workspaceName : '공유용 보기'}
-            </span>
+            <span className="badge badge-neutral">{user ? user.workspaceName : '공유용 보기'}</span>
           </div>
         </div>
 

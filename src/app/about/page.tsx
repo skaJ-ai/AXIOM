@@ -286,7 +286,8 @@ function renderSlideContent(slide: IntroSlide): ReactElement {
           <span className="section-label">{slide.label}</span>
           <h2 className="text-3xl font-semibold text-[var(--color-text)]">{slide.title}</h2>
           <p className="max-w-3xl text-sm leading-7 text-[var(--color-text-secondary)]">
-            HR AX Copilot은 좋은 답변을 내는 도구라기보다, 좋은 작업 구조를 남기는 도구로 포지셔닝됩니다.
+            HR AX Copilot은 좋은 답변을 내는 도구라기보다, 좋은 작업 구조를 남기는 도구로
+            포지셔닝됩니다.
           </p>
         </div>
         <div className="overflow-x-auto rounded-[var(--radius-lg)] border border-[var(--color-border)]">
@@ -363,8 +364,8 @@ function renderSlideContent(slide: IntroSlide): ReactElement {
           <span className="section-label">{slide.label}</span>
           <h2 className="text-3xl font-semibold text-[var(--color-text)]">{slide.title}</h2>
           <p className="max-w-3xl text-sm leading-7 text-[var(--color-text-secondary)]">
-            제품을 써 보고 싶다면 워크벤치를 열고, 개념을 옮겨 적고 싶다면 공유용 위키
-            위키부터 읽으면 됩니다.
+            제품을 써 보고 싶다면 워크벤치를 열고, 개념을 옮겨 적고 싶다면 공유용 위키 위키부터
+            읽으면 됩니다.
           </p>
         </div>
         <div className="flex flex-wrap gap-3">

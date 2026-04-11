@@ -2,10 +2,7 @@ import type { ReactNode } from 'react';
 
 import { BRAND_NAME, BRAND_SHORT_LABEL, BRAND_TAGLINE } from '@/lib/brand';
 
-import {
-  IDEATION_POINT_ARTICLES,
-  IDEATION_POINT_CATEGORY_ORDER,
-} from './ideation-points-content';
+import { IDEATION_POINT_ARTICLES, IDEATION_POINT_CATEGORY_ORDER } from './ideation-points-content';
 import { IdeationPointsSidebar } from './ideation-points-sidebar';
 
 export default function IdeationPointsLayout({ children }: { children: ReactNode }) {
@@ -18,7 +15,9 @@ export default function IdeationPointsLayout({ children }: { children: ReactNode
               <span className="badge badge-accent">{BRAND_SHORT_LABEL}</span>
               <span className="badge badge-neutral">공유용 설계 위키</span>
               <span className="badge badge-neutral">{IDEATION_POINT_ARTICLES.length}개 항목</span>
-              <span className="badge badge-neutral">{IDEATION_POINT_CATEGORY_ORDER.length}개 카테고리</span>
+              <span className="badge badge-neutral">
+                {IDEATION_POINT_CATEGORY_ORDER.length}개 카테고리
+              </span>
             </div>
             <div className="space-y-2">
               <p className="section-label">Transferable Ideation Notes</p>

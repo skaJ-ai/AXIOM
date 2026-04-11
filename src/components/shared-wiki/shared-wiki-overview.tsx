@@ -22,7 +22,8 @@ const READING_SEQUENCE = [
     title: '먼저 큰 그림 보기',
   },
   {
-    description: '업무 카드, 프로세스, Working Group과 함께 회사 안의 암묵지가 왜 중요한지도 읽습니다.',
+    description:
+      '업무 카드, 프로세스, Working Group과 함께 회사 안의 암묵지가 왜 중요한지도 읽습니다.',
     slugs: ['work-card-and-process', 'working-group-role', 'why-tacit-knowledge-matters'],
     title: '일하는 방식 이해하기',
   },
@@ -33,11 +34,7 @@ const READING_SEQUENCE = [
   },
   {
     description: '사람 승인 경계, 노하우 충돌 처리, 기록의 중요성을 읽고 운영 관점을 정리합니다.',
-    slugs: [
-      'human-approval-boundary',
-      'how-knowledge-conflicts-are-handled',
-      'why-records-matter',
-    ],
+    slugs: ['human-approval-boundary', 'how-knowledge-conflicts-are-handled', 'why-records-matter'],
     title: '안심하고 쓰는 조건 이해하기',
   },
 ];
@@ -59,7 +56,7 @@ function SharedWikiOverview({ basePath, buildBasePath }: SharedWikiOverviewProps
           </div>
           <div className="space-y-4">
             <p className="section-label">For Team Sharing</p>
-            <h1 className="font-headline text-balance text-4xl font-extrabold leading-[1.04] tracking-tight text-[var(--color-text)] md:text-5xl xl:text-[3.2rem]">
+            <h1 className="text-balance font-headline text-4xl font-extrabold leading-[1.04] tracking-tight text-[var(--color-text)] md:text-5xl xl:text-[3.2rem]">
               HR AX 플랫폼을
               <br />
               <span className="text-[var(--color-accent)]">처음 보는 사람도 따라올 수 있게</span>
@@ -113,7 +110,9 @@ function SharedWikiOverview({ basePath, buildBasePath }: SharedWikiOverviewProps
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {stage.slugs.map((slug) => {
-                      const article = SHARED_WIKI_ARTICLES.find((candidate) => candidate.slug === slug);
+                      const article = SHARED_WIKI_ARTICLES.find(
+                        (candidate) => candidate.slug === slug,
+                      );
 
                       if (!article) {
                         return null;

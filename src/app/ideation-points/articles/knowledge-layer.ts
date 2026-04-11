@@ -131,11 +131,7 @@ const KNOWLEDGE_LAYER_ARTICLES: IdeationPointArticle[] = [
     ],
     category: 'knowledge-layer',
     navLabel: '맥락 태깅',
-    relatedSlugs: [
-      'tacit-knowledge-capture',
-      'provenance-and-evidence-links',
-      'hybrid-retrieval',
-    ],
+    relatedSlugs: ['tacit-knowledge-capture', 'provenance-and-evidence-links', 'hybrid-retrieval'],
     slug: 'context-graph-for-work-knowledge',
     sources: [
       createSource('code', 'src/lib/db/schema.ts'),

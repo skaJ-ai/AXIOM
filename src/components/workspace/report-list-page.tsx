@@ -30,7 +30,8 @@ async function ReportListPage() {
         {deliverables.length === 0 ? (
           <div className="workspace-card-muted p-6 text-center">
             <p className="text-sm text-[var(--color-text-secondary)]">
-              아직 생성된 리포트가 없습니다. 작성 모드에서 초안을 만든 뒤 여기서 다시 열 수 있습니다.
+              아직 생성된 리포트가 없습니다. 작성 모드에서 초안을 만든 뒤 여기서 다시 열 수
+              있습니다.
             </p>
           </div>
         ) : (

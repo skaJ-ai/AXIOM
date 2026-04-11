@@ -24,8 +24,7 @@ function buildDeliverableMarkdown(title: string, sections: DeliverableSection[])
   return `# ${title}\n\n${sectionMarkdown}`.trim();
 }
 
-const AI_DISCLOSURE_FOOTER =
-  '\n\n---\n\n> 이 문서는 HR AX Copilot의 도움을 받아 작성되었습니다.';
+const AI_DISCLOSURE_FOOTER = '\n\n---\n\n> 이 문서는 HR AX Copilot의 도움을 받아 작성되었습니다.';
 
 function buildRenderableDeliverableMarkdown(title: string, sections: DeliverableSection[]): string {
   const sectionMarkdown = sections

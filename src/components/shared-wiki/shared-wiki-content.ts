@@ -1,8 +1,4 @@
-type SharedWikiCategory =
-  | 'platform-basics'
-  | 'working-model'
-  | 'automation-model'
-  | 'trust-model';
+type SharedWikiCategory = 'platform-basics' | 'working-model' | 'automation-model' | 'trust-model';
 
 interface SharedWikiBlock {
   bullets?: string[];
@@ -58,27 +54,33 @@ const SHARED_WIKI_CATEGORY_META: Record<SharedWikiCategory, SharedWikiCategoryMe
 
 const SHARED_WIKI_GLOSSARY: SharedWikiGlossaryItem[] = [
   {
-    description: 'HR 담당자가 실제로 추적해야 하는 일감입니다. 요청 건, 보고서 준비, 일정 조율 같은 일이 여기에 들어갑니다.',
+    description:
+      'HR 담당자가 실제로 추적해야 하는 일감입니다. 요청 건, 보고서 준비, 일정 조율 같은 일이 여기에 들어갑니다.',
     term: '업무 카드',
   },
   {
-    description: 'Working Group이 정리한 표준 업무 흐름입니다. 담당자가 일을 시작할 때 참고하는 기본 뼈대입니다.',
+    description:
+      'Working Group이 정리한 표준 업무 흐름입니다. 담당자가 일을 시작할 때 참고하는 기본 뼈대입니다.',
     term: '프로세스 자산',
   },
   {
-    description: '부서나 개인 단위로 자료를 모으고 접근 범위를 나누는 지식 구역입니다. 민감 정보는 버킷별로 분리하고, 반복 사용될수록 각 팀의 자산이 쌓입니다.',
+    description:
+      '부서나 개인 단위로 자료를 모으고 접근 범위를 나누는 지식 구역입니다. 민감 정보는 버킷별로 분리하고, 반복 사용될수록 각 팀의 자산이 쌓입니다.',
     term: '버킷',
   },
   {
-    description: '대화를 잘 끌어가고 중간 정리를 도와주는 공통 AI 파트너입니다. 모든 일을 자동으로 대신하는 Agent는 아닙니다.',
+    description:
+      '대화를 잘 끌어가고 중간 정리를 도와주는 공통 AI 파트너입니다. 모든 일을 자동으로 대신하는 Agent는 아닙니다.',
     term: 'HR AX Copilot',
   },
   {
-    description: '문서나 매뉴얼에는 잘 안 적혀 있지만, 실무자가 실제로 일할 때 쓰는 판단 기준과 예외 처리 요령입니다.',
+    description:
+      '문서나 매뉴얼에는 잘 안 적혀 있지만, 실무자가 실제로 일할 때 쓰는 판단 기준과 예외 처리 요령입니다.',
     term: '암묵지',
   },
   {
-    description: '그 지식이 누구에게서 나왔고, 어떤 상황과 부서, 어떤 보고 대상에 적용되는지 알려 주는 꼬리표입니다.',
+    description:
+      '그 지식이 누구에게서 나왔고, 어떤 상황과 부서, 어떤 보고 대상에 적용되는지 알려 주는 꼬리표입니다.',
     term: '맥락 태그',
   },
   {
@@ -95,7 +97,9 @@ const SHARED_WIKI_ARTICLES: SharedWikiArticle[] = [
   {
     blocks: [
       {
-        paragraphs: ['HR AX 플랫폼은 HR 담당자가 하루 업무를 한곳에서 이어서 처리하는 작업 공간입니다.'],
+        paragraphs: [
+          'HR AX 플랫폼은 HR 담당자가 하루 업무를 한곳에서 이어서 처리하는 작업 공간입니다.',
+        ],
         title: '한 줄 요약',
       },
       {
@@ -130,7 +134,9 @@ const SHARED_WIKI_ARTICLES: SharedWikiArticle[] = [
   {
     blocks: [
       {
-        paragraphs: ['HR AX Copilot은 사람 대신 모든 일을 처리하는 로봇이 아니라, 일을 덜 막히게 해 주는 공통 AI 파트너입니다.'],
+        paragraphs: [
+          'HR AX Copilot은 사람 대신 모든 일을 처리하는 로봇이 아니라, 일을 덜 막히게 해 주는 공통 AI 파트너입니다.',
+        ],
         title: '한 줄 요약',
       },
       {
@@ -168,7 +174,9 @@ const SHARED_WIKI_ARTICLES: SharedWikiArticle[] = [
   {
     blocks: [
       {
-        paragraphs: ['업무 카드는 “이번에 내가 실제로 처리해야 하는 일”이고, 프로세스 자산은 “그 일을 보통 어떻게 처리하는지 정리한 표준 흐름”입니다.'],
+        paragraphs: [
+          '업무 카드는 “이번에 내가 실제로 처리해야 하는 일”이고, 프로세스 자산은 “그 일을 보통 어떻게 처리하는지 정리한 표준 흐름”입니다.',
+        ],
         title: '한 줄 요약',
       },
       {
@@ -203,7 +211,9 @@ const SHARED_WIKI_ARTICLES: SharedWikiArticle[] = [
   {
     blocks: [
       {
-        paragraphs: ['Working Group은 현업이 실제로 하는 일을 정리해 “다음 사람도 같은 기준으로 일할 수 있게” 만드는 팀입니다.'],
+        paragraphs: [
+          'Working Group은 현업이 실제로 하는 일을 정리해 “다음 사람도 같은 기준으로 일할 수 있게” 만드는 팀입니다.',
+        ],
         title: '한 줄 요약',
       },
       {
@@ -235,13 +245,16 @@ const SHARED_WIKI_ARTICLES: SharedWikiArticle[] = [
     navLabel: 'Working Group 역할',
     relatedSlugs: ['work-card-and-process', 'why-not-agent-first'],
     slug: 'working-group-role',
-    summary: 'Working Group은 현업 기준을 플랫폼 안에서 재사용 가능한 프로세스 자산으로 바꾸는 팀입니다.',
+    summary:
+      'Working Group은 현업 기준을 플랫폼 안에서 재사용 가능한 프로세스 자산으로 바꾸는 팀입니다.',
     title: 'Working Group은 왜 중요한가',
   },
   {
     blocks: [
       {
-        paragraphs: ['암묵지는 문서에 적힌 절차보다, 실무자가 실제로 판단할 때 쓰는 숨은 기준에 가깝습니다.'],
+        paragraphs: [
+          '암묵지는 문서에 적힌 절차보다, 실무자가 실제로 판단할 때 쓰는 숨은 기준에 가깝습니다.',
+        ],
         title: '한 줄 요약',
       },
       {
@@ -277,7 +290,9 @@ const SHARED_WIKI_ARTICLES: SharedWikiArticle[] = [
   {
     blocks: [
       {
-        paragraphs: ['HR AX 플랫폼은 “Agent를 최대한 많이 만든다”보다 “사람이 대부분의 일을 덜 힘들게 처리하게 만든다”를 먼저 택합니다.'],
+        paragraphs: [
+          'HR AX 플랫폼은 “Agent를 최대한 많이 만든다”보다 “사람이 대부분의 일을 덜 힘들게 처리하게 만든다”를 먼저 택합니다.',
+        ],
         title: '한 줄 요약',
       },
       {
@@ -310,13 +325,16 @@ const SHARED_WIKI_ARTICLES: SharedWikiArticle[] = [
     navLabel: '왜 Agent-first가 아닌가',
     relatedSlugs: ['what-is-hr-ax-copilot', 'connectors-and-actions'],
     slug: 'why-not-agent-first',
-    summary: '모든 일을 Agent로 만들기보다, 사람이 중심이고 Copilot과 일부 Agent가 돕는 구조가 현실적입니다.',
+    summary:
+      '모든 일을 Agent로 만들기보다, 사람이 중심이고 Copilot과 일부 Agent가 돕는 구조가 현실적입니다.',
     title: '왜 모든 일을 Agent로 만들지 않는가',
   },
   {
     blocks: [
       {
-        paragraphs: ['Connector는 플랫폼 밖 시스템과 연결되는 통로이고, Action Layer는 그 통로를 통해 실제로 무엇을 읽고 쓰는지 정하는 층입니다.'],
+        paragraphs: [
+          'Connector는 플랫폼 밖 시스템과 연결되는 통로이고, Action Layer는 그 통로를 통해 실제로 무엇을 읽고 쓰는지 정하는 층입니다.',
+        ],
         title: '한 줄 요약',
       },
       {
@@ -348,13 +366,16 @@ const SHARED_WIKI_ARTICLES: SharedWikiArticle[] = [
     navLabel: 'Connector와 Action',
     relatedSlugs: ['why-not-agent-first', 'human-approval-boundary'],
     slug: 'connectors-and-actions',
-    summary: '플랫폼이 바깥 시스템과 어떻게 연결되고, 어디까지 실제 행동할 수 있는지 정하는 구조입니다.',
+    summary:
+      '플랫폼이 바깥 시스템과 어떻게 연결되고, 어디까지 실제 행동할 수 있는지 정하는 구조입니다.',
     title: '메일·일정·포털 연결은 어떻게 이해하면 되는가',
   },
   {
     blocks: [
       {
-        paragraphs: ['플랫폼이 사람 대신 실행할 수 있는 범위를 분명히 나눠야, 실제 조직에서 안심하고 쓸 수 있습니다.'],
+        paragraphs: [
+          '플랫폼이 사람 대신 실행할 수 있는 범위를 분명히 나눠야, 실제 조직에서 안심하고 쓸 수 있습니다.',
+        ],
         title: '한 줄 요약',
       },
       {
@@ -394,7 +415,9 @@ const SHARED_WIKI_ARTICLES: SharedWikiArticle[] = [
   {
     blocks: [
       {
-        paragraphs: ['서로 다른 노하우가 나왔다고 해서 항상 한쪽이 틀린 것은 아니며, 먼저 어떤 종류의 충돌인지 구분해야 합니다.'],
+        paragraphs: [
+          '서로 다른 노하우가 나왔다고 해서 항상 한쪽이 틀린 것은 아니며, 먼저 어떤 종류의 충돌인지 구분해야 합니다.',
+        ],
         title: '한 줄 요약',
       },
       {
@@ -430,11 +453,7 @@ const SHARED_WIKI_ARTICLES: SharedWikiArticle[] = [
     ],
     category: 'trust-model',
     navLabel: '노하우 충돌 다루기',
-    relatedSlugs: [
-      'why-tacit-knowledge-matters',
-      'human-approval-boundary',
-      'why-records-matter',
-    ],
+    relatedSlugs: ['why-tacit-knowledge-matters', 'human-approval-boundary', 'why-records-matter'],
     slug: 'how-knowledge-conflicts-are-handled',
     summary:
       '노하우 충돌은 삭제보다 구분과 검수의 문제이며, 마지막에는 사람 승인과 조직 규칙이 필요합니다.',

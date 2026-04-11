@@ -1,10 +1,7 @@
 import { notFound } from 'next/navigation';
 
 import { SharedWikiArticleView } from './shared-wiki-article';
-import {
-  SHARED_WIKI_ARTICLES,
-  getSharedWikiArticleBySlug,
-} from './shared-wiki-content';
+import { SHARED_WIKI_ARTICLES, getSharedWikiArticleBySlug } from './shared-wiki-content';
 import { SharedWikiOverview } from './shared-wiki-overview';
 import { SharedWikiSidebar } from './shared-wiki-sidebar';
 
