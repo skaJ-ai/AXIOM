@@ -49,6 +49,10 @@ function formatDateTimeLabel(value: string): string {
   }).format(date);
 }
 
+function canStartSessionFromWorkCard(status: WorkCardListItem['status']): boolean {
+  return status === 'active';
+}
+
 function WorkCardBoard({ initialCards }: WorkCardBoardProps) {
   const [cards, setCards] = useState(initialCards);
   const [createAudience, setCreateAudience] = useState('');
@@ -354,6 +358,8 @@ function WorkCardRow({
     setTitle(card.title);
   }, [card]);
 
+  const canStartSession = canStartSessionFromWorkCard(card.status);
+
   return (
     <article className="workspace-card flex flex-col gap-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -380,9 +386,15 @@ function WorkCardRow({
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <Link className="btn-secondary" href={`/workspace/new?workCardId=${card.id}`}>
-            이 카드로 세션 시작
-          </Link>
+          {canStartSession ? (
+            <Link className="btn-secondary" href={`/workspace/new?workCardId=${card.id}`}>
+              이 카드로 세션 시작
+            </Link>
+          ) : (
+            <span className="btn-secondary cursor-not-allowed opacity-50">
+              {card.status === 'completed' ? '완료된 카드' : '보관된 카드'}
+            </span>
+          )}
           <button className="btn-secondary" onClick={onEdit} type="button">
             {isEditing ? '닫기' : '편집'}
           </button>

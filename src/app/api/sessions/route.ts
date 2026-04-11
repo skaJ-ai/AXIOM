@@ -82,13 +82,12 @@ async function POST(request: Request) {
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown session creation error';
+    const isWorkCardValidationError =
+      message === '업무 카드를 찾을 수 없습니다.' ||
+      message === '보관된 업무 카드는 새 세션에 연결할 수 없습니다.' ||
+      message === '완료된 업무 카드는 새 세션에 연결할 수 없습니다.';
     const status =
-      message === 'Authentication required.'
-        ? 401
-        : message === '업무 카드를 찾을 수 없습니다.' ||
-            message === '보관된 업무 카드는 새 세션에 연결할 수 없습니다.'
-          ? 400
-          : 500;
+      message === 'Authentication required.' ? 401 : isWorkCardValidationError ? 400 : 500;
 
     return NextResponse.json(
       {

@@ -191,6 +191,16 @@ function mapWorkCardSummaryRowToSummary(
   };
 }
 
+function isWorkCardBlockedForNewSession(status: WorkCardSummary['status']): boolean {
+  return status === 'archived' || status === 'completed';
+}
+
+function getBlockedWorkCardMessage(status: WorkCardSummary['status']): string {
+  return status === 'completed'
+    ? '완료된 업무 카드는 새 세션에 연결할 수 없습니다.'
+    : '보관된 업무 카드는 새 세션에 연결할 수 없습니다.';
+}
+
 async function createSessionForWorkspace(
   workspaceId: string,
   mode: SessionMode,
@@ -237,8 +247,8 @@ async function createSessionForWorkspace(
         throw new Error('업무 카드를 찾을 수 없습니다.');
       }
 
-      if (workCard.status === 'archived') {
-        throw new Error('보관된 업무 카드는 새 세션에 연결할 수 없습니다.');
+      if (isWorkCardBlockedForNewSession(workCard.status)) {
+        throw new Error(getBlockedWorkCardMessage(workCard.status));
       }
     } else if (shouldCreateWorkCard) {
       workCard = await createWorkCard({

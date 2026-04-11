@@ -71,7 +71,6 @@ function applyReviewDecision(item: IntentReviewItem, decision: ReviewDecision): 
   if (decision === 'approve') {
     return {
       ...item,
-      promoted: true,
       reviewStatus: 'approved',
     };
   }
@@ -79,14 +78,12 @@ function applyReviewDecision(item: IntentReviewItem, decision: ReviewDecision): 
   if (decision === 'reject') {
     return {
       ...item,
-      promoted: false,
       reviewStatus: 'rejected',
     };
   }
 
   return {
     ...item,
-    promoted: false,
     reviewStatus: 'captured',
   };
 }
@@ -157,7 +154,6 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
         currentItem.id === item.id
           ? {
               ...currentItem,
-              promoted: true,
               reviewStatus: 'nominated',
             }
           : currentItem,

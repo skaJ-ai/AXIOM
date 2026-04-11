@@ -72,6 +72,10 @@ const WORK_CARD_SELECTION_OPTIONS: {
   },
 ];
 
+function canStartSessionFromWorkCard(status: WorkCardListItem['status']): boolean {
+  return status === 'active';
+}
+
 function ModeSelectorForm({
   initialWorkCardId,
   modes,
@@ -79,15 +83,23 @@ function ModeSelectorForm({
   workCardOptions,
 }: ModeSelectorFormProps) {
   const router = useRouter();
-  const hasExistingWorkCards = workCardOptions.length > 0;
+  const selectableWorkCardOptions = useMemo(
+    () => workCardOptions.filter((card) => canStartSessionFromWorkCard(card.status)),
+    [workCardOptions],
+  );
+  const hasExistingWorkCards = selectableWorkCardOptions.length > 0;
+  const normalizedInitialWorkCardId =
+    initialWorkCardId && selectableWorkCardOptions.some((card) => card.id === initialWorkCardId)
+      ? initialWorkCardId
+      : '';
   const initialSelectionMode: WorkCardSelectionMode =
-    initialWorkCardId && hasExistingWorkCards ? 'existing' : 'none';
+    normalizedInitialWorkCardId && hasExistingWorkCards ? 'existing' : 'none';
   const [selectedMode, setSelectedMode] = useState<SessionMode | null>(null);
   const [selectedParentSessionId, setSelectedParentSessionId] = useState<string | ''>('');
   const [selectedReportType, setSelectedReportType] = useState<
     'operation' | 'planning' | 'briefing'
   >('operation');
-  const [selectedWorkCardId, setSelectedWorkCardId] = useState(initialWorkCardId ?? '');
+  const [selectedWorkCardId, setSelectedWorkCardId] = useState(normalizedInitialWorkCardId);
   const [workCardAudience, setWorkCardAudience] = useState('');
   const [workCardProcessLabel, setWorkCardProcessLabel] = useState('');
   const [workCardSelectionMode, setWorkCardSelectionMode] =
@@ -100,6 +112,10 @@ function ModeSelectorForm({
     () => workCardOptions.find((option) => option.id === selectedWorkCardId) ?? null,
     [selectedWorkCardId, workCardOptions],
   );
+  const canCreateWithSelectedWorkCard =
+    workCardSelectionMode !== 'existing' ||
+    (selectedExistingWorkCard !== null &&
+      canStartSessionFromWorkCard(selectedExistingWorkCard.status));
 
   const handleModeClick = (mode: SessionMode) => {
     setErrorMessage('');
@@ -110,7 +126,7 @@ function ModeSelectorForm({
     setSelectedMode(null);
     setSelectedParentSessionId('');
     setSelectedReportType('operation');
-    setSelectedWorkCardId(initialWorkCardId ?? '');
+    setSelectedWorkCardId(normalizedInitialWorkCardId);
     setWorkCardAudience('');
     setWorkCardProcessLabel('');
     setWorkCardSelectionMode(initialSelectionMode);
@@ -340,8 +356,17 @@ function ModeSelectorForm({
                 >
                   <option value="">업무 카드를 선택해 주세요.</option>
                   {workCardOptions.map((card) => (
-                    <option key={card.id} value={card.id}>
+                    <option
+                      disabled={!canStartSessionFromWorkCard(card.status)}
+                      key={card.id}
+                      value={card.id}
+                    >
                       {card.title}
+                      {card.status === 'completed'
+                        ? ' (완료됨)'
+                        : card.status === 'archived'
+                          ? ' (보관됨)'
+                          : ''}
                     </option>
                   ))}
                 </select>
@@ -358,6 +383,13 @@ function ModeSelectorForm({
                 </div>
                 {selectedExistingWorkCard ? (
                   <>
+                    {!canStartSessionFromWorkCard(selectedExistingWorkCard.status) ? (
+                      <div className="border-[var(--color-warning)]/30 rounded-[var(--radius-sm)] border bg-[var(--color-warning-light)] px-3 py-2 text-xs text-[var(--color-warning)]">
+                        {selectedExistingWorkCard.status === 'completed'
+                          ? '완료된 카드는 새 세션에 다시 연결할 수 없습니다.'
+                          : '보관된 카드는 새 세션에 다시 연결할 수 없습니다.'}
+                      </div>
+                    ) : null}
                     <p className="text-sm font-semibold text-[var(--color-text)]">
                       {selectedExistingWorkCard.title}
                     </p>
@@ -437,7 +469,11 @@ function ModeSelectorForm({
           <div className="flex justify-end">
             <button
               className="btn-primary disabled:cursor-not-allowed disabled:opacity-50"
-              disabled={isCreating || (workCardSelectionMode === 'existing' && !selectedWorkCardId)}
+              disabled={
+                isCreating ||
+                (workCardSelectionMode === 'existing' &&
+                  (!selectedWorkCardId || !canCreateWithSelectedWorkCard))
+              }
               onClick={handleCreate}
               type="button"
             >

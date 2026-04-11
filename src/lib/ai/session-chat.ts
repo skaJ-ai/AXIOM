@@ -154,13 +154,15 @@ function buildWorkCardSection(workCard: SessionDetail['workCard']): string[] {
 }
 
 function buildIntentSection(intents: SessionDetail['intents']): string[] {
-  if (intents.length === 0) {
+  const promptIntents = intents.filter((intent) => intent.reviewStatus !== 'rejected');
+
+  if (promptIntents.length === 0) {
     return [];
   }
 
   return [
     '## 축적된 작업 맥락',
-    ...intents.slice(0, 8).map((intent, index) => {
+    ...promptIntents.slice(0, 8).map((intent, index) => {
       const scopeLabel = intent.scope ? ` | 범위: ${intent.scope}` : '';
 
       return `- ${index + 1}. [${intent.type}] ${intent.content}${scopeLabel}`;
