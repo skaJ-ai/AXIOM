@@ -43,6 +43,13 @@
       "when": 1775102400000,
       "tag": "0005_work_cards_and_intent_fragments",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1775865600000,
+      "tag": "0006_intent_review_status",
+      "breakpoints": true
     }
   ]
 }

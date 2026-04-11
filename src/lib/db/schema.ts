@@ -34,6 +34,7 @@ type EntityType = 'department' | 'person' | 'policy' | 'program' | 'project';
 type FactCategory = 'headcount' | 'kpi' | 'participation' | 'progress' | 'satisfaction';
 type InsightCategory = 'decision' | 'lesson' | 'recommendation' | 'risk' | 'trend';
 type IntentFragmentConfidence = 'high' | 'low' | 'medium';
+type IntentFragmentReviewStatus = 'approved' | 'captured' | 'nominated' | 'rejected';
 type IntentFragmentType =
   | 'audience'
   | 'context'
@@ -383,6 +384,12 @@ const intentFragmentsTable = pgTable(
     messageId: uuid('message_id').references(() => messagesTable.id, { onDelete: 'set null' }),
     promoted: boolean('promoted').default(false).notNull(),
     promotedAt: timestamp('promoted_at', { withTimezone: true }),
+    reviewStatus: text('review_status')
+      .$type<IntentFragmentReviewStatus>()
+      .default('captured')
+      .notNull(),
+    reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+    reviewedBy: uuid('reviewed_by').references(() => usersTable.id, { onDelete: 'set null' }),
     scope: text('scope'),
     sessionId: uuid('session_id')
       .notNull()
@@ -397,6 +404,8 @@ const intentFragmentsTable = pgTable(
   (table) => ({
     messageIndex: index('idx_intent_fragments_message_id').on(table.messageId),
     promotedIndex: index('idx_intent_fragments_promoted').on(table.promoted),
+    reviewStatusIndex: index('idx_intent_fragments_review_status').on(table.reviewStatus),
+    reviewedByIndex: index('idx_intent_fragments_reviewed_by').on(table.reviewedBy),
     sessionIndex: index('idx_intent_fragments_session_id').on(table.sessionId),
     typeIndex: index('idx_intent_fragments_type').on(table.type),
     workCardIndex: index('idx_intent_fragments_work_card_id').on(table.workCardId),
@@ -541,6 +550,7 @@ export type {
   IdeaStatus,
   InsightCategory,
   IntentFragmentConfidence,
+  IntentFragmentReviewStatus,
   IntentFragmentType,
   MemoryChunkKind,
   MemoryChunkStatus,

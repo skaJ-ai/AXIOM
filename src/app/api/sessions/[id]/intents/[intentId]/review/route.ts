@@ -2,18 +2,34 @@ import { NextResponse } from 'next/server';
 
 import { and, eq } from 'drizzle-orm';
 
-import { nominateIntentFragment } from '@/domains/intents/actions';
+import { reviewIntentFragment } from '@/domains/intents/actions';
+import { reviewIntentRequestSchema } from '@/domains/intents/validators';
 import { requireAuthenticatedApiUser } from '@/lib/auth/middleware';
 import { getDb } from '@/lib/db';
 import { intentFragmentsTable } from '@/lib/db/schema';
 
-async function POST(
-  _request: Request,
+async function PATCH(
+  request: Request,
   { params }: { params: Promise<{ id: string; intentId: string }> },
 ) {
   try {
     const currentUser = await requireAuthenticatedApiUser();
     const { id, intentId } = await params;
+    const requestBody = await request.json();
+    const parsedRequest = reviewIntentRequestSchema.safeParse(requestBody);
+
+    if (!parsedRequest.success) {
+      return NextResponse.json(
+        {
+          message: parsedRequest.error.issues[0]?.message ?? '검토 요청이 올바르지 않습니다.',
+          status: 400,
+        },
+        {
+          status: 400,
+        },
+      );
+    }
+
     const database = getDb();
     const intentRows = await database
       .select({ id: intentFragmentsTable.id })
@@ -39,24 +55,22 @@ async function POST(
       );
     }
 
-    const isNominated = await nominateIntentFragment(intentId, currentUser.workspaceId);
+    const isReviewed = await reviewIntentFragment({
+      decision: parsedRequest.data.decision,
+      intentId,
+      reviewerId: currentUser.userId,
+      workspaceId: currentUser.workspaceId,
+    });
 
-    return NextResponse.json(
-      {
-        data: {
-          nominated: isNominated,
-        },
-        message: isNominated
-          ? '의도 조각을 검토 후보로 올렸습니다.'
-          : '검토 후보로 올릴 의도 조각을 찾지 못했습니다.',
-        status: 200,
+    return NextResponse.json({
+      data: {
+        updated: isReviewed,
       },
-      {
-        status: 200,
-      },
-    );
+      message: isReviewed ? '검토 상태를 업데이트했습니다.' : '검토 상태를 바꾸지 못했습니다.',
+      status: 200,
+    });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown intent nomination error';
+    const message = error instanceof Error ? error.message : 'Unknown intent review error';
     const status = message === 'Authentication required.' ? 401 : 500;
 
     return NextResponse.json(
@@ -71,4 +85,4 @@ async function POST(
   }
 }
 
-export { POST };
+export { PATCH };

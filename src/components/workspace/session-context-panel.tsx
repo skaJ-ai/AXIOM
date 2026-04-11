@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 import useSWR from 'swr';
 
 import type { IntentFragment } from '@/domains/intents/types';
@@ -47,6 +49,21 @@ function formatIntentType(type: IntentFragment['type']): string {
   }
 }
 
+function formatIntentReviewStatus(status: IntentFragment['reviewStatus']): string {
+  switch (status) {
+    case 'approved':
+      return 'approved';
+    case 'captured':
+      return 'captured';
+    case 'nominated':
+      return 'nominated';
+    case 'rejected':
+      return 'rejected';
+    default:
+      return status;
+  }
+}
+
 function SessionContextPanel({ initialIntents, sessionId, workCard }: SessionContextPanelProps) {
   const { data: intents = initialIntents } = useSWR(
     `/api/sessions/${sessionId}/intents`,
@@ -84,18 +101,26 @@ function SessionContextPanel({ initialIntents, sessionId, workCard }: SessionCon
           </>
         ) : (
           <p className="text-sm leading-6 text-[var(--color-text-secondary)]">
-            아직 연결된 업무 카드가 없습니다. 새 세션을 만들 때 카드 제목과 대상 독자를 넣으면 이
-            공간에 고정됩니다.
+            아직 연결된 업무 카드가 없습니다. 새 세션을 만들 때 카드 제목과 대상 독자를 함께 적으면
+            작업 맥락이 고정됩니다.
           </p>
         )}
       </div>
 
       <div className="workspace-card flex flex-col gap-3">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="font-headline text-lg font-bold text-[var(--color-text)]">
-            포착된 작업 맥락
-          </h2>
-          <span className="badge badge-neutral">{intents.length}</span>
+          <div className="flex items-center gap-3">
+            <h2 className="font-headline text-lg font-bold text-[var(--color-text)]">
+              포착된 작업 맥락
+            </h2>
+            <span className="badge badge-neutral">{intents.length}</span>
+          </div>
+          <Link
+            className="text-xs font-semibold text-[var(--color-accent)] hover:underline"
+            href="/workspace/review"
+          >
+            검토 큐 보기
+          </Link>
         </div>
         {intents.length > 0 ? (
           <div className="grid gap-2 md:grid-cols-2">
@@ -104,8 +129,11 @@ function SessionContextPanel({ initialIntents, sessionId, workCard }: SessionCon
                 className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg-sunken)] px-4 py-3"
                 key={intent.id}
               >
-                <div className="mb-2 flex items-center gap-2">
+                <div className="mb-2 flex flex-wrap items-center gap-2">
                   <span className="badge badge-accent">{formatIntentType(intent.type)}</span>
+                  <span className="badge badge-neutral">
+                    {formatIntentReviewStatus(intent.reviewStatus)}
+                  </span>
                   {intent.scope ? <span className="meta">{intent.scope}</span> : null}
                 </div>
                 <p className="text-sm leading-6 text-[var(--color-text)]">{intent.content}</p>
@@ -114,7 +142,7 @@ function SessionContextPanel({ initialIntents, sessionId, workCard }: SessionCon
           </div>
         ) : (
           <p className="text-sm leading-6 text-[var(--color-text-secondary)]">
-            대화 중에 판단 기준, 예외, 대상 독자 같은 표현이 나오면 이 공간에 자동으로 쌓입니다.
+            대화 중에 판단 기준, 예외, 대상 독자 같은 표현이 나오면 여기에 후보 맥락으로 쌓입니다.
           </p>
         )}
       </div>

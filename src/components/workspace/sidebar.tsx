@@ -23,6 +23,7 @@ const AUTH_NAV_ITEMS: WorkspaceNavItem[] = [
   { href: '/workspace', label: '워크벤치', shortLabel: 'WB' },
   { href: '/workspace/new', label: '새 작업', shortLabel: 'NW' },
   { href: '/workspace/cards', label: '업무 카드', shortLabel: 'WC' },
+  { href: '/workspace/review', label: '검토 큐', shortLabel: 'RV' },
   { href: '/workspace/reports', label: '리포트', shortLabel: 'RP' },
   { href: '/workspace/knowledge', label: '지식 라이브러리', shortLabel: 'KB' },
   { href: '/workspace/wiki', label: '공유 위키', shortLabel: 'WK' },
