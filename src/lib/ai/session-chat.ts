@@ -3,6 +3,7 @@ import { getModeByType } from '@/lib/modes';
 import type {
   SessionCanvasState,
   SessionCanvasUpdate,
+  SessionDetail,
   SessionMethodologySuggestion,
   SessionParentArtifacts,
 } from '@/lib/sessions/types';
@@ -13,6 +14,7 @@ import type { StreamTextTransform, UIMessage } from 'ai';
 interface BuildInterviewContextOptions {
   currentChecklist: SessionChecklist;
   exampleText?: string | null;
+  intents: SessionDetail['intents'];
   parentArtifacts?: SessionParentArtifacts | null;
   recentDeliverables: {
     summary: string;
@@ -24,6 +26,7 @@ interface BuildInterviewContextOptions {
     type: string | null;
   }[];
   templateType: TemplateType;
+  workCard: SessionDetail['workCard'];
 }
 
 interface ParsedAssistantMetadata {
@@ -135,17 +138,51 @@ function buildParentArtifactsSection(parentArtifacts?: SessionParentArtifacts | 
   return lines.length > 2 ? lines : [];
 }
 
+function buildWorkCardSection(workCard: SessionDetail['workCard']): string[] {
+  if (!workCard) {
+    return [];
+  }
+
+  return [
+    '## 현재 업무 카드',
+    `- 제목: ${workCard.title}`,
+    ...(workCard.audience ? [`- 대상 독자: ${workCard.audience}`] : []),
+    ...(workCard.processLabel ? [`- 연결 프로세스: ${workCard.processLabel}`] : []),
+    `- 우선순위: ${workCard.priority}`,
+    `- 민감도: ${workCard.sensitivity}`,
+  ];
+}
+
+function buildIntentSection(intents: SessionDetail['intents']): string[] {
+  if (intents.length === 0) {
+    return [];
+  }
+
+  return [
+    '## 축적된 작업 맥락',
+    ...intents.slice(0, 8).map((intent, index) => {
+      const scopeLabel = intent.scope ? ` | 범위: ${intent.scope}` : '';
+
+      return `- ${index + 1}. [${intent.type}] ${intent.content}${scopeLabel}`;
+    }),
+  ];
+}
+
 function buildInterviewContext({
   currentChecklist,
   exampleText,
+  intents,
   parentArtifacts,
   recentDeliverables,
   sources,
   templateType,
+  workCard,
 }: BuildInterviewContextOptions): string {
   const template = getTemplateByType(templateType);
   const checklistState = JSON.stringify(currentChecklist);
   const parentArtifactsSection = buildParentArtifactsSection(parentArtifacts);
+  const workCardSection = buildWorkCardSection(workCard);
+  const intentSection = buildIntentSection(intents);
   const sourceContext =
     sources.length > 0
       ? sources
@@ -175,6 +212,8 @@ function buildInterviewContext({
   return [
     template.systemPrompt.interview,
     '',
+    ...(workCardSection.length > 0 ? [...workCardSection, ''] : []),
+    ...(intentSection.length > 0 ? [...intentSection, ''] : []),
     ...(parentArtifactsSection.length > 0 ? [...parentArtifactsSection, ''] : []),
     '[현재 체크리스트 상태]',
     checklistState,
@@ -414,6 +453,7 @@ function getMethodologySuggestions(
 interface BuildModeInterviewContextOptions {
   currentChecklist: SessionChecklist;
   exampleText?: string | null;
+  intents: SessionDetail['intents'];
   mode: SessionMode;
   parentArtifacts?: SessionParentArtifacts | null;
   sources: {
@@ -421,18 +461,23 @@ interface BuildModeInterviewContextOptions {
     label: string | null;
     type: string | null;
   }[];
+  workCard: SessionDetail['workCard'];
 }
 
 function buildModeInterviewContext({
   currentChecklist,
   exampleText,
+  intents,
   mode,
   parentArtifacts,
   sources,
+  workCard,
 }: BuildModeInterviewContextOptions): string {
   const modeDefinition = getModeByType(mode);
   const checklistState = JSON.stringify(currentChecklist);
   const parentArtifactsSection = buildParentArtifactsSection(parentArtifacts);
+  const workCardSection = buildWorkCardSection(workCard);
+  const intentSection = buildIntentSection(intents);
   const sourceContext =
     sources.length > 0
       ? sources
@@ -453,6 +498,8 @@ function buildModeInterviewContext({
   return [
     modeDefinition.systemPrompt.interview,
     '',
+    ...(workCardSection.length > 0 ? [...workCardSection, ''] : []),
+    ...(intentSection.length > 0 ? [...intentSection, ''] : []),
     ...(parentArtifactsSection.length > 0 ? [...parentArtifactsSection, ''] : []),
     '[현재 체크리스트 상태]',
     checklistState,

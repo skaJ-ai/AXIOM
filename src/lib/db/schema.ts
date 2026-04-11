@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm';
 import {
+  boolean,
   customType,
   index,
   integer,
@@ -32,7 +33,18 @@ type PersonaType = 'critic' | 'custom' | 'executive' | 'field_worker' | 'union';
 type EntityType = 'department' | 'person' | 'policy' | 'program' | 'project';
 type FactCategory = 'headcount' | 'kpi' | 'participation' | 'progress' | 'satisfaction';
 type InsightCategory = 'decision' | 'lesson' | 'recommendation' | 'risk' | 'trend';
+type IntentFragmentConfidence = 'high' | 'low' | 'medium';
+type IntentFragmentType =
+  | 'audience'
+  | 'context'
+  | 'exception'
+  | 'judgment_basis'
+  | 'preference'
+  | 'prohibition';
 type ReportStatus = 'draft' | 'final' | 'promoted_asset';
+type WorkCardPriority = 'high' | 'low' | 'medium';
+type WorkCardSensitivity = 'confidential' | 'general' | 'restricted';
+type WorkCardStatus = 'active' | 'completed' | 'paused';
 
 interface DeliverableSection {
   cited: boolean;
@@ -101,6 +113,30 @@ const workspacesTable = pgTable(
   }),
 );
 
+const workCardsTable = pgTable(
+  'work_cards',
+  {
+    audience: text('audience'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    id: uuid('id').defaultRandom().primaryKey(),
+    ownerId: uuid('owner_id').references(() => usersTable.id, { onDelete: 'set null' }),
+    priority: text('priority').$type<WorkCardPriority>().default('medium').notNull(),
+    processLabel: text('process_label'),
+    sensitivity: text('sensitivity').$type<WorkCardSensitivity>().default('general').notNull(),
+    status: text('status').$type<WorkCardStatus>().default('active').notNull(),
+    title: text('title').notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    workspaceId: uuid('workspace_id')
+      .notNull()
+      .references(() => workspacesTable.id, { onDelete: 'cascade' }),
+  },
+  (table) => ({
+    ownerIndex: index('idx_work_cards_owner_id').on(table.ownerId),
+    statusIndex: index('idx_work_cards_status').on(table.status),
+    workspaceIndex: index('idx_work_cards_workspace_id').on(table.workspaceId),
+  }),
+);
+
 const sessionsTable = pgTable(
   'sessions',
   {
@@ -115,6 +151,7 @@ const sessionsTable = pgTable(
     templateType: text('template_type').$type<TemplateType>(),
     title: text('title'),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    workCardId: uuid('work_card_id').references(() => workCardsTable.id, { onDelete: 'set null' }),
     workspaceId: uuid('workspace_id')
       .notNull()
       .references(() => workspacesTable.id, { onDelete: 'cascade' }),
@@ -122,6 +159,7 @@ const sessionsTable = pgTable(
   (table) => ({
     modeIndex: index('idx_sessions_mode').on(table.mode),
     templateIndex: index('idx_sessions_template_type').on(table.templateType),
+    workCardIndex: index('idx_sessions_work_card_id').on(table.workCardId),
     workspaceIndex: index('idx_sessions_workspace_id').on(table.workspaceId),
   }),
 );
@@ -335,6 +373,37 @@ const reviewsTable = pgTable(
   }),
 );
 
+const intentFragmentsTable = pgTable(
+  'intent_fragments',
+  {
+    confidence: text('confidence').$type<IntentFragmentConfidence>().default('medium').notNull(),
+    content: text('content').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    id: uuid('id').defaultRandom().primaryKey(),
+    messageId: uuid('message_id').references(() => messagesTable.id, { onDelete: 'set null' }),
+    promoted: boolean('promoted').default(false).notNull(),
+    promotedAt: timestamp('promoted_at', { withTimezone: true }),
+    scope: text('scope'),
+    sessionId: uuid('session_id')
+      .notNull()
+      .references(() => sessionsTable.id, { onDelete: 'cascade' }),
+    speaker: text('speaker'),
+    type: text('type').$type<IntentFragmentType>().notNull(),
+    workCardId: uuid('work_card_id').references(() => workCardsTable.id, { onDelete: 'set null' }),
+    workspaceId: uuid('workspace_id')
+      .notNull()
+      .references(() => workspacesTable.id, { onDelete: 'cascade' }),
+  },
+  (table) => ({
+    messageIndex: index('idx_intent_fragments_message_id').on(table.messageId),
+    promotedIndex: index('idx_intent_fragments_promoted').on(table.promoted),
+    sessionIndex: index('idx_intent_fragments_session_id').on(table.sessionId),
+    typeIndex: index('idx_intent_fragments_type').on(table.type),
+    workCardIndex: index('idx_intent_fragments_work_card_id').on(table.workCardId),
+    workspaceIndex: index('idx_intent_fragments_workspace_id').on(table.workspaceId),
+  }),
+);
+
 const reportsTable = pgTable(
   'reports',
   {
@@ -452,6 +521,7 @@ export {
   factsTable,
   ideasTable,
   insightsTable,
+  intentFragmentsTable,
   memoryChunksTable,
   messagesTable,
   reportsTable,
@@ -459,6 +529,7 @@ export {
   sessionsTable,
   sourcesTable,
   usersTable,
+  workCardsTable,
   workspacesTable,
 };
 export type {
@@ -469,6 +540,8 @@ export type {
   FactCategory,
   IdeaStatus,
   InsightCategory,
+  IntentFragmentConfidence,
+  IntentFragmentType,
   MemoryChunkKind,
   MemoryChunkStatus,
   PersonaType,
@@ -483,4 +556,7 @@ export type {
   SourceType,
   TemplateType,
   UserRole,
+  WorkCardPriority,
+  WorkCardSensitivity,
+  WorkCardStatus,
 };

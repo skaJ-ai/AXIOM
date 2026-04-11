@@ -57,9 +57,13 @@ async function POST(request: Request) {
       parsedRequest.data.mode,
       {
         exampleText: parsedRequest.data.exampleText,
+        ownerUserId: currentUser.userId,
         parentSessionId: parsedRequest.data.parentSessionId,
         reportType: parsedRequest.data.reportType,
         templateType: parsedRequest.data.templateType,
+        workCardAudience: parsedRequest.data.workCardAudience,
+        workCardProcessLabel: parsedRequest.data.workCardProcessLabel,
+        workCardTitle: parsedRequest.data.workCardTitle,
       },
     );
 

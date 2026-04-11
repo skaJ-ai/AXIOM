@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 
 import { SessionCanvasShell } from '@/components/workspace/canvas/session-canvas-shell';
 import { WorkspacePageHeader } from '@/components/workspace/page-header';
+import { SessionContextPanel } from '@/components/workspace/session-context-panel';
 import { requireAuthenticatedPageUser } from '@/lib/auth/middleware';
 import { getSessionDetailForWorkspace } from '@/lib/sessions/service';
 
@@ -33,7 +34,7 @@ export default async function WorkspaceSessionPage({
               </Link>
             </>
           }
-          description={`${session.modeSummary.name}로 진행 중인 세션입니다. 중앙 작업영역에서 초안을 정리하고, 오른쪽 패널에서 질문과 근거를 이어갑니다.`}
+          description={`${session.modeSummary.name} 모드로 진행 중인 세션입니다. 중앙 작업 영역에서 초안을 정리하고, 위에 고정된 카드와 맥락 조각으로 현재 업무의 기준을 계속 확인할 수 있습니다.`}
           eyebrow="Session Canvas"
           meta={
             <>
@@ -41,6 +42,9 @@ export default async function WorkspaceSessionPage({
                 {session.modeSummary.badge.label}
               </span>
               <span className="badge badge-neutral">{session.status}</span>
+              {session.workCard ? (
+                <span className="badge badge-accent">{session.workCard.title}</span>
+              ) : null}
               <span className="badge badge-teal">메시지 {session.messageCount}개</span>
               <span className="badge badge-neutral">자료 {session.sourceCount}개</span>
             </>
@@ -49,6 +53,11 @@ export default async function WorkspaceSessionPage({
           variant="compact"
         />
 
+        <SessionContextPanel
+          initialIntents={session.intents}
+          sessionId={session.id}
+          workCard={session.workCard}
+        />
         <SessionCanvasShell initialSession={session} />
       </div>
     </main>

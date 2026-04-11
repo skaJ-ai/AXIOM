@@ -19,6 +19,9 @@ interface SessionListSession {
   status: string;
   title: string;
   updatedAt: string;
+  workCard: {
+    title: string;
+  } | null;
 }
 
 interface SessionListProps {
@@ -130,6 +133,11 @@ function SessionList({ sessions }: SessionListProps) {
               <h3 className="mb-2 font-headline text-lg font-bold text-[var(--color-text)] group-hover:text-[var(--color-accent)]">
                 {session.title}
               </h3>
+              {session.workCard ? (
+                <p className="mb-2 text-xs font-medium text-[var(--color-text-secondary)]">
+                  업무 카드: {session.workCard.title}
+                </p>
+              ) : null}
               <div className="flex items-center justify-between text-sm text-[var(--color-text-secondary)]">
                 <p>
                   메시지 {session.messageCount}개 · 자료 {session.sourceCount}개

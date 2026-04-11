@@ -1,6 +1,8 @@
 import type { ClusterWithIdeas, Idea } from '@/domains/diverge/types';
+import type { IntentFragment } from '@/domains/intents/types';
 import type { ClaimWithSources } from '@/domains/synthesize/types';
 import type { Review } from '@/domains/validate/types';
+import type { WorkCardSummary } from '@/domains/work-cards/types';
 import type { Report } from '@/domains/write/types';
 import type {
   SessionChecklist,
@@ -129,12 +131,14 @@ interface SessionSummary {
   template: SessionTemplateSummary | null;
   title: string;
   updatedAt: string;
+  workCard: WorkCardSummary | null;
 }
 
 interface SessionDetail extends SessionSummary {
   canGenerate: boolean;
   canvas: SessionCanvasState;
   exampleText: string | null;
+  intents: IntentFragment[];
   latestDeliverable: DeliverableSummary | null;
   messages: SessionChatMessage[];
   panelData: ModePanelData | null;
@@ -149,6 +153,9 @@ interface CreateSessionRequestBody {
   parentSessionId?: string;
   reportType?: string;
   templateType?: TemplateType;
+  workCardAudience?: string;
+  workCardProcessLabel?: string;
+  workCardTitle?: string;
 }
 
 interface CreateSourceRequestBody {

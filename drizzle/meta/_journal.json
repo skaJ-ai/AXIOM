@@ -36,6 +36,13 @@
       "when": 1775021160000,
       "tag": "0004_relax_claim_source_requirement",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1775102400000,
+      "tag": "0005_work_cards_and_intent_fragments",
+      "breakpoints": true
     }
   ]
 }

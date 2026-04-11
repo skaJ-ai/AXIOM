@@ -13,6 +13,21 @@ const createSessionBaseSchema = z.object({
     .optional(),
   parentSessionId: z.string().uuid().optional(),
   templateType: z.enum(TEMPLATE_TYPES).optional(),
+  workCardAudience: z
+    .string()
+    .trim()
+    .max(120, '대상 독자는 120자 이내로 입력해 주세요.')
+    .optional(),
+  workCardProcessLabel: z
+    .string()
+    .trim()
+    .max(120, '프로세스 라벨은 120자 이내로 입력해 주세요.')
+    .optional(),
+  workCardTitle: z
+    .string()
+    .trim()
+    .max(160, '업무 카드 제목은 160자 이내로 입력해 주세요.')
+    .optional(),
 });
 
 const createWriteSessionRequestSchema = createSessionBaseSchema.extend({
@@ -25,10 +40,22 @@ const createNonWriteSessionRequestSchema = createSessionBaseSchema.extend({
   reportType: z.enum(REPORT_TYPES).optional(),
 });
 
-const createSessionRequestSchema = z.discriminatedUnion('mode', [
-  createWriteSessionRequestSchema,
-  createNonWriteSessionRequestSchema,
-]);
+const createSessionRequestSchema = z
+  .discriminatedUnion('mode', [createWriteSessionRequestSchema, createNonWriteSessionRequestSchema])
+  .superRefine((value, context) => {
+    if (
+      (value.workCardAudience && value.workCardAudience.length > 0) ||
+      (value.workCardProcessLabel && value.workCardProcessLabel.length > 0)
+    ) {
+      if (!value.workCardTitle || value.workCardTitle.length === 0) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: '대상 독자나 프로세스 라벨을 입력했다면 업무 카드 제목도 입력해 주세요.',
+          path: ['workCardTitle'],
+        });
+      }
+    }
+  });
 
 const createSourceRequestSchema = z.object({
   content: z.string().trim().min(1, '근거자료 내용은 입력해 주세요.'),

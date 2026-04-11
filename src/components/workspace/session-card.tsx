@@ -20,6 +20,11 @@ function SessionCard({ session }: SessionCardProps) {
       <h3 className="font-headline text-base font-bold text-[var(--color-text)] group-hover:text-[var(--color-accent)]">
         {session.title}
       </h3>
+      {session.workCard ? (
+        <p className="text-xs font-medium text-[var(--color-text-secondary)]">
+          업무 카드: {session.workCard.title}
+        </p>
+      ) : null}
       <div className="flex items-center justify-between text-xs text-[var(--color-text-secondary)]">
         <span>
           메시지 {session.messageCount}개 · 자료 {session.sourceCount}개

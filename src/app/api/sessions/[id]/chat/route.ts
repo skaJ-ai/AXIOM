@@ -1,5 +1,6 @@
 import { convertToModelMessages, safeValidateUIMessages, streamText } from 'ai';
 
+import { captureIntentFragmentsForSessionMessage } from '@/domains/intents/actions';
 import { parseModeMetadata, persistModeMetadata } from '@/lib/ai/mode-metadata';
 import { getChatModel } from '@/lib/ai/provider';
 import {
@@ -77,10 +78,17 @@ async function POST(request: Request, { params }: { params: Promise<{ id: string
       );
     }
 
-    await createUserMessageForSession({
+    const persistedUserMessage = await createUserMessageForSession({
       content: userMessageText,
       sessionId: id,
       uiMessageId: lastUserMessage.id,
+      workspaceId: currentUser.workspaceId,
+    });
+    await captureIntentFragmentsForSessionMessage({
+      content: userMessageText,
+      messageId: persistedUserMessage.messageId,
+      sessionId: id,
+      workCardId: persistedUserMessage.workCardId,
       workspaceId: currentUser.workspaceId,
     });
 
@@ -108,17 +116,21 @@ async function POST(request: Request, { params }: { params: Promise<{ id: string
         ? buildInterviewContext({
             currentChecklist: promptContext.checklist,
             exampleText: promptContext.exampleText,
+            intents: promptContext.intents,
             parentArtifacts: promptContext.parentArtifacts,
             recentDeliverables: promptContext.recentDeliverables,
             sources: promptContext.sources,
             templateType: promptContext.templateType,
+            workCard: promptContext.workCard,
           })
         : buildModeInterviewContext({
             currentChecklist: promptContext.checklist,
             exampleText: promptContext.exampleText,
+            intents: promptContext.intents,
             mode: promptContext.mode,
             parentArtifacts: promptContext.parentArtifacts,
             sources: promptContext.sources,
+            workCard: promptContext.workCard,
           }),
       temperature: 0.4,
     });

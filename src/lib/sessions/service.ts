@@ -2,10 +2,14 @@ import { and, asc, desc, eq, sql } from 'drizzle-orm';
 
 import { listClustersBySession, listIdeasBySession } from '@/domains/diverge/queries';
 import type { ClusterWithIdeas, Idea } from '@/domains/diverge/types';
+import { listIntentFragmentsBySession } from '@/domains/intents/queries';
+import type { IntentFragment } from '@/domains/intents/types';
 import { listClaimsBySession } from '@/domains/synthesize/queries';
 import type { ClaimWithSources } from '@/domains/synthesize/types';
 import { listReviewsBySession } from '@/domains/validate/queries';
 import type { Review } from '@/domains/validate/types';
+import { createWorkCard } from '@/domains/work-cards/actions';
+import type { WorkCardSummary } from '@/domains/work-cards/types';
 import type { Report } from '@/domains/write/types';
 import { mergeCanvasState } from '@/lib/ai/session-chat';
 import { getDb } from '@/lib/db';
@@ -16,7 +20,13 @@ import type {
   SourceType,
   TemplateType,
 } from '@/lib/db/schema';
-import { messagesTable, reportsTable, sessionsTable, sourcesTable } from '@/lib/db/schema';
+import {
+  messagesTable,
+  reportsTable,
+  sessionsTable,
+  sourcesTable,
+  workCardsTable,
+} from '@/lib/db/schema';
 import {
   getLatestDeliverableSummaryForSession,
   listRecentReferenceDeliverablesByTemplate,
@@ -69,6 +79,10 @@ function createSessionTemplateSummary(templateType: TemplateType): SessionTempla
   };
 }
 
+function createWorkCardSummary(workCard: WorkCardSummary | null): WorkCardSummary | null {
+  return workCard;
+}
+
 function createSessionSummary({
   checklist,
   createdAt,
@@ -81,6 +95,7 @@ function createSessionSummary({
   templateType,
   title,
   updatedAt,
+  workCard,
 }: {
   checklist: SessionChecklist;
   createdAt: Date;
@@ -93,6 +108,7 @@ function createSessionSummary({
   templateType: TemplateType | null;
   title: string | null;
   updatedAt: Date;
+  workCard: WorkCardSummary | null;
 }): SessionSummary {
   const modeSummary = createSessionModeSummary(mode);
   const template = templateType ? createSessionTemplateSummary(templateType) : null;
@@ -110,6 +126,7 @@ function createSessionSummary({
     template,
     title: title ?? modeSummary.name,
     updatedAt: updatedAt.toISOString(),
+    workCard: createWorkCardSummary(workCard),
   };
 }
 
@@ -147,14 +164,44 @@ function parseSessionMessageMetadata(metadata: Record<string, unknown>): Session
   };
 }
 
+function mapWorkCardSummaryRowToSummary(
+  row: {
+    audience: string | null;
+    id: string;
+    priority: WorkCardSummary['priority'] | null;
+    processLabel: string | null;
+    sensitivity: WorkCardSummary['sensitivity'] | null;
+    status: WorkCardSummary['status'] | null;
+    title: string | null;
+  } | null,
+): WorkCardSummary | null {
+  if (!row) {
+    return null;
+  }
+
+  return {
+    audience: row.audience,
+    id: row.id,
+    priority: row.priority ?? 'medium',
+    processLabel: row.processLabel,
+    sensitivity: row.sensitivity ?? 'general',
+    status: row.status ?? 'active',
+    title: row.title ?? '업무 카드',
+  };
+}
+
 async function createSessionForWorkspace(
   workspaceId: string,
   mode: SessionMode,
   options?: {
     exampleText?: string;
+    ownerUserId?: string;
     parentSessionId?: string;
     reportType?: ReportType;
     templateType?: TemplateType;
+    workCardAudience?: string;
+    workCardProcessLabel?: string;
+    workCardTitle?: string;
   },
 ): Promise<SessionSummary> {
   const database = getDb();
@@ -165,8 +212,20 @@ async function createSessionForWorkspace(
     (mode === 'write' && options?.reportType
       ? REPORT_TYPE_TO_TEMPLATE_TYPE[options.reportType]
       : null);
+  const shouldCreateWorkCard =
+    typeof options?.workCardTitle === 'string' && options.workCardTitle.trim().length > 0;
 
   return database.transaction(async (transaction) => {
+    const workCard = shouldCreateWorkCard
+      ? await createWorkCard({
+          audience: options?.workCardAudience,
+          database: transaction,
+          ownerId: options?.ownerUserId,
+          processLabel: options?.workCardProcessLabel,
+          title: options.workCardTitle!.trim(),
+          workspaceId,
+        })
+      : null;
     const createdSessions = await transaction
       .insert(sessionsTable)
       .values({
@@ -176,7 +235,8 @@ async function createSessionForWorkspace(
         parentSessionId: options?.parentSessionId ?? null,
         reportType: options?.reportType ?? null,
         templateType,
-        title: modeDefinition.name,
+        title: workCard?.title ?? modeDefinition.name,
+        workCardId: workCard?.id ?? null,
         workspaceId,
       })
       .returning({
@@ -189,6 +249,7 @@ async function createSessionForWorkspace(
         templateType: sessionsTable.templateType,
         title: sessionsTable.title,
         updatedAt: sessionsTable.updatedAt,
+        workCardId: sessionsTable.workCardId,
       });
 
     const createdSession = createdSessions[0];
@@ -216,6 +277,7 @@ async function createSessionForWorkspace(
       templateType: createdSession.templateType,
       title: createdSession.title,
       updatedAt: createdSession.updatedAt,
+      workCard,
     });
   });
 }
@@ -243,8 +305,16 @@ async function listSessionsByWorkspace(workspaceId: string): Promise<SessionSumm
       templateType: sessionsTable.templateType,
       title: sessionsTable.title,
       updatedAt: sessionsTable.updatedAt,
+      workCardAudience: workCardsTable.audience,
+      workCardId: workCardsTable.id,
+      workCardPriority: workCardsTable.priority,
+      workCardProcessLabel: workCardsTable.processLabel,
+      workCardSensitivity: workCardsTable.sensitivity,
+      workCardStatus: workCardsTable.status,
+      workCardTitle: workCardsTable.title,
     })
     .from(sessionsTable)
+    .leftJoin(workCardsTable, eq(sessionsTable.workCardId, workCardsTable.id))
     .where(eq(sessionsTable.workspaceId, workspaceId))
     .orderBy(desc(sessionsTable.updatedAt));
 
@@ -261,6 +331,19 @@ async function listSessionsByWorkspace(workspaceId: string): Promise<SessionSumm
       templateType: sessionRow.templateType,
       title: sessionRow.title,
       updatedAt: sessionRow.updatedAt,
+      workCard: mapWorkCardSummaryRowToSummary(
+        sessionRow.workCardId
+          ? {
+              audience: sessionRow.workCardAudience,
+              id: sessionRow.workCardId,
+              priority: sessionRow.workCardPriority,
+              processLabel: sessionRow.workCardProcessLabel,
+              sensitivity: sessionRow.workCardSensitivity,
+              status: sessionRow.workCardStatus,
+              title: sessionRow.workCardTitle,
+            }
+          : null,
+      ),
     }),
   );
 }
@@ -293,8 +376,16 @@ async function getSessionDetailForWorkspace(
       templateType: sessionsTable.templateType,
       title: sessionsTable.title,
       updatedAt: sessionsTable.updatedAt,
+      workCardAudience: workCardsTable.audience,
+      workCardId: workCardsTable.id,
+      workCardPriority: workCardsTable.priority,
+      workCardProcessLabel: workCardsTable.processLabel,
+      workCardSensitivity: workCardsTable.sensitivity,
+      workCardStatus: workCardsTable.status,
+      workCardTitle: workCardsTable.title,
     })
     .from(sessionsTable)
+    .leftJoin(workCardsTable, eq(sessionsTable.workCardId, workCardsTable.id))
     .where(and(eq(sessionsTable.id, sessionId), eq(sessionsTable.workspaceId, workspaceId)))
     .limit(1);
 
@@ -304,39 +395,42 @@ async function getSessionDetailForWorkspace(
     return null;
   }
 
-  const [messageRows, sourceRows, latestDeliverable, recentReferences] = await Promise.all([
-    database
-      .select({
-        content: messagesTable.content,
-        createdAt: messagesTable.createdAt,
-        id: messagesTable.id,
-        metadata: messagesTable.metadata,
-        role: messagesTable.role,
-      })
-      .from(messagesTable)
-      .where(eq(messagesTable.sessionId, sessionId))
-      .orderBy(asc(messagesTable.createdAt)),
-    database
-      .select({
-        content: sourcesTable.content,
-        createdAt: sourcesTable.createdAt,
-        id: sourcesTable.id,
-        label: sourcesTable.label,
-        type: sourcesTable.type,
-      })
-      .from(sourcesTable)
-      .where(eq(sourcesTable.sessionId, sessionId))
-      .orderBy(desc(sourcesTable.createdAt)),
-    getLatestDeliverableSummaryForSession(sessionId, workspaceId),
-    sessionRow.templateType
-      ? listRecentReferenceDeliverablesByTemplate({
-          excludeSessionId: sessionId,
-          limit: 3,
-          templateType: sessionRow.templateType,
-          workspaceId,
+  const [messageRows, sourceRows, latestDeliverable, recentReferences, intents] = await Promise.all(
+    [
+      database
+        .select({
+          content: messagesTable.content,
+          createdAt: messagesTable.createdAt,
+          id: messagesTable.id,
+          metadata: messagesTable.metadata,
+          role: messagesTable.role,
         })
-      : Promise.resolve([]),
-  ]);
+        .from(messagesTable)
+        .where(eq(messagesTable.sessionId, sessionId))
+        .orderBy(asc(messagesTable.createdAt)),
+      database
+        .select({
+          content: sourcesTable.content,
+          createdAt: sourcesTable.createdAt,
+          id: sourcesTable.id,
+          label: sourcesTable.label,
+          type: sourcesTable.type,
+        })
+        .from(sourcesTable)
+        .where(eq(sourcesTable.sessionId, sessionId))
+        .orderBy(desc(sourcesTable.createdAt)),
+      getLatestDeliverableSummaryForSession(sessionId, workspaceId),
+      sessionRow.templateType
+        ? listRecentReferenceDeliverablesByTemplate({
+            excludeSessionId: sessionId,
+            limit: 3,
+            templateType: sessionRow.templateType,
+            workspaceId,
+          })
+        : Promise.resolve([]),
+      listIntentFragmentsBySession(sessionId, workspaceId),
+    ],
+  );
 
   const latestAssistantMetadata = [...messageRows]
     .reverse()
@@ -359,6 +453,19 @@ async function getSessionDetailForWorkspace(
     templateType: sessionRow.templateType,
     title: sessionRow.title,
     updatedAt: sessionRow.updatedAt,
+    workCard: mapWorkCardSummaryRowToSummary(
+      sessionRow.workCardId
+        ? {
+            audience: sessionRow.workCardAudience,
+            id: sessionRow.workCardId,
+            priority: sessionRow.workCardPriority,
+            processLabel: sessionRow.workCardProcessLabel,
+            sensitivity: sessionRow.workCardSensitivity,
+            status: sessionRow.workCardStatus,
+            title: sessionRow.workCardTitle,
+          }
+        : null,
+    ),
   });
   const checklist = parsedMetadata.checklist ?? summary.checklist;
   const readinessPercent = calculateReadinessPercent(
@@ -382,6 +489,7 @@ async function getSessionDetailForWorkspace(
     canvas: canvasState,
     checklist,
     exampleText: sessionRow.exampleText,
+    intents,
     latestDeliverable,
     messages: messageRows.map((messageRow) => {
       const metadata = parseSessionMessageMetadata(messageRow.metadata);
@@ -469,10 +577,10 @@ async function createUserMessageForSession({
   sessionId: string;
   uiMessageId?: string;
   workspaceId: string;
-}): Promise<void> {
+}): Promise<{ messageId: string; workCardId: string | null }> {
   const database = getDb();
   const sessionExists = await database
-    .select({ id: sessionsTable.id })
+    .select({ id: sessionsTable.id, workCardId: sessionsTable.workCardId })
     .from(sessionsTable)
     .where(and(eq(sessionsTable.id, sessionId), eq(sessionsTable.workspaceId, workspaceId)))
     .limit(1);
@@ -481,15 +589,21 @@ async function createUserMessageForSession({
     throw new Error('세션을 찾을 수 없습니다.');
   }
 
-  await database.transaction(async (transaction) => {
-    await transaction.insert(messagesTable).values({
-      content,
-      metadata: {
-        uiMessageId,
-      },
-      role: 'user',
-      sessionId,
-    });
+  return database.transaction(async (transaction) => {
+    const createdMessages = await transaction
+      .insert(messagesTable)
+      .values({
+        content,
+        metadata: {
+          uiMessageId,
+        },
+        role: 'user',
+        sessionId,
+      })
+      .returning({
+        id: messagesTable.id,
+      });
+    const createdMessage = createdMessages[0];
 
     await transaction
       .update(sessionsTable)
@@ -497,6 +611,15 @@ async function createUserMessageForSession({
         updatedAt: sql`now()`,
       })
       .where(eq(sessionsTable.id, sessionId));
+
+    if (!createdMessage) {
+      throw new Error('?ъ슜??硫붿떆吏瑜????섏? 紐삵뻽?덉뒿?덈떎.');
+    }
+
+    return {
+      messageId: createdMessage.id,
+      workCardId: sessionExists[0]?.workCardId ?? null,
+    };
   });
 }
 
@@ -732,6 +855,7 @@ async function getSessionPromptContext({
 }): Promise<{
   checklist: SessionChecklist;
   exampleText: string | null;
+  intents: IntentFragment[];
   messages: { content: string; role: 'assistant' | 'system' | 'user' }[];
   mode: SessionMode;
   parentArtifacts: SessionParentArtifacts | null;
@@ -745,6 +869,7 @@ async function getSessionPromptContext({
     type: string | null;
   }[];
   templateType: TemplateType | null;
+  workCard: WorkCardSummary | null;
 }> {
   const database = getDb();
   const sessionRows = await database
@@ -755,8 +880,16 @@ async function getSessionPromptContext({
       mode: sessionsTable.mode,
       parentSessionId: sessionsTable.parentSessionId,
       templateType: sessionsTable.templateType,
+      workCardAudience: workCardsTable.audience,
+      workCardId: workCardsTable.id,
+      workCardPriority: workCardsTable.priority,
+      workCardProcessLabel: workCardsTable.processLabel,
+      workCardSensitivity: workCardsTable.sensitivity,
+      workCardStatus: workCardsTable.status,
+      workCardTitle: workCardsTable.title,
     })
     .from(sessionsTable)
+    .leftJoin(workCardsTable, eq(sessionsTable.workCardId, workCardsTable.id))
     .where(and(eq(sessionsTable.id, sessionId), eq(sessionsTable.workspaceId, workspaceId)))
     .limit(1);
 
@@ -766,43 +899,47 @@ async function getSessionPromptContext({
     throw new Error('세션을 찾을 수 없습니다.');
   }
 
-  const [messageRows, sourceRows, parentArtifacts, recentDeliverables] = await Promise.all([
-    database
-      .select({
-        content: messagesTable.content,
-        role: messagesTable.role,
-      })
-      .from(messagesTable)
-      .where(eq(messagesTable.sessionId, sessionId))
-      .orderBy(asc(messagesTable.createdAt)),
-    database
-      .select({
-        content: sourcesTable.content,
-        label: sourcesTable.label,
-        type: sourcesTable.type,
-      })
-      .from(sourcesTable)
-      .where(eq(sourcesTable.sessionId, sessionId))
-      .orderBy(desc(sourcesTable.createdAt)),
-    sessionRow.parentSessionId
-      ? getParentSessionArtifacts({
-          parentSessionId: sessionRow.parentSessionId,
-          workspaceId,
+  const [messageRows, sourceRows, parentArtifacts, recentDeliverables, intents] = await Promise.all(
+    [
+      database
+        .select({
+          content: messagesTable.content,
+          role: messagesTable.role,
         })
-      : Promise.resolve(null),
-    sessionRow.templateType
-      ? listRecentReferenceDeliverablesByTemplate({
-          excludeSessionId: sessionId,
-          limit: 3,
-          templateType: sessionRow.templateType,
-          workspaceId,
+        .from(messagesTable)
+        .where(eq(messagesTable.sessionId, sessionId))
+        .orderBy(asc(messagesTable.createdAt)),
+      database
+        .select({
+          content: sourcesTable.content,
+          label: sourcesTable.label,
+          type: sourcesTable.type,
         })
-      : Promise.resolve([]),
-  ]);
+        .from(sourcesTable)
+        .where(eq(sourcesTable.sessionId, sessionId))
+        .orderBy(desc(sourcesTable.createdAt)),
+      sessionRow.parentSessionId
+        ? getParentSessionArtifacts({
+            parentSessionId: sessionRow.parentSessionId,
+            workspaceId,
+          })
+        : Promise.resolve(null),
+      sessionRow.templateType
+        ? listRecentReferenceDeliverablesByTemplate({
+            excludeSessionId: sessionId,
+            limit: 3,
+            templateType: sessionRow.templateType,
+            workspaceId,
+          })
+        : Promise.resolve([]),
+      listIntentFragmentsBySession(sessionId, workspaceId),
+    ],
+  );
 
   return {
     checklist: sessionRow.checklist,
     exampleText: sessionRow.exampleText,
+    intents,
     messages: messageRows,
     mode: sessionRow.mode,
     parentArtifacts,
@@ -812,6 +949,19 @@ async function getSessionPromptContext({
     })),
     sources: sourceRows,
     templateType: sessionRow.templateType,
+    workCard: mapWorkCardSummaryRowToSummary(
+      sessionRow.workCardId
+        ? {
+            audience: sessionRow.workCardAudience,
+            id: sessionRow.workCardId,
+            priority: sessionRow.workCardPriority,
+            processLabel: sessionRow.workCardProcessLabel,
+            sensitivity: sessionRow.workCardSensitivity,
+            status: sessionRow.workCardStatus,
+            title: sessionRow.workCardTitle,
+          }
+        : null,
+    ),
   };
 }
 

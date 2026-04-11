@@ -47,6 +47,9 @@ const MODE_ACCENT_CLASS: Record<SessionMode, string> = {
 
 function ModeSelectorForm({ modes, parentSessionOptions }: ModeSelectorFormProps) {
   const router = useRouter();
+  const [workCardAudience, setWorkCardAudience] = useState('');
+  const [workCardProcessLabel, setWorkCardProcessLabel] = useState('');
+  const [workCardTitle, setWorkCardTitle] = useState('');
   const [selectedMode, setSelectedMode] = useState<SessionMode | null>(null);
   const [selectedParentSessionId, setSelectedParentSessionId] = useState<string | ''>('');
   const [selectedReportType, setSelectedReportType] = useState<
@@ -63,6 +66,9 @@ function ModeSelectorForm({ modes, parentSessionOptions }: ModeSelectorFormProps
   const handleReset = () => {
     setSelectedMode(null);
     setSelectedParentSessionId('');
+    setWorkCardAudience('');
+    setWorkCardProcessLabel('');
+    setWorkCardTitle('');
     setErrorMessage('');
   };
 
@@ -84,6 +90,18 @@ function ModeSelectorForm({ modes, parentSessionOptions }: ModeSelectorFormProps
 
     if (selectedMode === 'write') {
       requestBody.reportType = selectedReportType;
+    }
+
+    if (workCardTitle.trim().length > 0) {
+      requestBody.workCardTitle = workCardTitle.trim();
+    }
+
+    if (workCardAudience.trim().length > 0) {
+      requestBody.workCardAudience = workCardAudience.trim();
+    }
+
+    if (workCardProcessLabel.trim().length > 0) {
+      requestBody.workCardProcessLabel = workCardProcessLabel.trim();
     }
 
     const result = await safeFetch<CreateSessionResponse>('/api/sessions', {
@@ -222,6 +240,47 @@ function ModeSelectorForm({ modes, parentSessionOptions }: ModeSelectorFormProps
               </div>
             </div>
           ) : null}
+
+          <div className="grid gap-3 md:grid-cols-3">
+            <div className="flex flex-col gap-2 md:col-span-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-tertiary)]">
+                업무 카드 제목 (선택)
+              </label>
+              <input
+                className="input-surface w-full"
+                disabled={isCreating}
+                onChange={(event) => setWorkCardTitle(event.target.value)}
+                placeholder="예: 2026 상반기 조직개편 보고 준비"
+                value={workCardTitle}
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-tertiary)]">
+                대상 독자
+              </label>
+              <input
+                className="input-surface w-full"
+                disabled={isCreating}
+                onChange={(event) => setWorkCardAudience(event.target.value)}
+                placeholder="예: HR 리더, 임원"
+                value={workCardAudience}
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-tertiary)]">
+              연결 프로세스 라벨
+            </label>
+            <input
+              className="input-surface w-full"
+              disabled={isCreating}
+              onChange={(event) => setWorkCardProcessLabel(event.target.value)}
+              placeholder="예: 조직개편 커뮤니케이션, 평가 제도 개편"
+              value={workCardProcessLabel}
+            />
+          </div>
 
           <div className="flex justify-end">
             <button
