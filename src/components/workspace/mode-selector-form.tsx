@@ -1,13 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
+import type { WorkCardListItem } from '@/domains/work-cards/types';
 import type { SessionMode } from '@/lib/db/schema';
 import type { ModeDefinition } from '@/lib/modes';
 import type { CreateSessionRequestBody, SessionSummary } from '@/lib/sessions/types';
 import { safeFetch } from '@/lib/utils';
+
+type WorkCardSelectionMode = 'existing' | 'new' | 'none';
 
 interface ParentSessionOption {
   id: string;
@@ -18,8 +21,10 @@ interface ParentSessionOption {
 }
 
 interface ModeSelectorFormProps {
+  initialWorkCardId?: string | null;
   modes: ModeDefinition[];
   parentSessionOptions: ParentSessionOption[];
+  workCardOptions: WorkCardListItem[];
 }
 
 interface CreateSessionResponse {
@@ -33,9 +38,9 @@ const REPORT_TYPE_OPTIONS: {
   label: string;
   value: 'operation' | 'planning' | 'briefing';
 }[] = [
-  { description: '운영 현황과 결과를 정리합니다', label: '운영안', value: 'operation' },
-  { description: '새로운 시도나 변화 제안을 정리합니다', label: '기획안', value: 'planning' },
-  { description: '관련 사실과 배경을 공유합니다', label: '관련 보고', value: 'briefing' },
+  { description: '운영 현황과 결과를 정리합니다.', label: '운영형', value: 'operation' },
+  { description: '새로운 시도와 변화 제안을 정리합니다.', label: '기획형', value: 'planning' },
+  { description: '관계자에게 배경과 사실을 공유합니다.', label: '브리핑형', value: 'briefing' },
 ];
 
 const MODE_ACCENT_CLASS: Record<SessionMode, string> = {
@@ -45,18 +50,56 @@ const MODE_ACCENT_CLASS: Record<SessionMode, string> = {
   write: 'border-[var(--color-mode-write)]',
 };
 
-function ModeSelectorForm({ modes, parentSessionOptions }: ModeSelectorFormProps) {
+const WORK_CARD_SELECTION_OPTIONS: {
+  description: string;
+  label: string;
+  value: WorkCardSelectionMode;
+}[] = [
+  {
+    description: '세션만 먼저 열고 나중에 카드 구조를 붙입니다.',
+    label: '카드 없이 시작',
+    value: 'none',
+  },
+  {
+    description: '이미 만든 업무 카드를 이어서 사용합니다.',
+    label: '기존 카드 연결',
+    value: 'existing',
+  },
+  {
+    description: '새 업무 카드와 세션을 함께 만듭니다.',
+    label: '새 카드 만들기',
+    value: 'new',
+  },
+];
+
+function ModeSelectorForm({
+  initialWorkCardId,
+  modes,
+  parentSessionOptions,
+  workCardOptions,
+}: ModeSelectorFormProps) {
   const router = useRouter();
-  const [workCardAudience, setWorkCardAudience] = useState('');
-  const [workCardProcessLabel, setWorkCardProcessLabel] = useState('');
-  const [workCardTitle, setWorkCardTitle] = useState('');
+  const hasExistingWorkCards = workCardOptions.length > 0;
+  const initialSelectionMode: WorkCardSelectionMode =
+    initialWorkCardId && hasExistingWorkCards ? 'existing' : 'none';
   const [selectedMode, setSelectedMode] = useState<SessionMode | null>(null);
   const [selectedParentSessionId, setSelectedParentSessionId] = useState<string | ''>('');
   const [selectedReportType, setSelectedReportType] = useState<
     'operation' | 'planning' | 'briefing'
   >('operation');
+  const [selectedWorkCardId, setSelectedWorkCardId] = useState(initialWorkCardId ?? '');
+  const [workCardAudience, setWorkCardAudience] = useState('');
+  const [workCardProcessLabel, setWorkCardProcessLabel] = useState('');
+  const [workCardSelectionMode, setWorkCardSelectionMode] =
+    useState<WorkCardSelectionMode>(initialSelectionMode);
+  const [workCardTitle, setWorkCardTitle] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  const selectedExistingWorkCard = useMemo(
+    () => workCardOptions.find((option) => option.id === selectedWorkCardId) ?? null,
+    [selectedWorkCardId, workCardOptions],
+  );
 
   const handleModeClick = (mode: SessionMode) => {
     setErrorMessage('');
@@ -66,8 +109,11 @@ function ModeSelectorForm({ modes, parentSessionOptions }: ModeSelectorFormProps
   const handleReset = () => {
     setSelectedMode(null);
     setSelectedParentSessionId('');
+    setSelectedReportType('operation');
+    setSelectedWorkCardId(initialWorkCardId ?? '');
     setWorkCardAudience('');
     setWorkCardProcessLabel('');
+    setWorkCardSelectionMode(initialSelectionMode);
     setWorkCardTitle('');
     setErrorMessage('');
   };
@@ -92,16 +138,22 @@ function ModeSelectorForm({ modes, parentSessionOptions }: ModeSelectorFormProps
       requestBody.reportType = selectedReportType;
     }
 
-    if (workCardTitle.trim().length > 0) {
-      requestBody.workCardTitle = workCardTitle.trim();
+    if (workCardSelectionMode === 'existing' && selectedWorkCardId) {
+      requestBody.workCardId = selectedWorkCardId;
     }
 
-    if (workCardAudience.trim().length > 0) {
-      requestBody.workCardAudience = workCardAudience.trim();
-    }
+    if (workCardSelectionMode === 'new') {
+      if (workCardTitle.trim().length > 0) {
+        requestBody.workCardTitle = workCardTitle.trim();
+      }
 
-    if (workCardProcessLabel.trim().length > 0) {
-      requestBody.workCardProcessLabel = workCardProcessLabel.trim();
+      if (workCardAudience.trim().length > 0) {
+        requestBody.workCardAudience = workCardAudience.trim();
+      }
+
+      if (workCardProcessLabel.trim().length > 0) {
+        requestBody.workCardProcessLabel = workCardProcessLabel.trim();
+      }
     }
 
     const result = await safeFetch<CreateSessionResponse>('/api/sessions', {
@@ -159,7 +211,7 @@ function ModeSelectorForm({ modes, parentSessionOptions }: ModeSelectorFormProps
 
               <div className="mt-auto w-full border-t border-[var(--color-border-subtle)] pt-3">
                 <p className="text-[10px] uppercase tracking-wider text-[var(--color-text-tertiary)]">
-                  체크리스트 {mode.checklist.length}항목
+                  체크리스트 {mode.checklist.length}개 항목
                 </p>
               </div>
             </button>
@@ -171,9 +223,9 @@ function ModeSelectorForm({ modes, parentSessionOptions }: ModeSelectorFormProps
         <div className="workspace-card-muted flex flex-col gap-5">
           <div className="flex items-start justify-between gap-4">
             <div className="flex flex-col gap-1">
-              <h3 className="text-lg font-bold text-[var(--color-text)]">세부 설정</h3>
+              <h3 className="text-lg font-bold text-[var(--color-text)]">세션 설정</h3>
               <p className="text-sm text-[var(--color-text-secondary)]">
-                필요하면 이전 세션에서 이어가거나 보고서 유형을 선택하세요.
+                필요하면 이전 세션을 이어받고, 업무 카드를 연결해 시작할 수 있습니다.
               </p>
             </div>
             <button
@@ -189,7 +241,7 @@ function ModeSelectorForm({ modes, parentSessionOptions }: ModeSelectorFormProps
           {parentSessionOptions.length > 0 ? (
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-tertiary)]">
-                이전 세션에서 이어하기 (선택)
+                이전 세션 이어가기
               </label>
               <select
                 className="input-surface w-full"
@@ -241,51 +293,151 @@ function ModeSelectorForm({ modes, parentSessionOptions }: ModeSelectorFormProps
             </div>
           ) : null}
 
-          <div className="grid gap-3 md:grid-cols-3">
-            <div className="flex flex-col gap-2 md:col-span-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-tertiary)]">
-                업무 카드 제목 (선택)
-              </label>
-              <input
-                className="input-surface w-full"
-                disabled={isCreating}
-                onChange={(event) => setWorkCardTitle(event.target.value)}
-                placeholder="예: 2026 상반기 조직개편 보고 준비"
-                value={workCardTitle}
-              />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-tertiary)]">
-                대상 독자
-              </label>
-              <input
-                className="input-surface w-full"
-                disabled={isCreating}
-                onChange={(event) => setWorkCardAudience(event.target.value)}
-                placeholder="예: HR 리더, 임원"
-                value={workCardAudience}
-              />
-            </div>
-          </div>
-
           <div className="flex flex-col gap-2">
             <label className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-tertiary)]">
-              연결 프로세스 라벨
+              업무 카드 연결 방식
             </label>
-            <input
-              className="input-surface w-full"
-              disabled={isCreating}
-              onChange={(event) => setWorkCardProcessLabel(event.target.value)}
-              placeholder="예: 조직개편 커뮤니케이션, 평가 제도 개편"
-              value={workCardProcessLabel}
-            />
+            <div className="grid gap-3 md:grid-cols-3">
+              {WORK_CARD_SELECTION_OPTIONS.map((option) => {
+                const isSelected = workCardSelectionMode === option.value;
+                const isDisabled = option.value === 'existing' && !hasExistingWorkCards;
+
+                return (
+                  <button
+                    className={`workspace-card p-4 text-left transition ${
+                      isSelected
+                        ? 'border-[var(--color-accent)] ring-1 ring-[var(--color-accent)]'
+                        : 'hover:border-[var(--color-accent)]'
+                    } ${isDisabled ? 'cursor-not-allowed opacity-50' : ''}`}
+                    disabled={isCreating || isDisabled}
+                    key={option.value}
+                    onClick={() => setWorkCardSelectionMode(option.value)}
+                    type="button"
+                  >
+                    <p className="mb-1 text-sm font-bold text-[var(--color-text)]">
+                      {option.label}
+                    </p>
+                    <p className="text-xs leading-5 text-[var(--color-text-secondary)]">
+                      {option.description}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
           </div>
+
+          {workCardSelectionMode === 'existing' ? (
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-tertiary)]">
+                  연결할 업무 카드
+                </label>
+                <select
+                  className="input-surface w-full"
+                  disabled={isCreating || !hasExistingWorkCards}
+                  onChange={(event) => setSelectedWorkCardId(event.target.value)}
+                  value={selectedWorkCardId}
+                >
+                  <option value="">업무 카드를 선택해 주세요.</option>
+                  {workCardOptions.map((card) => (
+                    <option key={card.id} value={card.id}>
+                      {card.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="workspace-card flex flex-col gap-3">
+                <div className="flex items-center justify-between gap-3">
+                  <h4 className="font-headline text-base font-bold text-[var(--color-text)]">
+                    카드 요약
+                  </h4>
+                  <span className="badge badge-neutral">
+                    {selectedExistingWorkCard ? selectedExistingWorkCard.status : '미선택'}
+                  </span>
+                </div>
+                {selectedExistingWorkCard ? (
+                  <>
+                    <p className="text-sm font-semibold text-[var(--color-text)]">
+                      {selectedExistingWorkCard.title}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedExistingWorkCard.audience ? (
+                        <span className="badge badge-neutral">
+                          {selectedExistingWorkCard.audience}
+                        </span>
+                      ) : null}
+                      {selectedExistingWorkCard.processLabel ? (
+                        <span className="badge badge-neutral">
+                          {selectedExistingWorkCard.processLabel}
+                        </span>
+                      ) : null}
+                      <span className="badge badge-accent">
+                        {selectedExistingWorkCard.priority}
+                      </span>
+                    </div>
+                    <p className="text-xs text-[var(--color-text-secondary)]">
+                      연결 세션 {selectedExistingWorkCard.sessionCount}개
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-sm leading-6 text-[var(--color-text-secondary)]">
+                    기존 업무 카드를 고르면 세션 제목과 맥락이 카드 중심으로 이어집니다.
+                  </p>
+                )}
+              </div>
+            </div>
+          ) : null}
+
+          {workCardSelectionMode === 'new' ? (
+            <>
+              <div className="grid gap-3 md:grid-cols-3">
+                <div className="flex flex-col gap-2 md:col-span-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-tertiary)]">
+                    업무 카드 제목
+                  </label>
+                  <input
+                    className="input-surface w-full"
+                    disabled={isCreating}
+                    onChange={(event) => setWorkCardTitle(event.target.value)}
+                    placeholder="예: 2026 상반기 조직개편 보고 준비"
+                    value={workCardTitle}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-tertiary)]">
+                    대상 독자
+                  </label>
+                  <input
+                    className="input-surface w-full"
+                    disabled={isCreating}
+                    onChange={(event) => setWorkCardAudience(event.target.value)}
+                    placeholder="예: HR 리더, 임원"
+                    value={workCardAudience}
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-tertiary)]">
+                  연결 프로세스 라벨
+                </label>
+                <input
+                  className="input-surface w-full"
+                  disabled={isCreating}
+                  onChange={(event) => setWorkCardProcessLabel(event.target.value)}
+                  placeholder="예: 조직개편 커뮤니케이션, 평가 제도 개편"
+                  value={workCardProcessLabel}
+                />
+              </div>
+            </>
+          ) : null}
 
           <div className="flex justify-end">
             <button
               className="btn-primary disabled:cursor-not-allowed disabled:opacity-50"
-              disabled={isCreating}
+              disabled={isCreating || (workCardSelectionMode === 'existing' && !selectedWorkCardId)}
               onClick={handleCreate}
               type="button"
             >

@@ -22,6 +22,7 @@ interface WorkspaceNavItem {
 const AUTH_NAV_ITEMS: WorkspaceNavItem[] = [
   { href: '/workspace', label: '워크벤치', shortLabel: 'WB' },
   { href: '/workspace/new', label: '새 작업', shortLabel: 'NW' },
+  { href: '/workspace/cards', label: '업무 카드', shortLabel: 'WC' },
   { href: '/workspace/reports', label: '리포트', shortLabel: 'RP' },
   { href: '/workspace/knowledge', label: '지식 라이브러리', shortLabel: 'KB' },
   { href: '/workspace/wiki', label: '공유 위키', shortLabel: 'WK' },
@@ -119,7 +120,7 @@ function WorkspaceSidebar({ user }: WorkspaceSidebarProps) {
             <div>
               <p className="text-sm font-bold text-[var(--color-text)]">공유용 위키</p>
               <p className="text-[10px] leading-5 text-[var(--color-text-secondary)]">
-                위키는 로그인 없이 읽고, 실제 작업은 로그인 후 이어집니다.
+                위키는 로그인 없이 볼 수 있고, 실제 작업은 로그인 후 이어집니다.
               </p>
             </div>
             <div className="grid gap-2">

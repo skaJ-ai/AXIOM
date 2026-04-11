@@ -44,7 +44,7 @@ type IntentFragmentType =
 type ReportStatus = 'draft' | 'final' | 'promoted_asset';
 type WorkCardPriority = 'high' | 'low' | 'medium';
 type WorkCardSensitivity = 'confidential' | 'general' | 'restricted';
-type WorkCardStatus = 'active' | 'completed' | 'paused';
+type WorkCardStatus = 'active' | 'archived' | 'completed' | 'paused';
 
 interface DeliverableSection {
   cited: boolean;

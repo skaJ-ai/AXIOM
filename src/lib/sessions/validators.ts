@@ -18,6 +18,7 @@ const createSessionBaseSchema = z.object({
     .trim()
     .max(120, '대상 독자는 120자 이내로 입력해 주세요.')
     .optional(),
+  workCardId: z.string().uuid().optional(),
   workCardProcessLabel: z
     .string()
     .trim()
@@ -43,22 +44,34 @@ const createNonWriteSessionRequestSchema = createSessionBaseSchema.extend({
 const createSessionRequestSchema = z
   .discriminatedUnion('mode', [createWriteSessionRequestSchema, createNonWriteSessionRequestSchema])
   .superRefine((value, context) => {
-    if (
-      (value.workCardAudience && value.workCardAudience.length > 0) ||
-      (value.workCardProcessLabel && value.workCardProcessLabel.length > 0)
-    ) {
-      if (!value.workCardTitle || value.workCardTitle.length === 0) {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: '대상 독자나 프로세스 라벨을 입력했다면 업무 카드 제목도 입력해 주세요.',
-          path: ['workCardTitle'],
-        });
-      }
+    const hasExistingWorkCard =
+      typeof value.workCardId === 'string' && value.workCardId.trim().length > 0;
+    const hasNewWorkCardTitle =
+      typeof value.workCardTitle === 'string' && value.workCardTitle.trim().length > 0;
+    const hasNewWorkCardMetadata =
+      (typeof value.workCardAudience === 'string' && value.workCardAudience.trim().length > 0) ||
+      (typeof value.workCardProcessLabel === 'string' &&
+        value.workCardProcessLabel.trim().length > 0);
+
+    if (hasExistingWorkCard && (hasNewWorkCardTitle || hasNewWorkCardMetadata)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: '기존 업무 카드를 선택했으면 새 업무 카드 입력칸은 비워 두세요.',
+        path: ['workCardId'],
+      });
+    }
+
+    if (hasNewWorkCardMetadata && !hasNewWorkCardTitle) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: '대상 독자나 프로세스 라벨을 입력했다면 업무 카드 제목도 입력해 주세요.',
+        path: ['workCardTitle'],
+      });
     }
   });
 
 const createSourceRequestSchema = z.object({
-  content: z.string().trim().min(1, '근거자료 내용은 입력해 주세요.'),
+  content: z.string().trim().min(1, '근거 자료 내용은 입력해 주세요.'),
   label: z.string().trim().optional(),
   type: z.enum(['text', 'table', 'data']).optional(),
 });

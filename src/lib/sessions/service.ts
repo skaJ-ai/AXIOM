@@ -9,6 +9,7 @@ import type { ClaimWithSources } from '@/domains/synthesize/types';
 import { listReviewsBySession } from '@/domains/validate/queries';
 import type { Review } from '@/domains/validate/types';
 import { createWorkCard } from '@/domains/work-cards/actions';
+import { getWorkCardSummaryByIdForWorkspace } from '@/domains/work-cards/queries';
 import type { WorkCardSummary } from '@/domains/work-cards/types';
 import type { Report } from '@/domains/write/types';
 import { mergeCanvasState } from '@/lib/ai/session-chat';
@@ -199,6 +200,7 @@ async function createSessionForWorkspace(
     parentSessionId?: string;
     reportType?: ReportType;
     templateType?: TemplateType;
+    workCardId?: string;
     workCardAudience?: string;
     workCardProcessLabel?: string;
     workCardTitle?: string;
@@ -212,20 +214,43 @@ async function createSessionForWorkspace(
     (mode === 'write' && options?.reportType
       ? REPORT_TYPE_TO_TEMPLATE_TYPE[options.reportType]
       : null);
+  const shouldUseExistingWorkCard =
+    typeof options?.workCardId === 'string' && options.workCardId.trim().length > 0;
   const shouldCreateWorkCard =
-    typeof options?.workCardTitle === 'string' && options.workCardTitle.trim().length > 0;
+    !shouldUseExistingWorkCard &&
+    typeof options?.workCardTitle === 'string' &&
+    options.workCardTitle.trim().length > 0;
 
   return database.transaction(async (transaction) => {
-    const workCard = shouldCreateWorkCard
-      ? await createWorkCard({
-          audience: options?.workCardAudience,
+    let workCard: WorkCardSummary | null = null;
+
+    if (shouldUseExistingWorkCard) {
+      workCard = await getWorkCardSummaryByIdForWorkspace(
+        options!.workCardId!.trim(),
+        workspaceId,
+        {
           database: transaction,
-          ownerId: options?.ownerUserId,
-          processLabel: options?.workCardProcessLabel,
-          title: options.workCardTitle!.trim(),
-          workspaceId,
-        })
-      : null;
+        },
+      );
+
+      if (!workCard) {
+        throw new Error('업무 카드를 찾을 수 없습니다.');
+      }
+
+      if (workCard.status === 'archived') {
+        throw new Error('보관된 업무 카드는 새 세션에 연결할 수 없습니다.');
+      }
+    } else if (shouldCreateWorkCard) {
+      workCard = await createWorkCard({
+        audience: options?.workCardAudience,
+        database: transaction,
+        ownerId: options?.ownerUserId,
+        processLabel: options?.workCardProcessLabel,
+        title: options.workCardTitle!.trim(),
+        workspaceId,
+      });
+    }
+
     const createdSessions = await transaction
       .insert(sessionsTable)
       .values({

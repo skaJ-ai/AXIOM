@@ -153,6 +153,7 @@ interface CreateSessionRequestBody {
   parentSessionId?: string;
   reportType?: string;
   templateType?: TemplateType;
+  workCardId?: string;
   workCardAudience?: string;
   workCardProcessLabel?: string;
   workCardTitle?: string;

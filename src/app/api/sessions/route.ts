@@ -61,6 +61,7 @@ async function POST(request: Request) {
         parentSessionId: parsedRequest.data.parentSessionId,
         reportType: parsedRequest.data.reportType,
         templateType: parsedRequest.data.templateType,
+        workCardId: parsedRequest.data.workCardId,
         workCardAudience: parsedRequest.data.workCardAudience,
         workCardProcessLabel: parsedRequest.data.workCardProcessLabel,
         workCardTitle: parsedRequest.data.workCardTitle,
@@ -81,7 +82,13 @@ async function POST(request: Request) {
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown session creation error';
-    const status = message === 'Authentication required.' ? 401 : 500;
+    const status =
+      message === 'Authentication required.'
+        ? 401
+        : message === '업무 카드를 찾을 수 없습니다.' ||
+            message === '보관된 업무 카드는 새 세션에 연결할 수 없습니다.'
+          ? 400
+          : 500;
 
     return NextResponse.json(
       {

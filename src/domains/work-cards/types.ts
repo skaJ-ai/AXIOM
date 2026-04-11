@@ -10,4 +10,10 @@ interface WorkCardSummary {
   title: string;
 }
 
-export type { WorkCardSummary };
+interface WorkCardListItem extends WorkCardSummary {
+  createdAt: string;
+  sessionCount: number;
+  updatedAt: string;
+}
+
+export type { WorkCardListItem, WorkCardSummary };

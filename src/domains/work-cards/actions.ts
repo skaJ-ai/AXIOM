@@ -1,7 +1,51 @@
-import { getDb } from '@/lib/db';
-import { workCardsTable } from '@/lib/db/schema';
+import { and, eq, sql } from 'drizzle-orm';
 
-import type { WorkCardSummary } from './types';
+import { getDb } from '@/lib/db';
+import { sessionsTable, workCardsTable } from '@/lib/db/schema';
+
+import type { WorkCardListItem, WorkCardSummary } from './types';
+
+function mapWorkCardRowToSummary(row: {
+  audience: string | null;
+  id: string;
+  priority: WorkCardSummary['priority'] | null;
+  processLabel: string | null;
+  sensitivity: WorkCardSummary['sensitivity'] | null;
+  status: WorkCardSummary['status'] | null;
+  title: string | null;
+}): WorkCardSummary {
+  return {
+    audience: row.audience,
+    id: row.id,
+    priority: row.priority ?? 'medium',
+    processLabel: row.processLabel,
+    sensitivity: row.sensitivity ?? 'general',
+    status: row.status ?? 'active',
+    title: row.title ?? 'Untitled work card',
+  };
+}
+
+function mapWorkCardRowToListItem(row: {
+  audience: string | null;
+  createdAt: Date;
+  id: string;
+  priority: WorkCardSummary['priority'] | null;
+  processLabel: string | null;
+  sensitivity: WorkCardSummary['sensitivity'] | null;
+  sessionCount: number;
+  status: WorkCardSummary['status'] | null;
+  title: string | null;
+  updatedAt: Date;
+}): WorkCardListItem {
+  const summary = mapWorkCardRowToSummary(row);
+
+  return {
+    ...summary,
+    createdAt: row.createdAt.toISOString(),
+    sessionCount: row.sessionCount,
+    updatedAt: row.updatedAt.toISOString(),
+  };
+}
 
 async function createWorkCard({
   audience,
@@ -41,10 +85,96 @@ async function createWorkCard({
   const createdCard = createdCards[0];
 
   if (!createdCard) {
-    throw new Error('업무 카드를 생성하지 못했습니다.');
+    throw new Error('Failed to create work card.');
   }
 
-  return createdCard;
+  return mapWorkCardRowToSummary(createdCard);
 }
 
-export { createWorkCard };
+async function updateWorkCardForWorkspace({
+  audience,
+  priority,
+  processLabel,
+  sensitivity,
+  status,
+  title,
+  workCardId,
+  workspaceId,
+}: {
+  audience?: string | null;
+  priority?: WorkCardSummary['priority'];
+  processLabel?: string | null;
+  sensitivity?: WorkCardSummary['sensitivity'];
+  status?: WorkCardSummary['status'];
+  title?: string;
+  workCardId: string;
+  workspaceId: string;
+}): Promise<WorkCardListItem> {
+  const database = getDb();
+  const updatedRows = await database
+    .update(workCardsTable)
+    .set({
+      audience:
+        typeof audience === 'string'
+          ? audience.trim().length > 0
+            ? audience.trim()
+            : null
+          : undefined,
+      priority,
+      processLabel:
+        typeof processLabel === 'string'
+          ? processLabel.trim().length > 0
+            ? processLabel.trim()
+            : null
+          : undefined,
+      sensitivity,
+      status,
+      title: typeof title === 'string' ? title.trim() : undefined,
+      updatedAt: sql`now()`,
+    })
+    .where(and(eq(workCardsTable.id, workCardId), eq(workCardsTable.workspaceId, workspaceId)))
+    .returning({
+      audience: workCardsTable.audience,
+      createdAt: workCardsTable.createdAt,
+      id: workCardsTable.id,
+      priority: workCardsTable.priority,
+      processLabel: workCardsTable.processLabel,
+      sensitivity: workCardsTable.sensitivity,
+      sessionCount: sql<number>`(
+        select count(*)::int
+        from ${sessionsTable}
+        where ${sessionsTable.workCardId} = ${workCardsTable.id}
+          and ${sessionsTable.workspaceId} = ${workspaceId}
+      )`,
+      status: workCardsTable.status,
+      title: workCardsTable.title,
+      updatedAt: workCardsTable.updatedAt,
+    });
+
+  const updatedCard = updatedRows[0];
+
+  if (!updatedCard) {
+    throw new Error('Work card not found.');
+  }
+
+  return mapWorkCardRowToListItem(updatedCard);
+}
+
+async function archiveWorkCardForWorkspace(
+  workCardId: string,
+  workspaceId: string,
+): Promise<WorkCardListItem> {
+  return updateWorkCardForWorkspace({
+    status: 'archived',
+    workCardId,
+    workspaceId,
+  });
+}
+
+export {
+  archiveWorkCardForWorkspace,
+  createWorkCard,
+  mapWorkCardRowToListItem,
+  mapWorkCardRowToSummary,
+  updateWorkCardForWorkspace,
+};
