@@ -648,7 +648,7 @@ async function createUserMessageForSession({
       .where(eq(sessionsTable.id, sessionId));
 
     if (!createdMessage) {
-      throw new Error('?ъ슜??硫붿떆吏瑜????섏? 紐삵뻽?덉뒿?덈떎.');
+      throw new Error('사용자 메시지를 저장하지 못했습니다.');
     }
 
     return {

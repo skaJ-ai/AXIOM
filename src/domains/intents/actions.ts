@@ -8,14 +8,16 @@ import { extractIntentFragmentsFromText } from './extraction';
 import type { IntentFragmentDraft } from './types';
 
 type IntentReviewDecision = 'approve' | 'reject' | 'reset';
+type IntentBatchAction = IntentReviewDecision | 'nominate';
+type IntentReviewStatus = 'approved' | 'captured' | 'nominated' | 'rejected';
 
 function getIntentConcurrentUpdateMessage(): string {
-  return 'Intent 상태가 변경되어 요청을 처리하지 못했습니다. 새로고침 후 다시 시도해 주세요.';
+  return '의도 상태가 이미 변경되어 요청을 처리하지 못했습니다. 새로고침 후 다시 시도해 주세요.';
 }
 
 function getIntentTransitionErrorMessage(
-  decision: IntentReviewDecision | 'nominate',
-  currentStatus: 'approved' | 'captured' | 'nominated' | 'rejected',
+  decision: IntentBatchAction,
+  currentStatus: IntentReviewStatus,
 ): string {
   if (decision === 'nominate') {
     return `Intent는 ${currentStatus} 상태에서 nominated로 바꿀 수 없습니다.`;
@@ -26,6 +28,62 @@ function getIntentTransitionErrorMessage(
   }
 
   return `Intent ${decision}는 nominated 상태에서만 가능합니다.`;
+}
+
+function createIntentDeduplicationKey(fragment: {
+  content: string;
+  type: IntentFragmentDraft['type'];
+}): string {
+  return `${fragment.type}:${fragment.content.trim().toLowerCase()}`;
+}
+
+function getBatchActionTargetStatuses(action: IntentBatchAction): IntentReviewStatus[] {
+  switch (action) {
+    case 'nominate':
+      return ['captured'];
+    case 'approve':
+    case 'reject':
+      return ['nominated'];
+    case 'reset':
+      return ['approved', 'nominated', 'rejected'];
+    default:
+      return [];
+  }
+}
+
+function getIntentActionUpdateValues(action: IntentBatchAction, reviewerId: string) {
+  switch (action) {
+    case 'approve':
+      return {
+        reviewStatus: 'approved' as const,
+        reviewedAt: sql`now()`,
+        reviewedBy: reviewerId,
+      };
+    case 'reject':
+      return {
+        reviewStatus: 'rejected' as const,
+        reviewedAt: sql`now()`,
+        reviewedBy: reviewerId,
+      };
+    case 'nominate':
+      return {
+        reviewStatus: 'nominated' as const,
+        reviewedAt: null,
+        reviewedBy: null,
+      };
+    case 'reset':
+      return {
+        reviewStatus: 'captured' as const,
+        reviewedAt: null,
+        reviewedBy: null,
+      };
+    default:
+      return {
+        reviewStatus: 'captured' as const,
+        reviewedAt: null,
+        reviewedBy: null,
+      };
+  }
 }
 
 async function createIntentFragments({
@@ -56,21 +114,11 @@ async function createIntentFragments({
       and(
         eq(intentFragmentsTable.sessionId, sessionId),
         eq(intentFragmentsTable.workspaceId, workspaceId),
-        inArray(
-          intentFragmentsTable.type,
-          fragments.map((fragment) => fragment.type),
-        ),
-        inArray(
-          intentFragmentsTable.content,
-          fragments.map((fragment) => fragment.content),
-        ),
       ),
     );
-  const existingKeys = new Set(
-    existingRows.map((row) => `${row.type}:${row.content.trim().toLowerCase()}`),
-  );
+  const existingKeys = new Set(existingRows.map((row) => createIntentDeduplicationKey(row)));
   const nextFragments = fragments.filter((fragment) => {
-    const key = `${fragment.type}:${fragment.content.trim().toLowerCase()}`;
+    const key = createIntentDeduplicationKey(fragment);
     return !existingKeys.has(key);
   });
 
@@ -117,11 +165,7 @@ async function nominateIntentFragment(id: string, workspaceId: string): Promise<
 
   const updatedRows = await database
     .update(intentFragmentsTable)
-    .set({
-      reviewStatus: 'nominated',
-      reviewedAt: null,
-      reviewedBy: null,
-    })
+    .set(getIntentActionUpdateValues('nominate', ''))
     .where(
       and(
         eq(intentFragmentsTable.id, id),
@@ -183,34 +227,13 @@ async function reviewIntentFragment({
     }
   }
 
-  if (decision === 'reset') {
-    if (currentIntent.reviewStatus === 'captured') {
-      return true;
-    }
+  if (decision === 'reset' && currentIntent.reviewStatus === 'captured') {
+    return true;
   }
-
-  const nextValues =
-    decision === 'approve'
-      ? {
-          reviewStatus: 'approved' as const,
-          reviewedAt: sql`now()`,
-          reviewedBy: reviewerId,
-        }
-      : decision === 'reject'
-        ? {
-            reviewStatus: 'rejected' as const,
-            reviewedAt: sql`now()`,
-            reviewedBy: reviewerId,
-          }
-        : {
-            reviewStatus: 'captured' as const,
-            reviewedAt: null,
-            reviewedBy: null,
-          };
 
   const updatedRows = await database
     .update(intentFragmentsTable)
-    .set(nextValues)
+    .set(getIntentActionUpdateValues(decision, reviewerId))
     .where(
       and(
         eq(intentFragmentsTable.id, intentId),
@@ -225,6 +248,45 @@ async function reviewIntentFragment({
   }
 
   return updatedRows.length > 0;
+}
+
+async function reviewIntentFragmentsBatch({
+  action,
+  intentIds,
+  reviewerId,
+  workspaceId,
+}: {
+  action: IntentBatchAction;
+  intentIds: string[];
+  reviewerId: string;
+  workspaceId: string;
+}): Promise<string[]> {
+  const uniqueIntentIds = Array.from(new Set(intentIds.map((id) => id.trim()).filter(Boolean)));
+
+  if (uniqueIntentIds.length === 0) {
+    return [];
+  }
+
+  const database = getDb();
+  const targetStatuses = getBatchActionTargetStatuses(action);
+
+  if (targetStatuses.length === 0) {
+    return [];
+  }
+
+  const updatedRows = await database
+    .update(intentFragmentsTable)
+    .set(getIntentActionUpdateValues(action, reviewerId))
+    .where(
+      and(
+        eq(intentFragmentsTable.workspaceId, workspaceId),
+        inArray(intentFragmentsTable.id, uniqueIntentIds),
+        inArray(intentFragmentsTable.reviewStatus, targetStatuses),
+      ),
+    )
+    .returning({ id: intentFragmentsTable.id });
+
+  return updatedRows.map((row) => row.id);
 }
 
 async function captureIntentFragmentsForSessionMessage({
@@ -260,5 +322,6 @@ export {
   createIntentFragments,
   nominateIntentFragment,
   reviewIntentFragment,
+  reviewIntentFragmentsBatch,
 };
-export type { IntentReviewDecision };
+export type { IntentBatchAction, IntentReviewDecision };
