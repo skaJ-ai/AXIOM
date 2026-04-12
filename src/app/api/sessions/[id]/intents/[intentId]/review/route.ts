@@ -71,7 +71,8 @@ async function PATCH(
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown intent review error';
-    const status = message === 'Authentication required.' ? 401 : 500;
+    const status =
+      message === 'Authentication required.' ? 401 : message.startsWith('Intent ') ? 409 : 500;
 
     return NextResponse.json(
       {

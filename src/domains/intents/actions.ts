@@ -9,6 +9,21 @@ import type { IntentFragmentDraft } from './types';
 
 type IntentReviewDecision = 'approve' | 'reject' | 'reset';
 
+function getIntentTransitionErrorMessage(
+  decision: IntentReviewDecision | 'nominate',
+  currentStatus: 'approved' | 'captured' | 'nominated' | 'rejected',
+): string {
+  if (decision === 'nominate') {
+    return `Intent는 ${currentStatus} 상태에서 nominated로 바꿀 수 없습니다.`;
+  }
+
+  if (decision === 'reset') {
+    return `Intent는 ${currentStatus} 상태에서 captured로 되돌릴 수 없습니다.`;
+  }
+
+  return `Intent ${decision}는 nominated 상태에서만 가능합니다.`;
+}
+
 async function createIntentFragments({
   fragments,
   messageId,
@@ -45,6 +60,25 @@ async function createIntentFragments({
 
 async function nominateIntentFragment(id: string, workspaceId: string): Promise<boolean> {
   const database = getDb();
+  const currentRows = await database
+    .select({ reviewStatus: intentFragmentsTable.reviewStatus })
+    .from(intentFragmentsTable)
+    .where(and(eq(intentFragmentsTable.id, id), eq(intentFragmentsTable.workspaceId, workspaceId)))
+    .limit(1);
+  const currentIntent = currentRows[0];
+
+  if (!currentIntent) {
+    return false;
+  }
+
+  if (currentIntent.reviewStatus === 'nominated') {
+    return true;
+  }
+
+  if (currentIntent.reviewStatus !== 'captured') {
+    throw new Error(getIntentTransitionErrorMessage('nominate', currentIntent.reviewStatus));
+  }
+
   const updatedRows = await database
     .update(intentFragmentsTable)
     .set({
@@ -72,6 +106,45 @@ async function reviewIntentFragment({
   workspaceId: string;
 }): Promise<boolean> {
   const database = getDb();
+  const currentRows = await database
+    .select({ reviewStatus: intentFragmentsTable.reviewStatus })
+    .from(intentFragmentsTable)
+    .where(
+      and(eq(intentFragmentsTable.id, intentId), eq(intentFragmentsTable.workspaceId, workspaceId)),
+    )
+    .limit(1);
+  const currentIntent = currentRows[0];
+
+  if (!currentIntent) {
+    return false;
+  }
+
+  if (decision === 'approve') {
+    if (currentIntent.reviewStatus === 'approved') {
+      return true;
+    }
+
+    if (currentIntent.reviewStatus !== 'nominated') {
+      throw new Error(getIntentTransitionErrorMessage(decision, currentIntent.reviewStatus));
+    }
+  }
+
+  if (decision === 'reject') {
+    if (currentIntent.reviewStatus === 'rejected') {
+      return true;
+    }
+
+    if (currentIntent.reviewStatus !== 'nominated') {
+      throw new Error(getIntentTransitionErrorMessage(decision, currentIntent.reviewStatus));
+    }
+  }
+
+  if (decision === 'reset') {
+    if (currentIntent.reviewStatus === 'captured') {
+      return true;
+    }
+  }
+
   const nextValues =
     decision === 'approve'
       ? {

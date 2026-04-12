@@ -139,7 +139,7 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
     setErrorMessage('');
 
     const result = await safeFetch<{ data: { nominated: boolean } }>(
-      `/api/sessions/${item.sessionId}/intents/${item.id}/promote`,
+      `/api/sessions/${item.sessionId}/intents/${item.id}/nominate`,
       { method: 'POST' },
     );
 
@@ -272,7 +272,7 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
                       검토 후보로 올리기
                     </button>
                   ) : null}
-                  {item.reviewStatus !== 'approved' ? (
+                  {item.reviewStatus === 'nominated' ? (
                     <button
                       className="btn-secondary"
                       disabled={pendingIntentId === item.id}
@@ -282,7 +282,7 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
                       승인
                     </button>
                   ) : null}
-                  {item.reviewStatus !== 'rejected' ? (
+                  {item.reviewStatus === 'nominated' ? (
                     <button
                       className="btn-secondary"
                       disabled={pendingIntentId === item.id}

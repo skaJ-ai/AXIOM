@@ -16,7 +16,6 @@ async function listIntentFragmentsBySession(
       content: intentFragmentsTable.content,
       createdAt: intentFragmentsTable.createdAt,
       id: intentFragmentsTable.id,
-      promoted: intentFragmentsTable.promoted,
       reviewStatus: intentFragmentsTable.reviewStatus,
       scope: intentFragmentsTable.scope,
       speaker: intentFragmentsTable.speaker,
@@ -27,6 +26,7 @@ async function listIntentFragmentsBySession(
       and(
         eq(intentFragmentsTable.sessionId, sessionId),
         eq(intentFragmentsTable.workspaceId, workspaceId),
+        sql`${intentFragmentsTable.reviewStatus} <> 'rejected'`,
       ),
     )
     .orderBy(desc(intentFragmentsTable.createdAt));
@@ -36,7 +36,6 @@ async function listIntentFragmentsBySession(
     content: row.content,
     createdAt: row.createdAt.toISOString(),
     id: row.id,
-    promoted: row.promoted,
     reviewStatus: row.reviewStatus,
     scope: row.scope,
     speaker: row.speaker,
@@ -61,7 +60,6 @@ async function listIntentReviewQueueByWorkspace(
       content: intentFragmentsTable.content,
       createdAt: intentFragmentsTable.createdAt,
       id: intentFragmentsTable.id,
-      promoted: intentFragmentsTable.promoted,
       reviewStatus: intentFragmentsTable.reviewStatus,
       scope: intentFragmentsTable.scope,
       sessionId: intentFragmentsTable.sessionId,
@@ -91,7 +89,6 @@ async function listIntentReviewQueueByWorkspace(
     content: row.content,
     createdAt: row.createdAt.toISOString(),
     id: row.id,
-    promoted: row.promoted,
     reviewStatus: row.reviewStatus,
     scope: row.scope,
     sessionId: row.sessionId,

@@ -9,7 +9,6 @@ interface IntentFragment {
   content: string;
   createdAt: string;
   id: string;
-  promoted: boolean;
   reviewStatus: IntentFragmentReviewStatus;
   scope: string | null;
   speaker: string | null;

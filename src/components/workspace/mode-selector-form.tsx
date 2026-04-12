@@ -73,7 +73,7 @@ const WORK_CARD_SELECTION_OPTIONS: {
 ];
 
 function canStartSessionFromWorkCard(status: WorkCardListItem['status']): boolean {
-  return status === 'active';
+  return status === 'active' || status === 'paused';
 }
 
 function ModeSelectorForm({

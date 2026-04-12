@@ -50,7 +50,7 @@ function formatDateTimeLabel(value: string): string {
 }
 
 function canStartSessionFromWorkCard(status: WorkCardListItem['status']): boolean {
-  return status === 'active';
+  return status === 'active' || status === 'paused';
 }
 
 function WorkCardBoard({ initialCards }: WorkCardBoardProps) {
