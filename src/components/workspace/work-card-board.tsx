@@ -8,6 +8,14 @@ import type { WorkCardListItem } from '@/domains/work-cards/types';
 import { safeFetch } from '@/lib/utils';
 
 type WorkCardFilter = 'active' | 'all' | 'archived';
+type IntentReviewStatus = 'approved' | 'captured' | 'nominated' | 'rejected';
+type IntentType =
+  | 'audience'
+  | 'context'
+  | 'exception'
+  | 'judgment_basis'
+  | 'preference'
+  | 'prohibition';
 
 interface LinkedSessionPreview {
   id: string;
@@ -16,7 +24,19 @@ interface LinkedSessionPreview {
   updatedAt: string;
 }
 
+interface LinkedIntentPreview {
+  content: string;
+  createdAt: string;
+  id: string;
+  reviewStatus: IntentReviewStatus;
+  sessionId: string;
+  sessionTitle: string;
+  type: IntentType;
+}
+
 interface WorkCardBoardItem extends WorkCardListItem {
+  intentCount: number;
+  recentIntents: LinkedIntentPreview[];
   recentSessions: LinkedSessionPreview[];
 }
 
@@ -51,6 +71,25 @@ function formatDateTimeLabel(value: string): string {
 
 function canStartSessionFromWorkCard(status: WorkCardListItem['status']): boolean {
   return status === 'active' || status === 'paused';
+}
+
+function formatIntentType(type: IntentType): string {
+  switch (type) {
+    case 'audience':
+      return '대상';
+    case 'context':
+      return '상황';
+    case 'exception':
+      return '예외';
+    case 'judgment_basis':
+      return '판단 기준';
+    case 'preference':
+      return '선호';
+    case 'prohibition':
+      return '금지';
+    default:
+      return type;
+  }
 }
 
 function WorkCardBoard({ initialCards }: WorkCardBoardProps) {
@@ -90,6 +129,8 @@ function WorkCardBoard({ initialCards }: WorkCardBoardProps) {
 
         return {
           ...card,
+          intentCount: existing?.intentCount ?? 0,
+          recentIntents: existing?.recentIntents ?? [],
           recentSessions: existing?.recentSessions ?? [],
         };
       }),
@@ -121,7 +162,15 @@ function WorkCardBoard({ initialCards }: WorkCardBoardProps) {
     const createdCard = result.data.data.workCard;
 
     if (createdCard) {
-      setCards((previousCards) => [{ ...createdCard, recentSessions: [] }, ...previousCards]);
+      setCards((previousCards) => [
+        {
+          ...createdCard,
+          intentCount: 0,
+          recentIntents: [],
+          recentSessions: [],
+        },
+        ...previousCards,
+      ]);
     } else {
       await handleRefresh();
     }
@@ -165,7 +214,14 @@ function WorkCardBoard({ initialCards }: WorkCardBoardProps) {
     if (updatedCard) {
       setCards((previousCards) =>
         previousCards.map((card) =>
-          card.id === cardId ? { ...updatedCard, recentSessions: card.recentSessions } : card,
+          card.id === cardId
+            ? {
+                ...updatedCard,
+                intentCount: card.intentCount,
+                recentIntents: card.recentIntents,
+                recentSessions: card.recentSessions,
+              }
+            : card,
         ),
       );
     }
@@ -199,7 +255,14 @@ function WorkCardBoard({ initialCards }: WorkCardBoardProps) {
     if (updatedCard) {
       setCards((previousCards) =>
         previousCards.map((card) =>
-          card.id === cardId ? { ...updatedCard, recentSessions: card.recentSessions } : card,
+          card.id === cardId
+            ? {
+                ...updatedCard,
+                intentCount: card.intentCount,
+                recentIntents: card.recentIntents,
+                recentSessions: card.recentSessions,
+              }
+            : card,
         ),
       );
     }
@@ -222,7 +285,7 @@ function WorkCardBoard({ initialCards }: WorkCardBoardProps) {
               업무 카드 만들기
             </h2>
             <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-              카드는 세션과 노하우 축적의 기준점입니다. 먼저 제목만 만들어도 됩니다.
+              카드는 세션과 맥락을 묶는 기본 단위입니다. 먼저 제목만 만들어도 됩니다.
             </p>
           </div>
           <Link className="btn-secondary" href="/workspace/new">
@@ -267,7 +330,7 @@ function WorkCardBoard({ initialCards }: WorkCardBoardProps) {
               업무 카드 목록
             </h2>
             <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-              카드를 기준으로 세션을 이어가고, 필요한 카드는 보관할 수 있습니다.
+              카드별로 세션과 포착된 작업 맥락을 함께 관리합니다.
             </p>
           </div>
 
@@ -276,7 +339,7 @@ function WorkCardBoard({ initialCards }: WorkCardBoardProps) {
               [
                 ['active', '활성 카드'],
                 ['all', '전체'],
-                ['archived', '보관됨'],
+                ['archived', '보관'],
               ] as const
             ).map(([value, label]) => (
               <button
@@ -382,6 +445,7 @@ function WorkCardRow({
             <span className="badge badge-accent">{card.priority}</span>
             <span className="badge badge-neutral">{card.sensitivity}</span>
             <span className="badge badge-neutral">연결 세션 {card.sessionCount}개</span>
+            <span className="badge badge-neutral">작업 맥락 {card.intentCount}개</span>
           </div>
         </div>
 
@@ -525,33 +589,70 @@ function WorkCardRow({
           )}
         </div>
 
-        <div className="workspace-card-muted flex flex-col gap-3">
-          <div className="flex items-center justify-between gap-3">
-            <h4 className="font-headline text-base font-bold text-[var(--color-text)]">
-              최근 연결 세션
-            </h4>
-            <span className="meta">업데이트 {formatDateTimeLabel(card.updatedAt)}</span>
-          </div>
-          {card.recentSessions.length > 0 ? (
-            <div className="flex flex-col gap-2">
-              {card.recentSessions.map((session) => (
-                <Link
-                  className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-3 transition hover:border-[var(--color-accent)]"
-                  href={`/workspace/session/${session.id}`}
-                  key={session.id}
-                >
-                  <p className="text-sm font-semibold text-[var(--color-text)]">{session.title}</p>
-                  <p className="mt-1 text-xs text-[var(--color-text-secondary)]">
-                    {session.modeName} · {formatDateTimeLabel(session.updatedAt)}
-                  </p>
-                </Link>
-              ))}
+        <div className="flex flex-col gap-3">
+          <div className="workspace-card-muted flex flex-col gap-3">
+            <div className="flex items-center justify-between gap-3">
+              <h4 className="font-headline text-base font-bold text-[var(--color-text)]">
+                최근 연결 세션
+              </h4>
+              <span className="meta">업데이트 {formatDateTimeLabel(card.updatedAt)}</span>
             </div>
-          ) : (
-            <p className="text-sm leading-6 text-[var(--color-text-secondary)]">
-              아직 연결된 세션이 없습니다. 이 카드로 새 세션을 시작해 보세요.
-            </p>
-          )}
+            {card.recentSessions.length > 0 ? (
+              <div className="flex flex-col gap-2">
+                {card.recentSessions.map((session) => (
+                  <Link
+                    className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-3 transition hover:border-[var(--color-accent)]"
+                    href={`/workspace/session/${session.id}`}
+                    key={session.id}
+                  >
+                    <p className="text-sm font-semibold text-[var(--color-text)]">
+                      {session.title}
+                    </p>
+                    <p className="mt-1 text-xs text-[var(--color-text-secondary)]">
+                      {session.modeName} · {formatDateTimeLabel(session.updatedAt)}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm leading-6 text-[var(--color-text-secondary)]">
+                아직 연결된 세션이 없습니다. 이 카드로 새 세션을 시작해 보세요.
+              </p>
+            )}
+          </div>
+
+          <div className="workspace-card-muted flex flex-col gap-3">
+            <div className="flex items-center justify-between gap-3">
+              <h4 className="font-headline text-base font-bold text-[var(--color-text)]">
+                최근 포착 맥락
+              </h4>
+              <span className="meta">{card.intentCount}개</span>
+            </div>
+            {card.recentIntents.length > 0 ? (
+              <div className="flex flex-col gap-2">
+                {card.recentIntents.map((intent) => (
+                  <Link
+                    className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-3 transition hover:border-[var(--color-accent)]"
+                    href={`/workspace/session/${intent.sessionId}`}
+                    key={intent.id}
+                  >
+                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                      <span className="badge badge-accent">{formatIntentType(intent.type)}</span>
+                      <span className="badge badge-neutral">{intent.reviewStatus}</span>
+                    </div>
+                    <p className="text-sm leading-6 text-[var(--color-text)]">{intent.content}</p>
+                    <p className="mt-2 text-xs text-[var(--color-text-secondary)]">
+                      {intent.sessionTitle} · {formatDateTimeLabel(intent.createdAt)}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm leading-6 text-[var(--color-text-secondary)]">
+                아직 이 카드에 연결된 작업 맥락이 없습니다.
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </article>
@@ -559,4 +660,4 @@ function WorkCardRow({
 }
 
 export { WorkCardBoard };
-export type { LinkedSessionPreview, WorkCardBoardItem, WorkCardBoardProps };
+export type { LinkedIntentPreview, LinkedSessionPreview, WorkCardBoardItem, WorkCardBoardProps };

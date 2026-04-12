@@ -1,6 +1,5 @@
 import { sql } from 'drizzle-orm';
 import {
-  boolean,
   customType,
   index,
   integer,
@@ -382,8 +381,6 @@ const intentFragmentsTable = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     id: uuid('id').defaultRandom().primaryKey(),
     messageId: uuid('message_id').references(() => messagesTable.id, { onDelete: 'set null' }),
-    promoted: boolean('promoted').default(false).notNull(),
-    promotedAt: timestamp('promoted_at', { withTimezone: true }),
     reviewStatus: text('review_status')
       .$type<IntentFragmentReviewStatus>()
       .default('captured')
@@ -403,7 +400,6 @@ const intentFragmentsTable = pgTable(
   },
   (table) => ({
     messageIndex: index('idx_intent_fragments_message_id').on(table.messageId),
-    promotedIndex: index('idx_intent_fragments_promoted').on(table.promoted),
     reviewStatusIndex: index('idx_intent_fragments_review_status').on(table.reviewStatus),
     reviewedByIndex: index('idx_intent_fragments_reviewed_by').on(table.reviewedBy),
     sessionIndex: index('idx_intent_fragments_session_id').on(table.sessionId),

@@ -1,4 +1,4 @@
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, inArray, sql } from 'drizzle-orm';
 
 import { getDb } from '@/lib/db';
 import { intentFragmentsTable } from '@/lib/db/schema';
@@ -8,6 +8,10 @@ import { extractIntentFragmentsFromText } from './extraction';
 import type { IntentFragmentDraft } from './types';
 
 type IntentReviewDecision = 'approve' | 'reject' | 'reset';
+
+function getIntentConcurrentUpdateMessage(): string {
+  return 'Intent 상태가 변경되어 요청을 처리하지 못했습니다. 새로고침 후 다시 시도해 주세요.';
+}
 
 function getIntentTransitionErrorMessage(
   decision: IntentReviewDecision | 'nominate',
@@ -42,8 +46,40 @@ async function createIntentFragments({
   }
 
   const database = getDb();
+  const existingRows = await database
+    .select({
+      content: intentFragmentsTable.content,
+      type: intentFragmentsTable.type,
+    })
+    .from(intentFragmentsTable)
+    .where(
+      and(
+        eq(intentFragmentsTable.sessionId, sessionId),
+        eq(intentFragmentsTable.workspaceId, workspaceId),
+        inArray(
+          intentFragmentsTable.type,
+          fragments.map((fragment) => fragment.type),
+        ),
+        inArray(
+          intentFragmentsTable.content,
+          fragments.map((fragment) => fragment.content),
+        ),
+      ),
+    );
+  const existingKeys = new Set(
+    existingRows.map((row) => `${row.type}:${row.content.trim().toLowerCase()}`),
+  );
+  const nextFragments = fragments.filter((fragment) => {
+    const key = `${fragment.type}:${fragment.content.trim().toLowerCase()}`;
+    return !existingKeys.has(key);
+  });
+
+  if (nextFragments.length === 0) {
+    return;
+  }
+
   await database.insert(intentFragmentsTable).values(
-    fragments.map((fragment) => ({
+    nextFragments.map((fragment) => ({
       confidence: fragment.confidence ?? 'medium',
       content: fragment.content,
       messageId: messageId ?? null,
@@ -82,14 +118,22 @@ async function nominateIntentFragment(id: string, workspaceId: string): Promise<
   const updatedRows = await database
     .update(intentFragmentsTable)
     .set({
-      promoted: true,
-      promotedAt: sql`coalesce(${intentFragmentsTable.promotedAt}, now())`,
       reviewStatus: 'nominated',
       reviewedAt: null,
       reviewedBy: null,
     })
-    .where(and(eq(intentFragmentsTable.id, id), eq(intentFragmentsTable.workspaceId, workspaceId)))
+    .where(
+      and(
+        eq(intentFragmentsTable.id, id),
+        eq(intentFragmentsTable.workspaceId, workspaceId),
+        eq(intentFragmentsTable.reviewStatus, 'captured'),
+      ),
+    )
     .returning({ id: intentFragmentsTable.id });
+
+  if (updatedRows.length === 0) {
+    throw new Error(getIntentConcurrentUpdateMessage());
+  }
 
   return updatedRows.length > 0;
 }
@@ -148,23 +192,17 @@ async function reviewIntentFragment({
   const nextValues =
     decision === 'approve'
       ? {
-          promoted: true,
-          promotedAt: sql`coalesce(${intentFragmentsTable.promotedAt}, now())`,
           reviewStatus: 'approved' as const,
           reviewedAt: sql`now()`,
           reviewedBy: reviewerId,
         }
       : decision === 'reject'
         ? {
-            promoted: false,
-            promotedAt: null,
             reviewStatus: 'rejected' as const,
             reviewedAt: sql`now()`,
             reviewedBy: reviewerId,
           }
         : {
-            promoted: false,
-            promotedAt: null,
             reviewStatus: 'captured' as const,
             reviewedAt: null,
             reviewedBy: null,
@@ -174,9 +212,17 @@ async function reviewIntentFragment({
     .update(intentFragmentsTable)
     .set(nextValues)
     .where(
-      and(eq(intentFragmentsTable.id, intentId), eq(intentFragmentsTable.workspaceId, workspaceId)),
+      and(
+        eq(intentFragmentsTable.id, intentId),
+        eq(intentFragmentsTable.workspaceId, workspaceId),
+        eq(intentFragmentsTable.reviewStatus, currentIntent.reviewStatus),
+      ),
     )
     .returning({ id: intentFragmentsTable.id });
+
+  if (updatedRows.length === 0) {
+    throw new Error(getIntentConcurrentUpdateMessage());
+  }
 
   return updatedRows.length > 0;
 }
@@ -209,13 +255,10 @@ async function captureIntentFragmentsForSessionMessage({
   });
 }
 
-const promoteIntentFragment = nominateIntentFragment;
-
 export {
   captureIntentFragmentsForSessionMessage,
   createIntentFragments,
   nominateIntentFragment,
-  promoteIntentFragment,
   reviewIntentFragment,
 };
 export type { IntentReviewDecision };

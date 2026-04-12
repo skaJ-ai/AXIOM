@@ -100,4 +100,55 @@ async function listIntentReviewQueueByWorkspace(
   }));
 }
 
-export { listIntentFragmentsBySession, listIntentReviewQueueByWorkspace };
+async function listIntentFragmentsByWorkspaceGroupedByWorkCard(workspaceId: string): Promise<
+  {
+    content: string;
+    createdAt: string;
+    id: string;
+    reviewStatus: IntentFragment['reviewStatus'];
+    sessionId: string;
+    sessionTitle: string;
+    type: IntentFragment['type'];
+    workCardId: string;
+  }[]
+> {
+  const database = getDb();
+  const rows = await database
+    .select({
+      content: intentFragmentsTable.content,
+      createdAt: intentFragmentsTable.createdAt,
+      id: intentFragmentsTable.id,
+      reviewStatus: intentFragmentsTable.reviewStatus,
+      sessionId: intentFragmentsTable.sessionId,
+      sessionTitle: sessionsTable.title,
+      type: intentFragmentsTable.type,
+      workCardId: intentFragmentsTable.workCardId,
+    })
+    .from(intentFragmentsTable)
+    .innerJoin(sessionsTable, eq(intentFragmentsTable.sessionId, sessionsTable.id))
+    .where(
+      and(
+        eq(intentFragmentsTable.workspaceId, workspaceId),
+        sql`${intentFragmentsTable.reviewStatus} <> 'rejected'`,
+        sql`${intentFragmentsTable.workCardId} is not null`,
+      ),
+    )
+    .orderBy(desc(intentFragmentsTable.createdAt));
+
+  return rows.map((row) => ({
+    content: row.content,
+    createdAt: row.createdAt.toISOString(),
+    id: row.id,
+    reviewStatus: row.reviewStatus,
+    sessionId: row.sessionId,
+    sessionTitle: row.sessionTitle ?? 'Untitled session',
+    type: row.type,
+    workCardId: row.workCardId!,
+  }));
+}
+
+export {
+  listIntentFragmentsBySession,
+  listIntentFragmentsByWorkspaceGroupedByWorkCard,
+  listIntentReviewQueueByWorkspace,
+};

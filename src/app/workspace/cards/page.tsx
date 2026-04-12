@@ -2,22 +2,32 @@ import Link from 'next/link';
 
 import { WorkspacePageHeader } from '@/components/workspace/page-header';
 import {
+  type LinkedIntentPreview,
   WorkCardBoard,
   type LinkedSessionPreview,
   type WorkCardBoardItem,
 } from '@/components/workspace/work-card-board';
+import { listIntentFragmentsByWorkspaceGroupedByWorkCard } from '@/domains/intents/queries';
 import { listWorkCardsByWorkspace } from '@/domains/work-cards/queries';
 import { requireAuthenticatedPageUser } from '@/lib/auth/middleware';
 import { listSessionsByWorkspace } from '@/lib/sessions/service';
 
 export default async function WorkspaceCardsPage() {
   const currentUser = await requireAuthenticatedPageUser();
-  const [workCards, sessions] = await Promise.all([
+  const [workCards, sessions, intents] = await Promise.all([
     listWorkCardsByWorkspace(currentUser.workspaceId, { includeArchived: true }),
     listSessionsByWorkspace(currentUser.workspaceId),
+    listIntentFragmentsByWorkspaceGroupedByWorkCard(currentUser.workspaceId),
   ]);
 
   const sessionsByWorkCard = new Map<string, LinkedSessionPreview[]>();
+  const intentsByWorkCard = new Map<
+    string,
+    {
+      recentIntents: LinkedIntentPreview[];
+      totalCount: number;
+    }
+  >();
 
   for (const session of sessions) {
     const workCardId = session.workCard?.id;
@@ -36,8 +46,33 @@ export default async function WorkspaceCardsPage() {
     sessionsByWorkCard.set(workCardId, currentSessions);
   }
 
+  for (const intent of intents) {
+    const currentIntents = intentsByWorkCard.get(intent.workCardId) ?? {
+      recentIntents: [],
+      totalCount: 0,
+    };
+
+    currentIntents.totalCount += 1;
+
+    if (currentIntents.recentIntents.length < 3) {
+      currentIntents.recentIntents.push({
+        content: intent.content,
+        createdAt: intent.createdAt,
+        id: intent.id,
+        reviewStatus: intent.reviewStatus,
+        sessionId: intent.sessionId,
+        sessionTitle: intent.sessionTitle,
+        type: intent.type,
+      });
+    }
+
+    intentsByWorkCard.set(intent.workCardId, currentIntents);
+  }
+
   const initialCards: WorkCardBoardItem[] = workCards.map((card) => ({
     ...card,
+    intentCount: intentsByWorkCard.get(card.id)?.totalCount ?? 0,
+    recentIntents: intentsByWorkCard.get(card.id)?.recentIntents ?? [],
     recentSessions: (sessionsByWorkCard.get(card.id) ?? []).slice(0, 3),
   }));
 
