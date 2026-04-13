@@ -1,5 +1,6 @@
 import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
 
+import { inferIntentScopesFromTexts } from '@/domains/intents/scope';
 import { getDb } from '@/lib/db';
 import type { WorkCardSensitivity } from '@/lib/db/schema';
 import { processAssetsTable, promotedAssetsTable, workCardsTable } from '@/lib/db/schema';
@@ -51,10 +52,26 @@ function mapPromotedAssetRow(row: {
   };
 }
 
+function matchesCurrentScope(
+  assetScope: string | null,
+  currentScopes: string[] | null | undefined,
+): boolean {
+  if (typeof assetScope !== 'string' || assetScope.trim().length === 0) {
+    return true;
+  }
+
+  if (!currentScopes || currentScopes.length === 0) {
+    return true;
+  }
+
+  return currentScopes.includes(assetScope.trim());
+}
+
 async function listPromotedAssetsByProcessAsset(
   processAssetId: string,
   workspaceId: string,
   options?: {
+    currentScopeHints?: Array<string | null | undefined>;
     currentSensitivity?: WorkCardSensitivity | null;
     excludeWorkCardId?: string | null;
     limit?: number;
@@ -62,6 +79,9 @@ async function listPromotedAssetsByProcessAsset(
 ): Promise<PromotedAssetSummary[]> {
   const database = getDb();
   const allowedSensitivities = getAllowedPromotedAssetSensitivities(options?.currentSensitivity);
+  const currentScopes = inferIntentScopesFromTexts(options?.currentScopeHints ?? []);
+  const queryLimit =
+    currentScopes.length > 0 ? Math.max((options?.limit ?? 8) * 4, 16) : (options?.limit ?? 8);
   const rows = await database
     .select({
       content: promotedAssetsTable.content,
@@ -93,9 +113,12 @@ async function listPromotedAssetsByProcessAsset(
       ),
     )
     .orderBy(desc(promotedAssetsTable.createdAt), asc(promotedAssetsTable.id))
-    .limit(options?.limit ?? 8);
+    .limit(queryLimit);
 
-  return rows.map(mapPromotedAssetRow);
+  return rows
+    .filter((row) => matchesCurrentScope(row.scope, currentScopes))
+    .slice(0, options?.limit ?? 8)
+    .map(mapPromotedAssetRow);
 }
 
 async function listPromotedAssetsByWorkspace(workspaceId: string): Promise<PromotedAssetSummary[]> {

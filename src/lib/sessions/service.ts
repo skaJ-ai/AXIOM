@@ -3,6 +3,7 @@ import { and, asc, desc, eq, sql } from 'drizzle-orm';
 import { listClustersBySession, listIdeasBySession } from '@/domains/diverge/queries';
 import type { ClusterWithIdeas, Idea } from '@/domains/diverge/types';
 import { listIntentFragmentsBySession } from '@/domains/intents/queries';
+import { inferIntentScopesFromTexts } from '@/domains/intents/scope';
 import type { IntentFragment } from '@/domains/intents/types';
 import { listPromotedAssetsByProcessAsset } from '@/domains/promoted-assets/queries';
 import type { PromotedAssetSummary } from '@/domains/promoted-assets/types';
@@ -212,6 +213,18 @@ function mapWorkCardSummaryRowToSummary(
     status: row.status ?? 'active',
     title: row.title ?? '업무 카드',
   };
+}
+
+function getWorkCardScopeHints(row: {
+  processAssetDomainLabel?: string | null;
+  processAssetName?: string | null;
+  processLabel: string | null;
+}): string[] {
+  return inferIntentScopesFromTexts([
+    row.processLabel,
+    row.processAssetName,
+    row.processAssetDomainLabel,
+  ]);
 }
 
 async function createSessionForWorkspace(
@@ -504,6 +517,11 @@ async function getSessionDetailForWorkspace(
   const promotedAssets =
     typeof sessionRow.workCardProcessAssetId === 'string'
       ? await listPromotedAssetsByProcessAsset(sessionRow.workCardProcessAssetId, workspaceId, {
+          currentScopeHints: getWorkCardScopeHints({
+            processAssetDomainLabel: sessionRow.workCardProcessAssetDomainLabel,
+            processAssetName: sessionRow.workCardProcessAssetName,
+            processLabel: sessionRow.workCardProcessLabel,
+          }),
           currentSensitivity: sessionRow.workCardSensitivity ?? 'general',
           excludeWorkCardId: sessionRow.workCardId,
           limit: 6,
@@ -1031,6 +1049,11 @@ async function getSessionPromptContext({
   const promotedAssets =
     typeof sessionRow.workCardProcessAssetId === 'string'
       ? await listPromotedAssetsByProcessAsset(sessionRow.workCardProcessAssetId, workspaceId, {
+          currentScopeHints: getWorkCardScopeHints({
+            processAssetDomainLabel: sessionRow.workCardProcessAssetDomainLabel,
+            processAssetName: sessionRow.workCardProcessAssetName,
+            processLabel: sessionRow.workCardProcessLabel,
+          }),
           currentSensitivity: sessionRow.workCardSensitivity ?? 'general',
           excludeWorkCardId: sessionRow.workCardId,
           limit: 8,
