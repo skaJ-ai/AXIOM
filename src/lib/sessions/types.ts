@@ -1,5 +1,6 @@
 import type { ClusterWithIdeas, Idea } from '@/domains/diverge/types';
 import type { IntentFragment } from '@/domains/intents/types';
+import type { PromotedAssetSummary } from '@/domains/promoted-assets/types';
 import type { ClaimWithSources } from '@/domains/synthesize/types';
 import type { Review } from '@/domains/validate/types';
 import type { WorkCardSummary } from '@/domains/work-cards/types';
@@ -142,6 +143,7 @@ interface SessionDetail extends SessionSummary {
   latestDeliverable: DeliverableSummary | null;
   messages: SessionChatMessage[];
   panelData: ModePanelData | null;
+  promotedAssets: PromotedAssetSummary[];
   readinessPercent: number;
   recentReferences: DeliverableSummary[];
   sources: SessionSourceSummary[];

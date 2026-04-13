@@ -55,6 +55,7 @@ export default async function WorkspaceSessionPage({
 
         <SessionContextPanel
           initialIntents={session.intents}
+          initialPromotedAssets={session.promotedAssets}
           sessionId={session.id}
           workCard={session.workCard}
         />

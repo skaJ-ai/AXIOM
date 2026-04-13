@@ -24,6 +24,9 @@ interface IntentFragmentDraft {
 }
 
 interface IntentReviewItem extends IntentFragment {
+  isPromoted: boolean;
+  processAssetId: string | null;
+  processAssetName: string | null;
   sessionId: string;
   sessionTitle: string;
   workCardId: string | null;

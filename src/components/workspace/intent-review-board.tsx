@@ -10,6 +10,8 @@ import { cn, safeFetch } from '@/lib/utils';
 type ReviewFilter = 'all' | 'approved' | 'captured' | 'nominated' | 'pending' | 'rejected';
 type ReviewDecision = 'approve' | 'reject' | 'reset';
 type BatchReviewAction = ReviewDecision | 'nominate';
+type PromoteAction = 'promote';
+type BoardAction = BatchReviewAction | PromoteAction;
 
 interface IntentReviewBoardProps {
   initialItems: IntentReviewItem[];
@@ -24,6 +26,12 @@ interface IntentReviewQueueResponse {
 interface IntentReviewBatchResponse {
   data: {
     updatedIds: string[];
+  };
+}
+
+interface PromoteAssetsResponse {
+  data: {
+    promotedIntentIds: string[];
   };
 }
 
@@ -91,6 +99,7 @@ function applyReviewDecision(item: IntentReviewItem, decision: ReviewDecision): 
 
   return {
     ...item,
+    isPromoted: false,
     reviewStatus: 'captured',
   };
 }
@@ -106,11 +115,18 @@ function applyIntentAction(item: IntentReviewItem, action: BatchReviewAction): I
   return applyReviewDecision(item, action);
 }
 
+function applyPromoteAction(item: IntentReviewItem): IntentReviewItem {
+  return {
+    ...item,
+    isPromoted: true,
+  };
+}
+
 function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
   const [errorMessage, setErrorMessage] = useState('');
   const [filter, setFilter] = useState<ReviewFilter>('pending');
   const [items, setItems] = useState(initialItems);
-  const [pendingBatchAction, setPendingBatchAction] = useState<BatchReviewAction | null>(null);
+  const [pendingBatchAction, setPendingBatchAction] = useState<BoardAction | null>(null);
   const [pendingIntentId, setPendingIntentId] = useState<string | null>(null);
   const [selectedIntentIds, setSelectedIntentIds] = useState<string[]>([]);
 
@@ -147,6 +163,18 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
   );
   const selectedResetIds = useMemo(
     () => selectedItems.filter((item) => item.reviewStatus !== 'captured').map((item) => item.id),
+    [selectedItems],
+  );
+  const selectedPromotableApprovedIds = useMemo(
+    () =>
+      selectedItems
+        .filter(
+          (item) =>
+            item.reviewStatus === 'approved' &&
+            !item.isPromoted &&
+            typeof item.processAssetId === 'string',
+        )
+        .map((item) => item.id),
     [selectedItems],
   );
 
@@ -232,6 +260,42 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
     setPendingIntentId(null);
   };
 
+  const handlePromote = async (item: IntentReviewItem) => {
+    setPendingIntentId(item.id);
+    setErrorMessage('');
+
+    const result = await safeFetch<PromoteAssetsResponse>('/api/promoted-assets', {
+      body: JSON.stringify({
+        intentIds: [item.id],
+      }),
+      headers: {
+        'content-type': 'application/json',
+      },
+      method: 'POST',
+    });
+
+    if (!result.success) {
+      setPendingIntentId(null);
+      setErrorMessage(result.error);
+      return;
+    }
+
+    const promotedIdSet = new Set(result.data.data.promotedIntentIds);
+
+    if (!promotedIdSet.has(item.id)) {
+      setPendingIntentId(null);
+      setErrorMessage('승격된 재사용 자산이 없습니다.');
+      return;
+    }
+
+    setItems((currentItems) =>
+      currentItems.map((currentItem) =>
+        currentItem.id === item.id ? applyPromoteAction(currentItem) : currentItem,
+      ),
+    );
+    setPendingIntentId(null);
+  };
+
   const handleBatchAction = async (action: BatchReviewAction, intentIds: string[]) => {
     const uniqueIntentIds = Array.from(new Set(intentIds));
 
@@ -273,6 +337,49 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
       ),
     );
     setSelectedIntentIds((currentIds) => currentIds.filter((id) => !updatedIdSet.has(id)));
+    setPendingBatchAction(null);
+  };
+
+  const handleBatchPromote = async (intentIds: string[]) => {
+    const uniqueIntentIds = Array.from(new Set(intentIds));
+
+    if (uniqueIntentIds.length === 0) {
+      return;
+    }
+
+    setPendingBatchAction('promote');
+    setErrorMessage('');
+
+    const result = await safeFetch<PromoteAssetsResponse>('/api/promoted-assets', {
+      body: JSON.stringify({
+        intentIds: uniqueIntentIds,
+      }),
+      headers: {
+        'content-type': 'application/json',
+      },
+      method: 'POST',
+    });
+
+    if (!result.success) {
+      setPendingBatchAction(null);
+      setErrorMessage(result.error);
+      return;
+    }
+
+    const promotedIdSet = new Set(result.data.data.promotedIntentIds);
+
+    if (promotedIdSet.size === 0) {
+      setPendingBatchAction(null);
+      setErrorMessage('승격된 재사용 자산이 없습니다.');
+      return;
+    }
+
+    setItems((currentItems) =>
+      currentItems.map((currentItem) =>
+        promotedIdSet.has(currentItem.id) ? applyPromoteAction(currentItem) : currentItem,
+      ),
+    );
+    setSelectedIntentIds((currentIds) => currentIds.filter((id) => !promotedIdSet.has(id)));
     setPendingBatchAction(null);
   };
 
@@ -410,6 +517,17 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
               선택 초기화
               {selectedResetIds.length > 0 ? ` (${selectedResetIds.length})` : ''}
             </button>
+            <button
+              className="btn-secondary"
+              disabled={isBusy || selectedPromotableApprovedIds.length === 0}
+              onClick={() => void handleBatchPromote(selectedPromotableApprovedIds)}
+              type="button"
+            >
+              선택 자산화
+              {selectedPromotableApprovedIds.length > 0
+                ? ` (${selectedPromotableApprovedIds.length})`
+                : ''}
+            </button>
           </div>
         </div>
       </section>
@@ -453,6 +571,9 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
                         <span className="badge badge-neutral">
                           {formatReviewStatus(item.reviewStatus)}
                         </span>
+                        {item.isPromoted ? (
+                          <span className="badge badge-accent">재사용 자산</span>
+                        ) : null}
                         <span className="badge badge-neutral">{item.confidence}</span>
                         {item.scope ? (
                           <span className="badge badge-neutral">{item.scope}</span>
@@ -503,6 +624,18 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
                         초기화
                       </button>
                     ) : null}
+                    {item.reviewStatus === 'approved' ? (
+                      <button
+                        className="btn-secondary"
+                        disabled={
+                          isPending || item.isPromoted || typeof item.processAssetId !== 'string'
+                        }
+                        onClick={() => void handlePromote(item)}
+                        type="button"
+                      >
+                        {item.isPromoted ? '자산화됨' : '재사용 자산 승격'}
+                      </button>
+                    ) : null}
                   </div>
                 </div>
 
@@ -529,6 +662,12 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
                       ) : (
                         <p className="text-sm text-[var(--color-text-secondary)]">미연결</p>
                       )}
+                    </div>
+                    <div className="workspace-card-muted flex flex-col gap-2">
+                      <span className="meta">프로세스 자산</span>
+                      <p className="text-sm text-[var(--color-text)]">
+                        {item.processAssetName ?? '연결된 프로세스 자산 없음'}
+                      </p>
                     </div>
                   </div>
 

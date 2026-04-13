@@ -4,6 +4,8 @@ import { listClustersBySession, listIdeasBySession } from '@/domains/diverge/que
 import type { ClusterWithIdeas, Idea } from '@/domains/diverge/types';
 import { listIntentFragmentsBySession } from '@/domains/intents/queries';
 import type { IntentFragment } from '@/domains/intents/types';
+import { listPromotedAssetsByProcessAsset } from '@/domains/promoted-assets/queries';
+import type { PromotedAssetSummary } from '@/domains/promoted-assets/types';
 import { listClaimsBySession } from '@/domains/synthesize/queries';
 import type { ClaimWithSources } from '@/domains/synthesize/types';
 import { listReviewsBySession } from '@/domains/validate/queries';
@@ -499,6 +501,13 @@ async function getSessionDetailForWorkspace(
       listIntentFragmentsBySession(sessionId, workspaceId),
     ],
   );
+  const promotedAssets =
+    typeof sessionRow.workCardProcessAssetId === 'string'
+      ? await listPromotedAssetsByProcessAsset(sessionRow.workCardProcessAssetId, workspaceId, {
+          excludeWorkCardId: sessionRow.workCardId,
+          limit: 6,
+        })
+      : [];
 
   const latestAssistantMetadata = [...messageRows]
     .reverse()
@@ -576,6 +585,7 @@ async function getSessionDetailForWorkspace(
       };
     }),
     panelData: null,
+    promotedAssets,
     readinessPercent,
     recentReferences,
     sources: sourceRows.map((sourceRow) => ({
@@ -933,6 +943,7 @@ async function getSessionPromptContext({
   messages: { content: string; role: 'assistant' | 'system' | 'user' }[];
   mode: SessionMode;
   parentArtifacts: SessionParentArtifacts | null;
+  promotedAssets: PromotedAssetSummary[];
   recentDeliverables: {
     summary: string;
     title: string;
@@ -1016,6 +1027,13 @@ async function getSessionPromptContext({
       listIntentFragmentsBySession(sessionId, workspaceId),
     ],
   );
+  const promotedAssets =
+    typeof sessionRow.workCardProcessAssetId === 'string'
+      ? await listPromotedAssetsByProcessAsset(sessionRow.workCardProcessAssetId, workspaceId, {
+          excludeWorkCardId: sessionRow.workCardId,
+          limit: 8,
+        })
+      : [];
 
   return {
     checklist: sessionRow.checklist,
@@ -1024,6 +1042,7 @@ async function getSessionPromptContext({
     messages: messageRows,
     mode: sessionRow.mode,
     parentArtifacts,
+    promotedAssets,
     recentDeliverables: recentDeliverables.map((deliverable) => ({
       summary: deliverable.preview,
       title: deliverable.title,

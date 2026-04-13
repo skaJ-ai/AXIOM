@@ -5,12 +5,14 @@ import Link from 'next/link';
 import useSWR from 'swr';
 
 import type { IntentFragment } from '@/domains/intents/types';
+import type { PromotedAssetSummary } from '@/domains/promoted-assets/types';
 import { formatWorkCardStatus } from '@/domains/work-cards/state';
 import type { WorkCardSummary } from '@/domains/work-cards/types';
 import { safeFetch } from '@/lib/utils';
 
 interface SessionContextPanelProps {
   initialIntents: IntentFragment[];
+  initialPromotedAssets: PromotedAssetSummary[];
   sessionId: string;
   workCard: WorkCardSummary | null;
 }
@@ -65,7 +67,12 @@ function formatIntentReviewStatus(status: IntentFragment['reviewStatus']): strin
   }
 }
 
-function SessionContextPanel({ initialIntents, sessionId, workCard }: SessionContextPanelProps) {
+function SessionContextPanel({
+  initialIntents,
+  initialPromotedAssets,
+  sessionId,
+  workCard,
+}: SessionContextPanelProps) {
   const { data: intents = initialIntents } = useSWR(
     `/api/sessions/${sessionId}/intents`,
     fetchSessionIntents,
@@ -75,12 +82,12 @@ function SessionContextPanel({ initialIntents, sessionId, workCard }: SessionCon
     },
   );
 
-  if (!workCard && intents.length === 0) {
+  if (!workCard && intents.length === 0 && initialPromotedAssets.length === 0) {
     return null;
   }
 
   return (
-    <section className="grid gap-4 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
+    <section className="grid gap-4 xl:grid-cols-[320px_minmax(0,1fr)_minmax(0,1fr)]">
       <div className="workspace-card flex flex-col gap-3">
         <div className="flex items-center justify-between gap-3">
           <h2 className="font-headline text-lg font-bold text-[var(--color-text)]">업무 카드</h2>
@@ -171,6 +178,43 @@ function SessionContextPanel({ initialIntents, sessionId, workCard }: SessionCon
           </p>
         )}
       </div>
+
+      {workCard?.processAsset ? (
+        <div className="workspace-card flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <h2 className="font-headline text-lg font-bold text-[var(--color-text)]">
+                프로세스 재사용 자산
+              </h2>
+              <span className="badge badge-neutral">{initialPromotedAssets.length}</span>
+            </div>
+            <span className="badge badge-accent">{workCard.processAsset.name}</span>
+          </div>
+          {initialPromotedAssets.length > 0 ? (
+            <div className="grid gap-2">
+              {initialPromotedAssets.slice(0, 4).map((asset) => (
+                <div
+                  className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg-sunken)] px-4 py-3"
+                  key={asset.id}
+                >
+                  <div className="mb-2 flex flex-wrap items-center gap-2">
+                    <span className="badge badge-accent">{formatIntentType(asset.type)}</span>
+                    {asset.sourceWorkCardTitle ? (
+                      <span className="badge badge-neutral">{asset.sourceWorkCardTitle}</span>
+                    ) : null}
+                    {asset.scope ? <span className="meta">{asset.scope}</span> : null}
+                  </div>
+                  <p className="text-sm leading-6 text-[var(--color-text)]">{asset.content}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm leading-6 text-[var(--color-text-secondary)]">
+              아직 같은 프로세스 자산에서 재사용 가능한 승격 자산이 없습니다.
+            </p>
+          )}
+        </div>
+      ) : null}
     </section>
   );
 }

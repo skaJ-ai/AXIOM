@@ -1,7 +1,13 @@
 import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 
 import { getDb } from '@/lib/db';
-import { intentFragmentsTable, sessionsTable, workCardsTable } from '@/lib/db/schema';
+import {
+  intentFragmentsTable,
+  processAssetsTable,
+  promotedAssetsTable,
+  sessionsTable,
+  workCardsTable,
+} from '@/lib/db/schema';
 
 import type { IntentFragment, IntentReviewItem } from './types';
 
@@ -60,6 +66,13 @@ async function listIntentReviewQueueByWorkspace(
       content: intentFragmentsTable.content,
       createdAt: intentFragmentsTable.createdAt,
       id: intentFragmentsTable.id,
+      isPromoted: sql<boolean>`exists(
+        select 1
+        from ${promotedAssetsTable}
+        where ${promotedAssetsTable.sourceIntentId} = ${intentFragmentsTable.id}
+      )`,
+      processAssetId: workCardsTable.processAssetId,
+      processAssetName: processAssetsTable.name,
       reviewStatus: intentFragmentsTable.reviewStatus,
       scope: intentFragmentsTable.scope,
       sessionId: intentFragmentsTable.sessionId,
@@ -72,6 +85,7 @@ async function listIntentReviewQueueByWorkspace(
     .from(intentFragmentsTable)
     .innerJoin(sessionsTable, eq(intentFragmentsTable.sessionId, sessionsTable.id))
     .leftJoin(workCardsTable, eq(intentFragmentsTable.workCardId, workCardsTable.id))
+    .leftJoin(processAssetsTable, eq(workCardsTable.processAssetId, processAssetsTable.id))
     .where(and(eq(intentFragmentsTable.workspaceId, workspaceId), statusFilter))
     .orderBy(
       sql`case ${intentFragmentsTable.reviewStatus}
@@ -89,6 +103,9 @@ async function listIntentReviewQueueByWorkspace(
     content: row.content,
     createdAt: row.createdAt.toISOString(),
     id: row.id,
+    isPromoted: row.isPromoted,
+    processAssetId: row.processAssetId,
+    processAssetName: row.processAssetName,
     reviewStatus: row.reviewStatus,
     scope: row.scope,
     sessionId: row.sessionId,

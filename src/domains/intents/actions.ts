@@ -1,5 +1,6 @@
 import { and, eq, inArray, sql } from 'drizzle-orm';
 
+import { deletePromotedAssetsBySourceIntentIds } from '@/domains/promoted-assets/actions';
 import { getDb } from '@/lib/db';
 import { intentFragmentsTable } from '@/lib/db/schema';
 
@@ -247,6 +248,10 @@ async function reviewIntentFragment({
     throw new Error(getIntentConcurrentUpdateMessage());
   }
 
+  if (decision === 'reset') {
+    await deletePromotedAssetsBySourceIntentIds([intentId], workspaceId);
+  }
+
   return updatedRows.length > 0;
 }
 
@@ -285,6 +290,13 @@ async function reviewIntentFragmentsBatch({
       ),
     )
     .returning({ id: intentFragmentsTable.id });
+
+  if (action === 'reset' && updatedRows.length > 0) {
+    await deletePromotedAssetsBySourceIntentIds(
+      updatedRows.map((row) => row.id),
+      workspaceId,
+    );
+  }
 
   return updatedRows.map((row) => row.id);
 }

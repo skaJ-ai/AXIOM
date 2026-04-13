@@ -16,6 +16,7 @@ interface BuildInterviewContextOptions {
   exampleText?: string | null;
   intents: SessionDetail['intents'];
   parentArtifacts?: SessionParentArtifacts | null;
+  promotedAssets: SessionDetail['promotedAssets'];
   recentDeliverables: {
     summary: string;
     title: string;
@@ -41,6 +42,7 @@ interface BuildModeInterviewContextOptions {
   intents: SessionDetail['intents'];
   mode: SessionMode;
   parentArtifacts?: SessionParentArtifacts | null;
+  promotedAssets: SessionDetail['promotedAssets'];
   sources: {
     content: string;
     label: string | null;
@@ -231,6 +233,25 @@ function buildIntentSections(intents: SessionDetail['intents']): string[] {
   return lines;
 }
 
+function buildPromotedAssetSections(promotedAssets: SessionDetail['promotedAssets']): string[] {
+  if (promotedAssets.length === 0) {
+    return [];
+  }
+
+  return [
+    '## 연결 프로세스의 재사용 자산',
+    '- 아래 항목은 같은 프로세스 자산에 연결된 다른 카드에서 승인 후 승격된 자산입니다. 현재 카드에 적용 가능할 때만 사용하세요.',
+    ...promotedAssets.slice(0, 6).map((asset, index) => {
+      const sourceCardLabel = asset.sourceWorkCardTitle
+        ? ` | 출처 카드: ${asset.sourceWorkCardTitle}`
+        : '';
+      const scopeLabel = asset.scope ? ` | 범위: ${asset.scope}` : '';
+
+      return `- ${index + 1}. [${formatIntentPromptType(asset.type)}] ${asset.content}${sourceCardLabel}${scopeLabel}`;
+    }),
+  ];
+}
+
 function buildSourceContext(
   sources: BuildInterviewContextOptions['sources'] | BuildModeInterviewContextOptions['sources'],
 ): string {
@@ -275,6 +296,7 @@ function buildInterviewContext({
   exampleText,
   intents,
   parentArtifacts,
+  promotedAssets,
   recentDeliverables,
   sources,
   templateType,
@@ -283,6 +305,7 @@ function buildInterviewContext({
   const template = getTemplateByType(templateType);
   const checklistState = JSON.stringify(currentChecklist);
   const parentArtifactsSection = buildParentArtifactsSection(parentArtifacts);
+  const promotedAssetSections = buildPromotedAssetSections(promotedAssets);
   const workCardSection = buildWorkCardSection(workCard);
   const intentSections = buildIntentSections(intents);
   const sourceContext = buildSourceContext(sources);
@@ -293,6 +316,7 @@ function buildInterviewContext({
     template.systemPrompt.interview,
     '',
     ...(workCardSection.length > 0 ? [...workCardSection, ''] : []),
+    ...(promotedAssetSections.length > 0 ? [...promotedAssetSections, ''] : []),
     ...(intentSections.length > 0 ? [...intentSections, ''] : []),
     ...(parentArtifactsSection.length > 0 ? [...parentArtifactsSection, ''] : []),
     '[현재 체크리스트 상태]',
@@ -536,12 +560,14 @@ function buildModeInterviewContext({
   intents,
   mode,
   parentArtifacts,
+  promotedAssets,
   sources,
   workCard,
 }: BuildModeInterviewContextOptions): string {
   const modeDefinition = getModeByType(mode);
   const checklistState = JSON.stringify(currentChecklist);
   const parentArtifactsSection = buildParentArtifactsSection(parentArtifacts);
+  const promotedAssetSections = buildPromotedAssetSections(promotedAssets);
   const workCardSection = buildWorkCardSection(workCard);
   const intentSections = buildIntentSections(intents);
   const sourceContext = buildSourceContext(sources);
@@ -551,6 +577,7 @@ function buildModeInterviewContext({
     modeDefinition.systemPrompt.interview,
     '',
     ...(workCardSection.length > 0 ? [...workCardSection, ''] : []),
+    ...(promotedAssetSections.length > 0 ? [...promotedAssetSections, ''] : []),
     ...(intentSections.length > 0 ? [...intentSections, ''] : []),
     ...(parentArtifactsSection.length > 0 ? [...parentArtifactsSection, ''] : []),
     '[현재 체크리스트 상태]',

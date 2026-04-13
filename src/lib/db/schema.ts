@@ -432,6 +432,41 @@ const intentFragmentsTable = pgTable(
   }),
 );
 
+const promotedAssetsTable = pgTable(
+  'promoted_assets',
+  {
+    content: text('content').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid('created_by').references(() => usersTable.id, { onDelete: 'set null' }),
+    id: uuid('id').defaultRandom().primaryKey(),
+    processAssetId: uuid('process_asset_id')
+      .notNull()
+      .references(() => processAssetsTable.id, { onDelete: 'cascade' }),
+    scope: text('scope'),
+    sourceIntentId: uuid('source_intent_id')
+      .notNull()
+      .references(() => intentFragmentsTable.id, { onDelete: 'cascade' }),
+    sourceSessionId: uuid('source_session_id').references(() => sessionsTable.id, {
+      onDelete: 'set null',
+    }),
+    sourceWorkCardId: uuid('source_work_card_id').references(() => workCardsTable.id, {
+      onDelete: 'set null',
+    }),
+    type: text('type').$type<IntentFragmentType>().notNull(),
+    workspaceId: uuid('workspace_id')
+      .notNull()
+      .references(() => workspacesTable.id, { onDelete: 'cascade' }),
+  },
+  (table) => ({
+    processAssetIndex: index('idx_promoted_assets_process_asset_id').on(table.processAssetId),
+    sourceIntentIndex: index('idx_promoted_assets_source_intent_id').on(table.sourceIntentId),
+    sourceWorkCardIndex: index('idx_promoted_assets_source_work_card_id').on(
+      table.sourceWorkCardId,
+    ),
+    workspaceIndex: index('idx_promoted_assets_workspace_id').on(table.workspaceId),
+  }),
+);
+
 const reportsTable = pgTable(
   'reports',
   {
@@ -553,6 +588,7 @@ export {
   memoryChunksTable,
   messagesTable,
   processAssetsTable,
+  promotedAssetsTable,
   reportsTable,
   reviewsTable,
   sessionsTable,
