@@ -380,8 +380,8 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
               onClick={() => void handleBatchAction('nominate', selectedCapturedIds)}
               type="button"
             >
-              선택 후보 올리기{' '}
-              {selectedCapturedIds.length > 0 ? `(${selectedCapturedIds.length})` : ''}
+              선택 후보 올리기
+              {selectedCapturedIds.length > 0 ? ` (${selectedCapturedIds.length})` : ''}
             </button>
             <button
               className="btn-secondary"
@@ -389,7 +389,8 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
               onClick={() => void handleBatchAction('approve', selectedNominatedIds)}
               type="button"
             >
-              선택 승인 {selectedNominatedIds.length > 0 ? `(${selectedNominatedIds.length})` : ''}
+              선택 승인
+              {selectedNominatedIds.length > 0 ? ` (${selectedNominatedIds.length})` : ''}
             </button>
             <button
               className="btn-secondary"
@@ -397,7 +398,8 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
               onClick={() => void handleBatchAction('reject', selectedNominatedIds)}
               type="button"
             >
-              선택 반려 {selectedNominatedIds.length > 0 ? `(${selectedNominatedIds.length})` : ''}
+              선택 반려
+              {selectedNominatedIds.length > 0 ? ` (${selectedNominatedIds.length})` : ''}
             </button>
             <button
               className="btn-secondary"
@@ -405,7 +407,8 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
               onClick={() => void handleBatchAction('reset', selectedResetIds)}
               type="button"
             >
-              선택 초기화 {selectedResetIds.length > 0 ? `(${selectedResetIds.length})` : ''}
+              선택 초기화
+              {selectedResetIds.length > 0 ? ` (${selectedResetIds.length})` : ''}
             </button>
           </div>
         </div>
@@ -414,7 +417,7 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
       {visibleItems.length === 0 ? (
         <div className="workspace-card-muted p-6 text-center">
           <p className="text-sm text-[var(--color-text-secondary)]">
-            현재 필터에 맞는 검토 후보가 없습니다.
+            현재 필터에 맞는 검토 항목이 없습니다.
           </p>
         </div>
       ) : (

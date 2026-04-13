@@ -27,7 +27,7 @@ export default async function WorkspaceReviewPage() {
               </Link>
             </div>
           }
-          description="세션에서 포착된 작업 맥락을 그대로 자산으로 올리지 않고, captured → nominated → approved 또는 rejected 흐름으로 먼저 검토합니다."
+          description="세션에서 포착된 작업 맥락을 바로 자산으로 올리지 않고, 검토 후보와 승인 단계를 거쳐 관리합니다."
           eyebrow="Review Queue"
           meta={
             <>

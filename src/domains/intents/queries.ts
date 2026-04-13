@@ -92,7 +92,7 @@ async function listIntentReviewQueueByWorkspace(
     reviewStatus: row.reviewStatus,
     scope: row.scope,
     sessionId: row.sessionId,
-    sessionTitle: row.sessionTitle ?? 'Untitled session',
+    sessionTitle: row.sessionTitle ?? '제목 없는 세션',
     speaker: row.speaker,
     type: row.type,
     workCardId: row.workCardId,
@@ -100,7 +100,9 @@ async function listIntentReviewQueueByWorkspace(
   }));
 }
 
-async function listIntentFragmentsByWorkspaceGroupedByWorkCard(workspaceId: string): Promise<
+async function listApprovedIntentFragmentsByWorkspaceGroupedByWorkCard(
+  workspaceId: string,
+): Promise<
   {
     content: string;
     createdAt: string;
@@ -129,7 +131,7 @@ async function listIntentFragmentsByWorkspaceGroupedByWorkCard(workspaceId: stri
     .where(
       and(
         eq(intentFragmentsTable.workspaceId, workspaceId),
-        sql`${intentFragmentsTable.reviewStatus} <> 'rejected'`,
+        eq(intentFragmentsTable.reviewStatus, 'approved'),
         sql`${intentFragmentsTable.workCardId} is not null`,
       ),
     )
@@ -141,14 +143,14 @@ async function listIntentFragmentsByWorkspaceGroupedByWorkCard(workspaceId: stri
     id: row.id,
     reviewStatus: row.reviewStatus,
     sessionId: row.sessionId,
-    sessionTitle: row.sessionTitle ?? 'Untitled session',
+    sessionTitle: row.sessionTitle ?? '제목 없는 세션',
     type: row.type,
     workCardId: row.workCardId!,
   }));
 }
 
 export {
+  listApprovedIntentFragmentsByWorkspaceGroupedByWorkCard,
   listIntentFragmentsBySession,
-  listIntentFragmentsByWorkspaceGroupedByWorkCard,
   listIntentReviewQueueByWorkspace,
 };

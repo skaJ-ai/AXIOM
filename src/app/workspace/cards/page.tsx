@@ -3,21 +3,21 @@ import Link from 'next/link';
 import { WorkspacePageHeader } from '@/components/workspace/page-header';
 import {
   type LinkedIntentPreview,
-  WorkCardBoard,
   type LinkedSessionPreview,
+  WorkCardBoard,
   type WorkCardBoardItem,
 } from '@/components/workspace/work-card-board';
-import { listIntentFragmentsByWorkspaceGroupedByWorkCard } from '@/domains/intents/queries';
+import { listApprovedIntentFragmentsByWorkspaceGroupedByWorkCard } from '@/domains/intents/queries';
 import { listWorkCardsByWorkspace } from '@/domains/work-cards/queries';
 import { requireAuthenticatedPageUser } from '@/lib/auth/middleware';
 import { listSessionsByWorkspace } from '@/lib/sessions/service';
 
 export default async function WorkspaceCardsPage() {
   const currentUser = await requireAuthenticatedPageUser();
-  const [workCards, sessions, intents] = await Promise.all([
+  const [workCards, sessions, approvedIntents] = await Promise.all([
     listWorkCardsByWorkspace(currentUser.workspaceId, { includeArchived: true }),
     listSessionsByWorkspace(currentUser.workspaceId),
-    listIntentFragmentsByWorkspaceGroupedByWorkCard(currentUser.workspaceId),
+    listApprovedIntentFragmentsByWorkspaceGroupedByWorkCard(currentUser.workspaceId),
   ]);
 
   const sessionsByWorkCard = new Map<string, LinkedSessionPreview[]>();
@@ -46,7 +46,7 @@ export default async function WorkspaceCardsPage() {
     sessionsByWorkCard.set(workCardId, currentSessions);
   }
 
-  for (const intent of intents) {
+  for (const intent of approvedIntents) {
     const currentIntents = intentsByWorkCard.get(intent.workCardId) ?? {
       recentIntents: [],
       totalCount: 0,
@@ -90,13 +90,13 @@ export default async function WorkspaceCardsPage() {
               </Link>
             </div>
           }
-          description="업무 카드는 세션, 맥락, 반복되는 판단 기준을 한 일감 단위로 묶는 기준점입니다. 여기서 카드를 만들고 다듬은 뒤 세션을 연결합니다."
+          description="업무 카드는 세션, 승인된 맥락, 반복되는 판단 기준을 함께 묶는 운영 단위입니다. 여기서 카드를 만들고 어떤 세션과 연결되는지 관리합니다."
           eyebrow="업무 카드"
           meta={
             <>
               <span className="badge badge-accent">전체 {initialCards.length}개</span>
               <span className="badge badge-neutral">
-                보관됨 {initialCards.filter((card) => card.status === 'archived').length}개
+                보관 {initialCards.filter((card) => card.status === 'archived').length}개
               </span>
             </>
           }

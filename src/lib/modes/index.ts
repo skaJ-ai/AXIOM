@@ -124,7 +124,7 @@ const WRITE_CHECKLIST: ModeChecklistItem[] = [
     helpText:
       '"팀장 이상 리더에게 보고합니다" 또는 "경영진 보고용"처럼, 누가 이 문서를 읽을지 알려주세요.',
     id: 'write_2',
-    intent: '��구를 위한 보고서인지와 독자를 분명히 한다.',
+    intent: '누구를 위한 보고서인지와 독자를 분명히 한다.',
     label: '대상',
     weight: 1,
   },

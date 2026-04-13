@@ -76,7 +76,7 @@ function canStartSessionFromWorkCard(status: WorkCardListItem['status']): boolea
 function formatIntentType(type: IntentType): string {
   switch (type) {
     case 'audience':
-      return '대상';
+      return '대상 독자';
     case 'context':
       return '상황';
     case 'exception':
@@ -89,6 +89,21 @@ function formatIntentType(type: IntentType): string {
       return '금지';
     default:
       return type;
+  }
+}
+
+function formatIntentReviewStatus(status: IntentReviewStatus): string {
+  switch (status) {
+    case 'approved':
+      return '승인됨';
+    case 'captured':
+      return '포착됨';
+    case 'nominated':
+      return '검토 후보';
+    case 'rejected':
+      return '반려됨';
+    default:
+      return status;
   }
 }
 
@@ -285,7 +300,7 @@ function WorkCardBoard({ initialCards }: WorkCardBoardProps) {
               업무 카드 만들기
             </h2>
             <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-              카드는 세션과 맥락을 묶는 기본 단위입니다. 먼저 제목만 만들어도 됩니다.
+              카드는 세션과 승인된 맥락을 묶는 기본 단위입니다. 먼저 제목만 만들어도 됩니다.
             </p>
           </div>
           <Link className="btn-secondary" href="/workspace/new">
@@ -330,7 +345,7 @@ function WorkCardBoard({ initialCards }: WorkCardBoardProps) {
               업무 카드 목록
             </h2>
             <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-              카드별로 세션과 포착된 작업 맥락을 함께 관리합니다.
+              카드별로 세션과 승인된 맥락을 함께 관리합니다.
             </p>
           </div>
 
@@ -445,7 +460,7 @@ function WorkCardRow({
             <span className="badge badge-accent">{card.priority}</span>
             <span className="badge badge-neutral">{card.sensitivity}</span>
             <span className="badge badge-neutral">연결 세션 {card.sessionCount}개</span>
-            <span className="badge badge-neutral">작업 맥락 {card.intentCount}개</span>
+            <span className="badge badge-neutral">승인된 맥락 {card.intentCount}개</span>
           </div>
         </div>
 
@@ -624,7 +639,7 @@ function WorkCardRow({
           <div className="workspace-card-muted flex flex-col gap-3">
             <div className="flex items-center justify-between gap-3">
               <h4 className="font-headline text-base font-bold text-[var(--color-text)]">
-                최근 포착 맥락
+                최근 승인된 맥락
               </h4>
               <span className="meta">{card.intentCount}개</span>
             </div>
@@ -638,7 +653,9 @@ function WorkCardRow({
                   >
                     <div className="mb-2 flex flex-wrap items-center gap-2">
                       <span className="badge badge-accent">{formatIntentType(intent.type)}</span>
-                      <span className="badge badge-neutral">{intent.reviewStatus}</span>
+                      <span className="badge badge-neutral">
+                        {formatIntentReviewStatus(intent.reviewStatus)}
+                      </span>
                     </div>
                     <p className="text-sm leading-6 text-[var(--color-text)]">{intent.content}</p>
                     <p className="mt-2 text-xs text-[var(--color-text-secondary)]">
@@ -649,7 +666,7 @@ function WorkCardRow({
               </div>
             ) : (
               <p className="text-sm leading-6 text-[var(--color-text-secondary)]">
-                아직 이 카드에 연결된 작업 맥락이 없습니다.
+                아직 이 카드에 연결된 승인 맥락이 없습니다.
               </p>
             )}
           </div>
