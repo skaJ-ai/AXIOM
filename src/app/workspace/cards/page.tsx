@@ -8,13 +8,15 @@ import {
   type WorkCardBoardItem,
 } from '@/components/workspace/work-card-board';
 import { listApprovedIntentFragmentsByWorkspaceGroupedByWorkCard } from '@/domains/intents/queries';
+import { listProcessAssetsByWorkspace } from '@/domains/process-assets/queries';
 import { listWorkCardsByWorkspace } from '@/domains/work-cards/queries';
 import { requireAuthenticatedPageUser } from '@/lib/auth/middleware';
 import { listSessionsByWorkspace } from '@/lib/sessions/service';
 
 export default async function WorkspaceCardsPage() {
   const currentUser = await requireAuthenticatedPageUser();
-  const [workCards, sessions, approvedIntents] = await Promise.all([
+  const [processAssets, workCards, sessions, approvedIntents] = await Promise.all([
+    listProcessAssetsByWorkspace(currentUser.workspaceId),
     listWorkCardsByWorkspace(currentUser.workspaceId, { includeArchived: true }),
     listSessionsByWorkspace(currentUser.workspaceId),
     listApprovedIntentFragmentsByWorkspaceGroupedByWorkCard(currentUser.workspaceId),
@@ -103,7 +105,7 @@ export default async function WorkspaceCardsPage() {
           title="업무 카드 관리"
         />
 
-        <WorkCardBoard initialCards={initialCards} />
+        <WorkCardBoard initialCards={initialCards} initialProcessAssets={processAssets} />
       </div>
     </main>
   );

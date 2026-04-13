@@ -27,6 +27,7 @@ import type {
 } from '@/lib/db/schema';
 import {
   messagesTable,
+  processAssetsTable,
   reportsTable,
   sessionsTable,
   sourcesTable,
@@ -174,6 +175,12 @@ function mapWorkCardSummaryRowToSummary(
     audience: string | null;
     id: string;
     priority: WorkCardSummary['priority'] | null;
+    processAssetCreatedAt?: Date | null;
+    processAssetDescription?: string | null;
+    processAssetDomainLabel?: string | null;
+    processAssetId?: string | null;
+    processAssetName?: string | null;
+    processAssetUpdatedAt?: Date | null;
     processLabel: string | null;
     sensitivity: WorkCardSummary['sensitivity'] | null;
     status: WorkCardSummary['status'] | null;
@@ -188,6 +195,16 @@ function mapWorkCardSummaryRowToSummary(
     audience: row.audience,
     id: row.id,
     priority: row.priority ?? 'medium',
+    processAsset: row.processAssetId
+      ? {
+          createdAt: row.processAssetCreatedAt?.toISOString() ?? new Date(0).toISOString(),
+          description: row.processAssetDescription ?? null,
+          domainLabel: row.processAssetDomainLabel ?? null,
+          id: row.processAssetId,
+          name: row.processAssetName ?? '이름 없는 프로세스 자산',
+          updatedAt: row.processAssetUpdatedAt?.toISOString() ?? new Date(0).toISOString(),
+        }
+      : null,
     processLabel: row.processLabel,
     sensitivity: row.sensitivity ?? 'general',
     status: row.status ?? 'active',
@@ -206,6 +223,7 @@ async function createSessionForWorkspace(
     templateType?: TemplateType;
     workCardId?: string;
     workCardAudience?: string;
+    workCardProcessAssetId?: string;
     workCardProcessLabel?: string;
     workCardTitle?: string;
   },
@@ -249,6 +267,7 @@ async function createSessionForWorkspace(
         audience: options?.workCardAudience,
         database: transaction,
         ownerId: options?.ownerUserId,
+        processAssetId: options?.workCardProcessAssetId,
         processLabel: options?.workCardProcessLabel,
         title: options.workCardTitle!.trim(),
         workspaceId,
@@ -337,6 +356,12 @@ async function listSessionsByWorkspace(workspaceId: string): Promise<SessionSumm
       workCardAudience: workCardsTable.audience,
       workCardId: workCardsTable.id,
       workCardPriority: workCardsTable.priority,
+      workCardProcessAssetCreatedAt: processAssetsTable.createdAt,
+      workCardProcessAssetDescription: processAssetsTable.description,
+      workCardProcessAssetDomainLabel: processAssetsTable.domainLabel,
+      workCardProcessAssetId: workCardsTable.processAssetId,
+      workCardProcessAssetName: processAssetsTable.name,
+      workCardProcessAssetUpdatedAt: processAssetsTable.updatedAt,
       workCardProcessLabel: workCardsTable.processLabel,
       workCardSensitivity: workCardsTable.sensitivity,
       workCardStatus: workCardsTable.status,
@@ -344,6 +369,7 @@ async function listSessionsByWorkspace(workspaceId: string): Promise<SessionSumm
     })
     .from(sessionsTable)
     .leftJoin(workCardsTable, eq(sessionsTable.workCardId, workCardsTable.id))
+    .leftJoin(processAssetsTable, eq(workCardsTable.processAssetId, processAssetsTable.id))
     .where(eq(sessionsTable.workspaceId, workspaceId))
     .orderBy(desc(sessionsTable.updatedAt));
 
@@ -366,6 +392,12 @@ async function listSessionsByWorkspace(workspaceId: string): Promise<SessionSumm
               audience: sessionRow.workCardAudience,
               id: sessionRow.workCardId,
               priority: sessionRow.workCardPriority,
+              processAssetCreatedAt: sessionRow.workCardProcessAssetCreatedAt,
+              processAssetDescription: sessionRow.workCardProcessAssetDescription,
+              processAssetDomainLabel: sessionRow.workCardProcessAssetDomainLabel,
+              processAssetId: sessionRow.workCardProcessAssetId,
+              processAssetName: sessionRow.workCardProcessAssetName,
+              processAssetUpdatedAt: sessionRow.workCardProcessAssetUpdatedAt,
               processLabel: sessionRow.workCardProcessLabel,
               sensitivity: sessionRow.workCardSensitivity,
               status: sessionRow.workCardStatus,
@@ -408,6 +440,12 @@ async function getSessionDetailForWorkspace(
       workCardAudience: workCardsTable.audience,
       workCardId: workCardsTable.id,
       workCardPriority: workCardsTable.priority,
+      workCardProcessAssetCreatedAt: processAssetsTable.createdAt,
+      workCardProcessAssetDescription: processAssetsTable.description,
+      workCardProcessAssetDomainLabel: processAssetsTable.domainLabel,
+      workCardProcessAssetId: workCardsTable.processAssetId,
+      workCardProcessAssetName: processAssetsTable.name,
+      workCardProcessAssetUpdatedAt: processAssetsTable.updatedAt,
       workCardProcessLabel: workCardsTable.processLabel,
       workCardSensitivity: workCardsTable.sensitivity,
       workCardStatus: workCardsTable.status,
@@ -415,6 +453,7 @@ async function getSessionDetailForWorkspace(
     })
     .from(sessionsTable)
     .leftJoin(workCardsTable, eq(sessionsTable.workCardId, workCardsTable.id))
+    .leftJoin(processAssetsTable, eq(workCardsTable.processAssetId, processAssetsTable.id))
     .where(and(eq(sessionsTable.id, sessionId), eq(sessionsTable.workspaceId, workspaceId)))
     .limit(1);
 
@@ -488,6 +527,12 @@ async function getSessionDetailForWorkspace(
             audience: sessionRow.workCardAudience,
             id: sessionRow.workCardId,
             priority: sessionRow.workCardPriority,
+            processAssetCreatedAt: sessionRow.workCardProcessAssetCreatedAt,
+            processAssetDescription: sessionRow.workCardProcessAssetDescription,
+            processAssetDomainLabel: sessionRow.workCardProcessAssetDomainLabel,
+            processAssetId: sessionRow.workCardProcessAssetId,
+            processAssetName: sessionRow.workCardProcessAssetName,
+            processAssetUpdatedAt: sessionRow.workCardProcessAssetUpdatedAt,
             processLabel: sessionRow.workCardProcessLabel,
             sensitivity: sessionRow.workCardSensitivity,
             status: sessionRow.workCardStatus,
@@ -912,6 +957,12 @@ async function getSessionPromptContext({
       workCardAudience: workCardsTable.audience,
       workCardId: workCardsTable.id,
       workCardPriority: workCardsTable.priority,
+      workCardProcessAssetCreatedAt: processAssetsTable.createdAt,
+      workCardProcessAssetDescription: processAssetsTable.description,
+      workCardProcessAssetDomainLabel: processAssetsTable.domainLabel,
+      workCardProcessAssetId: workCardsTable.processAssetId,
+      workCardProcessAssetName: processAssetsTable.name,
+      workCardProcessAssetUpdatedAt: processAssetsTable.updatedAt,
       workCardProcessLabel: workCardsTable.processLabel,
       workCardSensitivity: workCardsTable.sensitivity,
       workCardStatus: workCardsTable.status,
@@ -919,6 +970,7 @@ async function getSessionPromptContext({
     })
     .from(sessionsTable)
     .leftJoin(workCardsTable, eq(sessionsTable.workCardId, workCardsTable.id))
+    .leftJoin(processAssetsTable, eq(workCardsTable.processAssetId, processAssetsTable.id))
     .where(and(eq(sessionsTable.id, sessionId), eq(sessionsTable.workspaceId, workspaceId)))
     .limit(1);
 
@@ -984,6 +1036,12 @@ async function getSessionPromptContext({
             audience: sessionRow.workCardAudience,
             id: sessionRow.workCardId,
             priority: sessionRow.workCardPriority,
+            processAssetCreatedAt: sessionRow.workCardProcessAssetCreatedAt,
+            processAssetDescription: sessionRow.workCardProcessAssetDescription,
+            processAssetDomainLabel: sessionRow.workCardProcessAssetDomainLabel,
+            processAssetId: sessionRow.workCardProcessAssetId,
+            processAssetName: sessionRow.workCardProcessAssetName,
+            processAssetUpdatedAt: sessionRow.workCardProcessAssetUpdatedAt,
             processLabel: sessionRow.workCardProcessLabel,
             sensitivity: sessionRow.workCardSensitivity,
             status: sessionRow.workCardStatus,

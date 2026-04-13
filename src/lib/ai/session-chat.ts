@@ -184,6 +184,17 @@ function buildWorkCardSection(workCard: SessionDetail['workCard']): string[] {
     '## 현재 업무 카드',
     `- 제목: ${workCard.title}`,
     ...(workCard.audience ? [`- 대상 독자: ${workCard.audience}`] : []),
+    ...(workCard.processAsset
+      ? [
+          `- 연결 프로세스 자산: ${workCard.processAsset.name}`,
+          ...(workCard.processAsset.domainLabel
+            ? [`- 프로세스 도메인: ${workCard.processAsset.domainLabel}`]
+            : []),
+          ...(workCard.processAsset.description
+            ? [`- 프로세스 설명: ${workCard.processAsset.description}`]
+            : []),
+        ]
+      : []),
     ...(workCard.processLabel ? [`- 연결 프로세스: ${workCard.processLabel}`] : []),
     `- 우선순위: ${workCard.priority}`,
     `- 민감도: ${workCard.sensitivity}`,

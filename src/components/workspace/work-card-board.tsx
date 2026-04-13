@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import Link from 'next/link';
 
+import type { ProcessAssetSummary } from '@/domains/process-assets/types';
 import {
   canRestoreWorkCard,
   canStartSessionFromWorkCard,
@@ -48,6 +49,7 @@ interface WorkCardBoardItem extends WorkCardListItem {
 
 interface WorkCardBoardProps {
   initialCards: WorkCardBoardItem[];
+  initialProcessAssets: ProcessAssetSummary[];
 }
 
 interface WorkCardsResponse {
@@ -59,6 +61,12 @@ interface WorkCardsResponse {
 interface WorkCardResponse {
   data: {
     workCard: WorkCardListItem | null;
+  };
+}
+
+interface ProcessAssetResponse {
+  data: {
+    processAsset: ProcessAssetSummary;
   };
 }
 
@@ -109,16 +117,36 @@ function formatIntentReviewStatus(status: IntentReviewStatus): string {
   }
 }
 
-function WorkCardBoard({ initialCards }: WorkCardBoardProps) {
+function upsertProcessAssetSummaries(
+  items: ProcessAssetSummary[],
+  nextItem: ProcessAssetSummary,
+): ProcessAssetSummary[] {
+  return [...items.filter((item) => item.id !== nextItem.id), nextItem].sort((left, right) =>
+    left.name.localeCompare(right.name, 'ko-KR'),
+  );
+}
+
+function WorkCardBoard({ initialCards, initialProcessAssets }: WorkCardBoardProps) {
   const [cards, setCards] = useState(initialCards);
   const [createAudience, setCreateAudience] = useState('');
+  const [createProcessAssetDescription, setCreateProcessAssetDescription] = useState('');
+  const [createProcessAssetDomainLabel, setCreateProcessAssetDomainLabel] = useState('');
+  const [createProcessAssetId, setCreateProcessAssetId] = useState('');
+  const [createProcessAssetName, setCreateProcessAssetName] = useState('');
   const [createProcessLabel, setCreateProcessLabel] = useState('');
   const [createTitle, setCreateTitle] = useState('');
   const [editingCardId, setEditingCardId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [filter, setFilter] = useState<WorkCardFilter>('active');
   const [isCreating, setIsCreating] = useState(false);
+  const [isCreatingProcessAsset, setIsCreatingProcessAsset] = useState(false);
   const [pendingCardId, setPendingCardId] = useState<string | null>(null);
+  const [processAssets, setProcessAssets] = useState(initialProcessAssets);
+
+  const selectedCreateProcessAsset = useMemo(
+    () => processAssets.find((asset) => asset.id === createProcessAssetId) ?? null,
+    [createProcessAssetId, processAssets],
+  );
 
   const visibleCards = useMemo(() => {
     if (filter === 'all') {
@@ -161,6 +189,7 @@ function WorkCardBoard({ initialCards }: WorkCardBoardProps) {
     const result = await safeFetch<WorkCardResponse>('/api/work-cards', {
       body: JSON.stringify({
         audience: createAudience.trim() || undefined,
+        processAssetId: createProcessAssetId || undefined,
         processLabel: createProcessLabel.trim() || undefined,
         title: createTitle.trim(),
       }),
@@ -193,9 +222,41 @@ function WorkCardBoard({ initialCards }: WorkCardBoardProps) {
     }
 
     setCreateAudience('');
+    setCreateProcessAssetId('');
     setCreateProcessLabel('');
     setCreateTitle('');
     setIsCreating(false);
+  };
+
+  const handleCreateProcessAsset = async () => {
+    setIsCreatingProcessAsset(true);
+    setErrorMessage('');
+
+    const result = await safeFetch<ProcessAssetResponse>('/api/process-assets', {
+      body: JSON.stringify({
+        description: createProcessAssetDescription.trim() || undefined,
+        domainLabel: createProcessAssetDomainLabel.trim() || undefined,
+        name: createProcessAssetName.trim(),
+      }),
+      headers: {
+        'content-type': 'application/json',
+      },
+      method: 'POST',
+    });
+
+    if (!result.success) {
+      setIsCreatingProcessAsset(false);
+      setErrorMessage(result.error);
+      return;
+    }
+
+    const createdAsset = result.data.data.processAsset;
+    setProcessAssets((previousItems) => upsertProcessAssetSummaries(previousItems, createdAsset));
+    setCreateProcessAssetId(createdAsset.id);
+    setCreateProcessAssetDescription('');
+    setCreateProcessAssetDomainLabel('');
+    setCreateProcessAssetName('');
+    setIsCreatingProcessAsset(false);
   };
 
   const handleSave = async (
@@ -203,6 +264,7 @@ function WorkCardBoard({ initialCards }: WorkCardBoardProps) {
     nextValues: {
       audience: string;
       priority: WorkCardListItem['priority'];
+      processAssetId: string | null;
       processLabel: string;
       sensitivity: WorkCardListItem['sensitivity'];
       status: WorkCardListItem['status'];
@@ -344,7 +406,7 @@ function WorkCardBoard({ initialCards }: WorkCardBoardProps) {
           </Link>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
+        <div className="grid gap-3 md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
           <input
             className="input-surface w-full"
             onChange={(event) => setCreateTitle(event.target.value)}
@@ -357,8 +419,25 @@ function WorkCardBoard({ initialCards }: WorkCardBoardProps) {
             placeholder="대상 독자"
             value={createAudience}
           />
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+          <select
+            className="input-surface w-full"
+            onChange={(event) => setCreateProcessAssetId(event.target.value)}
+            value={createProcessAssetId}
+          >
+            <option value="">프로세스 자산 없이 자유 라벨 입력</option>
+            {processAssets.map((asset) => (
+              <option key={asset.id} value={asset.id}>
+                {asset.name}
+                {asset.domainLabel ? ` (${asset.domainLabel})` : ''}
+              </option>
+            ))}
+          </select>
           <input
             className="input-surface w-full"
+            disabled={createProcessAssetId.length > 0}
             onChange={(event) => setCreateProcessLabel(event.target.value)}
             placeholder="프로세스 라벨"
             value={createProcessLabel}
@@ -370,6 +449,70 @@ function WorkCardBoard({ initialCards }: WorkCardBoardProps) {
             type="button"
           >
             {isCreating ? '생성 중...' : '카드 생성'}
+          </button>
+        </div>
+
+        {selectedCreateProcessAsset ? (
+          <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg-sunken)] px-4 py-3">
+            <div className="mb-2 flex flex-wrap items-center gap-2">
+              <span className="badge badge-accent">{selectedCreateProcessAsset.name}</span>
+              {selectedCreateProcessAsset.domainLabel ? (
+                <span className="badge badge-neutral">
+                  {selectedCreateProcessAsset.domainLabel}
+                </span>
+              ) : null}
+            </div>
+            <p className="text-xs leading-5 text-[var(--color-text-secondary)]">
+              프로세스 자산을 고르면 카드의 프로세스 라벨은 자산 이름으로 고정됩니다.
+            </p>
+            {selectedCreateProcessAsset.description ? (
+              <p className="mt-2 text-xs leading-5 text-[var(--color-text-secondary)]">
+                {selectedCreateProcessAsset.description}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+      </section>
+
+      <section className="workspace-card-muted flex flex-col gap-4">
+        <div>
+          <h2 className="font-headline text-xl font-bold text-[var(--color-text)]">
+            프로세스 자산 만들기
+          </h2>
+          <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
+            자주 반복되는 표준 흐름을 가벼운 참조 객체로 등록해 업무 카드에 연결합니다.
+          </p>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+          <input
+            className="input-surface w-full"
+            onChange={(event) => setCreateProcessAssetName(event.target.value)}
+            placeholder="프로세스 자산 이름"
+            value={createProcessAssetName}
+          />
+          <input
+            className="input-surface w-full"
+            onChange={(event) => setCreateProcessAssetDomainLabel(event.target.value)}
+            placeholder="도메인 라벨"
+            value={createProcessAssetDomainLabel}
+          />
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
+          <input
+            className="input-surface w-full"
+            onChange={(event) => setCreateProcessAssetDescription(event.target.value)}
+            placeholder="프로세스 설명"
+            value={createProcessAssetDescription}
+          />
+          <button
+            className="btn-secondary disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={isCreatingProcessAsset || createProcessAssetName.trim().length === 0}
+            onClick={() => void handleCreateProcessAsset()}
+            type="button"
+          >
+            {isCreatingProcessAsset ? '생성 중...' : '자산 생성'}
           </button>
         </div>
       </section>
@@ -423,6 +566,7 @@ function WorkCardBoard({ initialCards }: WorkCardBoardProps) {
                 onEdit={() => setEditingCardId((current) => (current === card.id ? null : card.id))}
                 onRestore={handleRestore}
                 onSave={handleSave}
+                processAssets={processAssets}
               />
             ))}
           </div>
@@ -440,6 +584,7 @@ function WorkCardRow({
   onEdit,
   onRestore,
   onSave,
+  processAssets,
 }: {
   card: WorkCardBoardItem;
   isEditing: boolean;
@@ -452,15 +597,18 @@ function WorkCardRow({
     nextValues: {
       audience: string;
       priority: WorkCardListItem['priority'];
+      processAssetId: string | null;
       processLabel: string;
       sensitivity: WorkCardListItem['sensitivity'];
       status: WorkCardListItem['status'];
       title: string;
     },
   ) => void;
+  processAssets: ProcessAssetSummary[];
 }) {
   const [audience, setAudience] = useState(card.audience ?? '');
   const [priority, setPriority] = useState<WorkCardListItem['priority']>(card.priority);
+  const [processAssetId, setProcessAssetId] = useState(card.processAsset?.id ?? '');
   const [processLabel, setProcessLabel] = useState(card.processLabel ?? '');
   const [sensitivity, setSensitivity] = useState<WorkCardListItem['sensitivity']>(card.sensitivity);
   const [status, setStatus] = useState<WorkCardListItem['status']>(card.status);
@@ -469,6 +617,7 @@ function WorkCardRow({
   useEffect(() => {
     setAudience(card.audience ?? '');
     setPriority(card.priority);
+    setProcessAssetId(card.processAsset?.id ?? '');
     setProcessLabel(card.processLabel ?? '');
     setSensitivity(card.sensitivity);
     setStatus(card.status);
@@ -558,11 +707,30 @@ function WorkCardRow({
               </div>
               <div className="flex flex-col gap-2">
                 <label className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-tertiary)]">
+                  프로세스 자산
+                </label>
+                <select
+                  className="input-surface w-full"
+                  disabled={isPending}
+                  onChange={(event) => setProcessAssetId(event.target.value)}
+                  value={processAssetId}
+                >
+                  <option value="">자산 없이 자유 라벨 사용</option>
+                  {processAssets.map((asset) => (
+                    <option key={asset.id} value={asset.id}>
+                      {asset.name}
+                      {asset.domainLabel ? ` (${asset.domainLabel})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-tertiary)]">
                   프로세스 라벨
                 </label>
                 <input
                   className="input-surface w-full"
-                  disabled={isPending}
+                  disabled={isPending || processAssetId.length > 0}
                   onChange={(event) => setProcessLabel(event.target.value)}
                   value={processLabel}
                 />
@@ -626,6 +794,7 @@ function WorkCardRow({
                     onSave(card.id, {
                       audience,
                       priority,
+                      processAssetId: processAssetId || null,
                       processLabel,
                       sensitivity,
                       status,
@@ -647,10 +816,28 @@ function WorkCardRow({
                 </p>
               </div>
               <div className="workspace-card-muted flex flex-col gap-2">
-                <span className="meta">프로세스 라벨</span>
-                <p className="text-sm text-[var(--color-text)]">
-                  {card.processLabel ?? '아직 연결되지 않았습니다.'}
-                </p>
+                <span className="meta">연결 프로세스</span>
+                {card.processAsset ? (
+                  <>
+                    <p className="text-sm font-semibold text-[var(--color-text)]">
+                      {card.processAsset.name}
+                    </p>
+                    {card.processAsset.domainLabel ? (
+                      <p className="text-xs text-[var(--color-text-secondary)]">
+                        {card.processAsset.domainLabel}
+                      </p>
+                    ) : null}
+                    {card.processAsset.description ? (
+                      <p className="text-xs leading-5 text-[var(--color-text-secondary)]">
+                        {card.processAsset.description}
+                      </p>
+                    ) : null}
+                  </>
+                ) : (
+                  <p className="text-sm text-[var(--color-text)]">
+                    {card.processLabel ?? '아직 연결되지 않았습니다.'}
+                  </p>
+                )}
               </div>
             </div>
           )}

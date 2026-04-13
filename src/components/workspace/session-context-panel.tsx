@@ -5,6 +5,7 @@ import Link from 'next/link';
 import useSWR from 'swr';
 
 import type { IntentFragment } from '@/domains/intents/types';
+import { formatWorkCardStatus } from '@/domains/work-cards/state';
 import type { WorkCardSummary } from '@/domains/work-cards/types';
 import { safeFetch } from '@/lib/utils';
 
@@ -52,13 +53,13 @@ function formatIntentType(type: IntentFragment['type']): string {
 function formatIntentReviewStatus(status: IntentFragment['reviewStatus']): string {
   switch (status) {
     case 'approved':
-      return 'approved';
+      return '승인됨';
     case 'captured':
-      return 'captured';
+      return '포착됨';
     case 'nominated':
-      return 'nominated';
+      return '검토 후보';
     case 'rejected':
-      return 'rejected';
+      return '반려됨';
     default:
       return status;
   }
@@ -83,7 +84,9 @@ function SessionContextPanel({ initialIntents, sessionId, workCard }: SessionCon
       <div className="workspace-card flex flex-col gap-3">
         <div className="flex items-center justify-between gap-3">
           <h2 className="font-headline text-lg font-bold text-[var(--color-text)]">업무 카드</h2>
-          <span className="badge badge-neutral">{workCard ? workCard.status : '미연결'}</span>
+          <span className="badge badge-neutral">
+            {workCard ? formatWorkCardStatus(workCard.status) : '미연결'}
+          </span>
         </div>
         {workCard ? (
           <>
@@ -95,9 +98,31 @@ function SessionContextPanel({ initialIntents, sessionId, workCard }: SessionCon
               {workCard.processLabel ? (
                 <span className="badge badge-neutral">{workCard.processLabel}</span>
               ) : null}
+              {workCard.processAsset?.domainLabel ? (
+                <span className="badge badge-neutral">{workCard.processAsset.domainLabel}</span>
+              ) : null}
               <span className="badge badge-accent">{workCard.priority}</span>
               <span className="badge badge-neutral">{workCard.sensitivity}</span>
             </div>
+            {workCard.processAsset ? (
+              <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg-sunken)] px-4 py-3">
+                <div className="mb-2 flex flex-wrap items-center gap-2">
+                  <span className="badge badge-accent">{workCard.processAsset.name}</span>
+                  {workCard.processAsset.domainLabel ? (
+                    <span className="badge badge-neutral">{workCard.processAsset.domainLabel}</span>
+                  ) : null}
+                </div>
+                {workCard.processAsset.description ? (
+                  <p className="text-xs leading-5 text-[var(--color-text-secondary)]">
+                    {workCard.processAsset.description}
+                  </p>
+                ) : (
+                  <p className="text-xs leading-5 text-[var(--color-text-secondary)]">
+                    이 카드는 표준 프로세스 자산과 연결되어 있습니다.
+                  </p>
+                )}
+              </div>
+            ) : null}
           </>
         ) : (
           <p className="text-sm leading-6 text-[var(--color-text-secondary)]">

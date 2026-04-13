@@ -19,6 +19,7 @@ const createSessionBaseSchema = z.object({
     .max(120, '대상 독자는 120자 이내로 입력해 주세요.')
     .optional(),
   workCardId: z.string().uuid().optional(),
+  workCardProcessAssetId: z.string().uuid('프로세스 자산 식별자가 올바르지 않습니다.').optional(),
   workCardProcessLabel: z
     .string()
     .trim()
@@ -50,6 +51,7 @@ const createSessionRequestSchema = z
       typeof value.workCardTitle === 'string' && value.workCardTitle.trim().length > 0;
     const hasNewWorkCardMetadata =
       (typeof value.workCardAudience === 'string' && value.workCardAudience.trim().length > 0) ||
+      typeof value.workCardProcessAssetId === 'string' ||
       (typeof value.workCardProcessLabel === 'string' &&
         value.workCardProcessLabel.trim().length > 0);
 
@@ -64,7 +66,7 @@ const createSessionRequestSchema = z
     if (hasNewWorkCardMetadata && !hasNewWorkCardTitle) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
-        message: '대상 독자나 프로세스 라벨을 입력했다면 업무 카드 제목도 입력해 주세요.',
+        message: '대상 독자나 프로세스 자산/라벨을 입력했다면 업무 카드 제목도 입력해 주세요.',
         path: ['workCardTitle'],
       });
     }

@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
+import type { ProcessAssetSummary } from '@/domains/process-assets/types';
 import { canStartSessionFromWorkCard, formatWorkCardStatus } from '@/domains/work-cards/state';
 import type { WorkCardListItem } from '@/domains/work-cards/types';
 import type { SessionMode } from '@/lib/db/schema';
@@ -25,6 +26,7 @@ interface ModeSelectorFormProps {
   initialWorkCardId?: string | null;
   modes: ModeDefinition[];
   parentSessionOptions: ParentSessionOption[];
+  processAssetOptions: ProcessAssetSummary[];
   workCardOptions: WorkCardListItem[];
 }
 
@@ -77,6 +79,7 @@ function ModeSelectorForm({
   initialWorkCardId,
   modes,
   parentSessionOptions,
+  processAssetOptions,
   workCardOptions,
 }: ModeSelectorFormProps) {
   const router = useRouter();
@@ -98,6 +101,7 @@ function ModeSelectorForm({
   >('operation');
   const [selectedWorkCardId, setSelectedWorkCardId] = useState(normalizedInitialWorkCardId);
   const [workCardAudience, setWorkCardAudience] = useState('');
+  const [workCardProcessAssetId, setWorkCardProcessAssetId] = useState('');
   const [workCardProcessLabel, setWorkCardProcessLabel] = useState('');
   const [workCardSelectionMode, setWorkCardSelectionMode] =
     useState<WorkCardSelectionMode>(initialSelectionMode);
@@ -108,6 +112,10 @@ function ModeSelectorForm({
   const selectedExistingWorkCard = useMemo(
     () => workCardOptions.find((option) => option.id === selectedWorkCardId) ?? null,
     [selectedWorkCardId, workCardOptions],
+  );
+  const selectedProcessAsset = useMemo(
+    () => processAssetOptions.find((option) => option.id === workCardProcessAssetId) ?? null,
+    [processAssetOptions, workCardProcessAssetId],
   );
   const canCreateWithSelectedWorkCard =
     workCardSelectionMode !== 'existing' ||
@@ -125,6 +133,7 @@ function ModeSelectorForm({
     setSelectedReportType('operation');
     setSelectedWorkCardId(normalizedInitialWorkCardId);
     setWorkCardAudience('');
+    setWorkCardProcessAssetId('');
     setWorkCardProcessLabel('');
     setWorkCardSelectionMode(initialSelectionMode);
     setWorkCardTitle('');
@@ -162,6 +171,10 @@ function ModeSelectorForm({
 
       if (workCardAudience.trim().length > 0) {
         requestBody.workCardAudience = workCardAudience.trim();
+      }
+
+      if (workCardProcessAssetId.length > 0) {
+        requestBody.workCardProcessAssetId = workCardProcessAssetId;
       }
 
       if (workCardProcessLabel.trim().length > 0) {
@@ -399,10 +412,20 @@ function ModeSelectorForm({
                           {selectedExistingWorkCard.processLabel}
                         </span>
                       ) : null}
+                      {selectedExistingWorkCard.processAsset?.domainLabel ? (
+                        <span className="badge badge-neutral">
+                          {selectedExistingWorkCard.processAsset.domainLabel}
+                        </span>
+                      ) : null}
                       <span className="badge badge-accent">
                         {selectedExistingWorkCard.priority}
                       </span>
                     </div>
+                    {selectedExistingWorkCard.processAsset?.description ? (
+                      <p className="text-xs leading-5 text-[var(--color-text-secondary)]">
+                        {selectedExistingWorkCard.processAsset.description}
+                      </p>
+                    ) : null}
                     <p className="text-xs text-[var(--color-text-secondary)]">
                       연결 세션 {selectedExistingWorkCard.sessionCount}개
                     </p>
@@ -446,18 +469,60 @@ function ModeSelectorForm({
                 </div>
               </div>
 
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-tertiary)]">
-                  연결 프로세스 라벨
-                </label>
-                <input
-                  className="input-surface w-full"
-                  disabled={isCreating}
-                  onChange={(event) => setWorkCardProcessLabel(event.target.value)}
-                  placeholder="예: 조직개편 커뮤니케이션, 평가 제도 개편"
-                  value={workCardProcessLabel}
-                />
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-tertiary)]">
+                    연결 프로세스 자산
+                  </label>
+                  <select
+                    className="input-surface w-full"
+                    disabled={isCreating}
+                    onChange={(event) => setWorkCardProcessAssetId(event.target.value)}
+                    value={workCardProcessAssetId}
+                  >
+                    <option value="">자산을 선택하지 않고 자유 입력</option>
+                    {processAssetOptions.map((asset) => (
+                      <option key={asset.id} value={asset.id}>
+                        {asset.name}
+                        {asset.domainLabel ? ` (${asset.domainLabel})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-tertiary)]">
+                    연결 프로세스 라벨
+                  </label>
+                  <input
+                    className="input-surface w-full"
+                    disabled={isCreating || workCardProcessAssetId.length > 0}
+                    onChange={(event) => setWorkCardProcessLabel(event.target.value)}
+                    placeholder="예: 조직개편 커뮤니케이션, 평가 제도 개편"
+                    value={workCardProcessLabel}
+                  />
+                </div>
               </div>
+              {selectedProcessAsset ? (
+                <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg-sunken)] px-4 py-3">
+                  <div className="mb-2 flex flex-wrap items-center gap-2">
+                    <span className="badge badge-accent">{selectedProcessAsset.name}</span>
+                    {selectedProcessAsset.domainLabel ? (
+                      <span className="badge badge-neutral">
+                        {selectedProcessAsset.domainLabel}
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="text-xs leading-5 text-[var(--color-text-secondary)]">
+                    선택한 프로세스 자산이 있으면 카드의 프로세스 라벨은 자산 이름으로 고정됩니다.
+                  </p>
+                  {selectedProcessAsset.description ? (
+                    <p className="mt-2 text-xs leading-5 text-[var(--color-text-secondary)]">
+                      {selectedProcessAsset.description}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
             </>
           ) : null}
 

@@ -113,6 +113,25 @@ const workspacesTable = pgTable(
   }),
 );
 
+const processAssetsTable = pgTable(
+  'process_assets',
+  {
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    description: text('description'),
+    domainLabel: text('domain_label'),
+    id: uuid('id').defaultRandom().primaryKey(),
+    name: text('name').notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    workspaceId: uuid('workspace_id')
+      .notNull()
+      .references(() => workspacesTable.id, { onDelete: 'cascade' }),
+  },
+  (table) => ({
+    nameIndex: index('idx_process_assets_name').on(table.name),
+    workspaceIndex: index('idx_process_assets_workspace_id').on(table.workspaceId),
+  }),
+);
+
 const workCardsTable = pgTable(
   'work_cards',
   {
@@ -121,6 +140,9 @@ const workCardsTable = pgTable(
     id: uuid('id').defaultRandom().primaryKey(),
     ownerId: uuid('owner_id').references(() => usersTable.id, { onDelete: 'set null' }),
     priority: text('priority').$type<WorkCardPriority>().default('medium').notNull(),
+    processAssetId: uuid('process_asset_id').references(() => processAssetsTable.id, {
+      onDelete: 'set null',
+    }),
     processLabel: text('process_label'),
     sensitivity: text('sensitivity').$type<WorkCardSensitivity>().default('general').notNull(),
     status: text('status').$type<WorkCardStatus>().default('active').notNull(),
@@ -132,6 +154,7 @@ const workCardsTable = pgTable(
   },
   (table) => ({
     ownerIndex: index('idx_work_cards_owner_id').on(table.ownerId),
+    processAssetIndex: index('idx_work_cards_process_asset_id').on(table.processAssetId),
     statusIndex: index('idx_work_cards_status').on(table.status),
     workspaceIndex: index('idx_work_cards_workspace_id').on(table.workspaceId),
   }),
@@ -529,6 +552,7 @@ export {
   intentFragmentsTable,
   memoryChunksTable,
   messagesTable,
+  processAssetsTable,
   reportsTable,
   reviewsTable,
   sessionsTable,

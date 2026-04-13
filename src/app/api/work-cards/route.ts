@@ -56,6 +56,7 @@ async function POST(request: Request) {
     const createdCard = await createWorkCard({
       audience: parsedRequest.data.audience,
       ownerId: currentUser.userId,
+      processAssetId: parsedRequest.data.processAssetId,
       processLabel: parsedRequest.data.processLabel,
       title: parsedRequest.data.title,
       workspaceId: currentUser.workspaceId,

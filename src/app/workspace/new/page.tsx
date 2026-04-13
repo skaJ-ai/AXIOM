@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ModeSelectorForm } from '@/components/workspace/mode-selector-form';
 import type { ParentSessionOption } from '@/components/workspace/mode-selector-form';
 import { WorkspacePageHeader } from '@/components/workspace/page-header';
+import { listProcessAssetsByWorkspace } from '@/domains/process-assets/queries';
 import { listWorkCardsByWorkspace } from '@/domains/work-cards/queries';
 import { requireAuthenticatedPageUser } from '@/lib/auth/middleware';
 import { getModeCatalog } from '@/lib/modes';
@@ -18,7 +19,8 @@ export default async function WorkspaceNewPage({
   const currentUser = await requireAuthenticatedPageUser();
   const resolvedSearchParams = await searchParams;
   const modes = getModeCatalog();
-  const [recentSessions, workCards] = await Promise.all([
+  const [processAssets, recentSessions, workCards] = await Promise.all([
+    listProcessAssetsByWorkspace(currentUser.workspaceId),
     listSessionsByWorkspace(currentUser.workspaceId),
     listWorkCardsByWorkspace(currentUser.workspaceId),
   ]);
@@ -69,6 +71,7 @@ export default async function WorkspaceNewPage({
           initialWorkCardId={initialWorkCardId}
           modes={modes}
           parentSessionOptions={parentSessionOptions}
+          processAssetOptions={processAssets}
           workCardOptions={workCards}
         />
       </div>

@@ -6,6 +6,7 @@ const WORK_CARD_STATUSES = ['active', 'archived', 'completed', 'paused'] as cons
 
 const createWorkCardRequestSchema = z.object({
   audience: z.string().trim().max(120, '대상 독자는 120자 이내로 입력해 주세요.').optional(),
+  processAssetId: z.string().uuid('프로세스 자산 식별자가 올바르지 않습니다.').optional(),
   processLabel: z
     .string()
     .trim()
@@ -24,6 +25,11 @@ const updateWorkCardRequestSchema = z
       .string()
       .trim()
       .max(120, '대상 독자는 120자 이내로 입력해 주세요.')
+      .nullable()
+      .optional(),
+    processAssetId: z
+      .string()
+      .uuid('프로세스 자산 식별자가 올바르지 않습니다.')
       .nullable()
       .optional(),
     priority: z.enum(WORK_CARD_PRIORITIES).optional(),

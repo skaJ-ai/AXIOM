@@ -155,6 +155,7 @@ interface CreateSessionRequestBody {
   templateType?: TemplateType;
   workCardId?: string;
   workCardAudience?: string;
+  workCardProcessAssetId?: string;
   workCardProcessLabel?: string;
   workCardTitle?: string;
 }

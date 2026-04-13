@@ -72,12 +72,14 @@ async function PATCH(request: Request, { params }: { params: Promise<{ id: strin
       parsedRequest.data.status === 'archived' &&
       !parsedRequest.data.title &&
       !parsedRequest.data.audience &&
+      !parsedRequest.data.processAssetId &&
       !parsedRequest.data.priority &&
       !parsedRequest.data.processLabel &&
       !parsedRequest.data.sensitivity
         ? await archiveWorkCardForWorkspace(id, currentUser.workspaceId)
         : await updateWorkCardForWorkspace({
             audience: parsedRequest.data.audience,
+            processAssetId: parsedRequest.data.processAssetId,
             priority: parsedRequest.data.priority,
             processLabel: parsedRequest.data.processLabel,
             sensitivity: parsedRequest.data.sensitivity,

@@ -1,7 +1,7 @@
 import { and, desc, eq, ne, sql } from 'drizzle-orm';
 
 import { getDb } from '@/lib/db';
-import { sessionsTable, workCardsTable } from '@/lib/db/schema';
+import { processAssetsTable, sessionsTable, workCardsTable } from '@/lib/db/schema';
 
 import { mapWorkCardRowToListItem, mapWorkCardRowToSummary } from './actions';
 
@@ -20,6 +20,12 @@ async function listWorkCardsByWorkspace(
       createdAt: workCardsTable.createdAt,
       id: workCardsTable.id,
       priority: workCardsTable.priority,
+      processAssetCreatedAt: processAssetsTable.createdAt,
+      processAssetDescription: processAssetsTable.description,
+      processAssetDomainLabel: processAssetsTable.domainLabel,
+      processAssetId: workCardsTable.processAssetId,
+      processAssetName: processAssetsTable.name,
+      processAssetUpdatedAt: processAssetsTable.updatedAt,
       processLabel: workCardsTable.processLabel,
       sensitivity: workCardsTable.sensitivity,
       sessionCount: sql<number>`(
@@ -33,6 +39,7 @@ async function listWorkCardsByWorkspace(
       updatedAt: workCardsTable.updatedAt,
     })
     .from(workCardsTable)
+    .leftJoin(processAssetsTable, eq(workCardsTable.processAssetId, processAssetsTable.id))
     .where(
       options?.includeArchived
         ? eq(workCardsTable.workspaceId, workspaceId)
@@ -54,6 +61,12 @@ async function getWorkCardByIdForWorkspace(
       createdAt: workCardsTable.createdAt,
       id: workCardsTable.id,
       priority: workCardsTable.priority,
+      processAssetCreatedAt: processAssetsTable.createdAt,
+      processAssetDescription: processAssetsTable.description,
+      processAssetDomainLabel: processAssetsTable.domainLabel,
+      processAssetId: workCardsTable.processAssetId,
+      processAssetName: processAssetsTable.name,
+      processAssetUpdatedAt: processAssetsTable.updatedAt,
       processLabel: workCardsTable.processLabel,
       sensitivity: workCardsTable.sensitivity,
       sessionCount: sql<number>`(
@@ -67,6 +80,7 @@ async function getWorkCardByIdForWorkspace(
       updatedAt: workCardsTable.updatedAt,
     })
     .from(workCardsTable)
+    .leftJoin(processAssetsTable, eq(workCardsTable.processAssetId, processAssetsTable.id))
     .where(and(eq(workCardsTable.id, workCardId), eq(workCardsTable.workspaceId, workspaceId)))
     .limit(1);
 
@@ -87,12 +101,19 @@ async function getWorkCardSummaryByIdForWorkspace(
       audience: workCardsTable.audience,
       id: workCardsTable.id,
       priority: workCardsTable.priority,
+      processAssetCreatedAt: processAssetsTable.createdAt,
+      processAssetDescription: processAssetsTable.description,
+      processAssetDomainLabel: processAssetsTable.domainLabel,
+      processAssetId: workCardsTable.processAssetId,
+      processAssetName: processAssetsTable.name,
+      processAssetUpdatedAt: processAssetsTable.updatedAt,
       processLabel: workCardsTable.processLabel,
       sensitivity: workCardsTable.sensitivity,
       status: workCardsTable.status,
       title: workCardsTable.title,
     })
     .from(workCardsTable)
+    .leftJoin(processAssetsTable, eq(workCardsTable.processAssetId, processAssetsTable.id))
     .where(and(eq(workCardsTable.id, workCardId), eq(workCardsTable.workspaceId, workspaceId)))
     .limit(1);
 
