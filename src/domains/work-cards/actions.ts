@@ -3,6 +3,8 @@ import { and, eq, sql } from 'drizzle-orm';
 import { getDb } from '@/lib/db';
 import { sessionsTable, workCardsTable } from '@/lib/db/schema';
 
+import { canTransitionWorkCardStatus, getInvalidWorkCardTransitionMessage } from './state';
+
 import type { WorkCardListItem, WorkCardSummary } from './types';
 
 function mapWorkCardRowToSummary(row: {
@@ -111,6 +113,25 @@ async function updateWorkCardForWorkspace({
   workspaceId: string;
 }): Promise<WorkCardListItem> {
   const database = getDb();
+  const existingRows = await database
+    .select({
+      status: workCardsTable.status,
+    })
+    .from(workCardsTable)
+    .where(and(eq(workCardsTable.id, workCardId), eq(workCardsTable.workspaceId, workspaceId)))
+    .limit(1);
+  const existingCard = existingRows[0];
+
+  if (!existingCard) {
+    throw new Error('Work card not found.');
+  }
+
+  const currentStatus = existingCard.status ?? 'active';
+
+  if (typeof status === 'string' && !canTransitionWorkCardStatus(currentStatus, status)) {
+    throw new Error(getInvalidWorkCardTransitionMessage(currentStatus, status));
+  }
+
   const updatedRows = await database
     .update(workCardsTable)
     .set({
@@ -171,10 +192,66 @@ async function archiveWorkCardForWorkspace(
   });
 }
 
+async function restoreWorkCardForWorkspace(
+  workCardId: string,
+  workspaceId: string,
+): Promise<WorkCardListItem> {
+  const database = getDb();
+  const existingRows = await database
+    .select({
+      status: workCardsTable.status,
+    })
+    .from(workCardsTable)
+    .where(and(eq(workCardsTable.id, workCardId), eq(workCardsTable.workspaceId, workspaceId)))
+    .limit(1);
+  const existingCard = existingRows[0];
+
+  if (!existingCard) {
+    throw new Error('Work card not found.');
+  }
+
+  if ((existingCard.status ?? 'active') !== 'archived') {
+    throw new Error('보관된 업무 카드만 복원할 수 있습니다.');
+  }
+
+  const updatedRows = await database
+    .update(workCardsTable)
+    .set({
+      status: 'active',
+      updatedAt: sql`now()`,
+    })
+    .where(and(eq(workCardsTable.id, workCardId), eq(workCardsTable.workspaceId, workspaceId)))
+    .returning({
+      audience: workCardsTable.audience,
+      createdAt: workCardsTable.createdAt,
+      id: workCardsTable.id,
+      priority: workCardsTable.priority,
+      processLabel: workCardsTable.processLabel,
+      sensitivity: workCardsTable.sensitivity,
+      sessionCount: sql<number>`(
+        select count(*)::int
+        from ${sessionsTable}
+        where ${sessionsTable.workCardId} = ${workCardsTable.id}
+          and ${sessionsTable.workspaceId} = ${workspaceId}
+      )`,
+      status: workCardsTable.status,
+      title: workCardsTable.title,
+      updatedAt: workCardsTable.updatedAt,
+    });
+  const restoredCard = updatedRows[0];
+
+  if (!restoredCard) {
+    throw new Error('Work card not found.');
+  }
+
+  return mapWorkCardRowToListItem(restoredCard);
+}
+
 export {
   archiveWorkCardForWorkspace,
   createWorkCard,
   mapWorkCardRowToListItem,
   mapWorkCardRowToSummary,
+  restoreWorkCardForWorkspace,
   updateWorkCardForWorkspace,
 };

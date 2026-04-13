@@ -4,6 +4,12 @@ import { useEffect, useMemo, useState } from 'react';
 
 import Link from 'next/link';
 
+import {
+  canRestoreWorkCard,
+  canStartSessionFromWorkCard,
+  formatWorkCardStatus,
+  getAllowedGenericWorkCardStatuses,
+} from '@/domains/work-cards/state';
 import type { WorkCardListItem } from '@/domains/work-cards/types';
 import { safeFetch } from '@/lib/utils';
 
@@ -67,10 +73,6 @@ function formatDateTimeLabel(value: string): string {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(date);
-}
-
-function canStartSessionFromWorkCard(status: WorkCardListItem['status']): boolean {
-  return status === 'active' || status === 'paused';
 }
 
 function formatIntentType(type: IntentType): string {
@@ -285,6 +287,40 @@ function WorkCardBoard({ initialCards }: WorkCardBoardProps) {
     setPendingCardId(null);
   };
 
+  const handleRestore = async (cardId: string) => {
+    setPendingCardId(cardId);
+    setErrorMessage('');
+
+    const result = await safeFetch<WorkCardResponse>(`/api/work-cards/${cardId}/restore`, {
+      method: 'POST',
+    });
+
+    if (!result.success) {
+      setPendingCardId(null);
+      setErrorMessage(result.error);
+      return;
+    }
+
+    const restoredCard = result.data.data.workCard;
+
+    if (restoredCard) {
+      setCards((previousCards) =>
+        previousCards.map((card) =>
+          card.id === cardId
+            ? {
+                ...restoredCard,
+                intentCount: card.intentCount,
+                recentIntents: card.recentIntents,
+                recentSessions: card.recentSessions,
+              }
+            : card,
+        ),
+      );
+    }
+
+    setPendingCardId(null);
+  };
+
   return (
     <div className="flex flex-col gap-6">
       {errorMessage.length > 0 ? (
@@ -385,6 +421,7 @@ function WorkCardBoard({ initialCards }: WorkCardBoardProps) {
                 key={card.id}
                 onArchive={handleArchive}
                 onEdit={() => setEditingCardId((current) => (current === card.id ? null : card.id))}
+                onRestore={handleRestore}
                 onSave={handleSave}
               />
             ))}
@@ -401,6 +438,7 @@ function WorkCardRow({
   isPending,
   onArchive,
   onEdit,
+  onRestore,
   onSave,
 }: {
   card: WorkCardBoardItem;
@@ -408,6 +446,7 @@ function WorkCardRow({
   isPending: boolean;
   onArchive: (cardId: string) => void;
   onEdit: () => void;
+  onRestore: (cardId: string) => void;
   onSave: (
     cardId: string,
     nextValues: {
@@ -437,6 +476,8 @@ function WorkCardRow({
   }, [card]);
 
   const canStartSession = canStartSessionFromWorkCard(card.status);
+  const allowedStatuses = getAllowedGenericWorkCardStatuses(card.status);
+  const canRestore = canRestoreWorkCard(card.status);
 
   return (
     <article className="workspace-card flex flex-col gap-4">
@@ -456,7 +497,7 @@ function WorkCardRow({
           )}
 
           <div className="flex flex-wrap gap-2">
-            <span className="badge badge-neutral">{card.status}</span>
+            <span className="badge badge-neutral">{formatWorkCardStatus(card.status)}</span>
             <span className="badge badge-accent">{card.priority}</span>
             <span className="badge badge-neutral">{card.sensitivity}</span>
             <span className="badge badge-neutral">연결 세션 {card.sessionCount}개</span>
@@ -471,12 +512,22 @@ function WorkCardRow({
             </Link>
           ) : (
             <span className="btn-secondary cursor-not-allowed opacity-50">
-              {card.status === 'completed' ? '완료된 카드' : '보관된 카드'}
+              {card.status === 'completed' ? '완료된 카드' : '세션 연결 불가'}
             </span>
           )}
           <button className="btn-secondary" onClick={onEdit} type="button">
             {isEditing ? '닫기' : '편집'}
           </button>
+          {canRestore ? (
+            <button
+              className="btn-secondary"
+              disabled={isPending}
+              onClick={() => onRestore(card.id)}
+              type="button"
+            >
+              복원
+            </button>
+          ) : null}
           {card.status !== 'archived' ? (
             <button
               className="btn-secondary"
@@ -560,10 +611,11 @@ function WorkCardRow({
                   onChange={(event) => setStatus(event.target.value as WorkCardListItem['status'])}
                   value={status}
                 >
-                  <option value="active">active</option>
-                  <option value="paused">paused</option>
-                  <option value="completed">completed</option>
-                  <option value="archived">archived</option>
+                  {allowedStatuses.map((statusOption) => (
+                    <option key={statusOption} value={statusOption}>
+                      {formatWorkCardStatus(statusOption)}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div className="flex items-end justify-end">

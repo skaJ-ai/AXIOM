@@ -96,16 +96,22 @@ async function PATCH(request: Request, { params }: { params: Promise<{ id: strin
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown work card patch error';
-    const status =
-      message === 'Authentication required.' ? 401 : message === 'Work card not found.' ? 404 : 500;
+    const normalizedStatus =
+      message === 'Authentication required.'
+        ? 401
+        : message === 'Work card not found.'
+          ? 404
+          : message.includes('업무 카드')
+            ? 409
+            : 500;
 
     return NextResponse.json(
       {
         message,
-        status,
+        status: normalizedStatus,
       },
       {
-        status,
+        status: normalizedStatus,
       },
     );
   }

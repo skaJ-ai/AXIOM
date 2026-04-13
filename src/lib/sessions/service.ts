@@ -10,6 +10,10 @@ import { listReviewsBySession } from '@/domains/validate/queries';
 import type { Review } from '@/domains/validate/types';
 import { createWorkCard } from '@/domains/work-cards/actions';
 import { getWorkCardSummaryByIdForWorkspace } from '@/domains/work-cards/queries';
+import {
+  getBlockedWorkCardMessage,
+  isWorkCardBlockedForNewSession,
+} from '@/domains/work-cards/state';
 import type { WorkCardSummary } from '@/domains/work-cards/types';
 import type { Report } from '@/domains/write/types';
 import { mergeCanvasState } from '@/lib/ai/session-chat';
@@ -189,16 +193,6 @@ function mapWorkCardSummaryRowToSummary(
     status: row.status ?? 'active',
     title: row.title ?? '업무 카드',
   };
-}
-
-function isWorkCardBlockedForNewSession(status: WorkCardSummary['status']): boolean {
-  return status === 'archived' || status === 'completed';
-}
-
-function getBlockedWorkCardMessage(status: WorkCardSummary['status']): string {
-  return status === 'completed'
-    ? '완료된 업무 카드는 새 세션에 연결할 수 없습니다.'
-    : '보관된 업무 카드는 새 세션에 연결할 수 없습니다.';
 }
 
 async function createSessionForWorkspace(

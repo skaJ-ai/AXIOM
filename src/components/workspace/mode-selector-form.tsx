@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
+import { canStartSessionFromWorkCard, formatWorkCardStatus } from '@/domains/work-cards/state';
 import type { WorkCardListItem } from '@/domains/work-cards/types';
 import type { SessionMode } from '@/lib/db/schema';
 import type { ModeDefinition } from '@/lib/modes';
@@ -71,10 +72,6 @@ const WORK_CARD_SELECTION_OPTIONS: {
     value: 'new',
   },
 ];
-
-function canStartSessionFromWorkCard(status: WorkCardListItem['status']): boolean {
-  return status === 'active' || status === 'paused';
-}
 
 function ModeSelectorForm({
   initialWorkCardId,
@@ -362,11 +359,7 @@ function ModeSelectorForm({
                       value={card.id}
                     >
                       {card.title}
-                      {card.status === 'completed'
-                        ? ' (완료됨)'
-                        : card.status === 'archived'
-                          ? ' (보관됨)'
-                          : ''}
+                      {card.status !== 'active' ? ` (${formatWorkCardStatus(card.status)})` : ''}
                     </option>
                   ))}
                 </select>
@@ -378,7 +371,9 @@ function ModeSelectorForm({
                     카드 요약
                   </h4>
                   <span className="badge badge-neutral">
-                    {selectedExistingWorkCard ? selectedExistingWorkCard.status : '미선택'}
+                    {selectedExistingWorkCard
+                      ? formatWorkCardStatus(selectedExistingWorkCard.status)
+                      : '미선택'}
                   </span>
                 </div>
                 {selectedExistingWorkCard ? (
@@ -387,7 +382,7 @@ function ModeSelectorForm({
                       <div className="border-[var(--color-warning)]/30 rounded-[var(--radius-sm)] border bg-[var(--color-warning-light)] px-3 py-2 text-xs text-[var(--color-warning)]">
                         {selectedExistingWorkCard.status === 'completed'
                           ? '완료된 카드는 새 세션에 다시 연결할 수 없습니다.'
-                          : '보관된 카드는 새 세션에 다시 연결할 수 없습니다.'}
+                          : '보관된 카드는 복원 후에만 새 세션에 다시 연결할 수 있습니다.'}
                       </div>
                     ) : null}
                     <p className="text-sm font-semibold text-[var(--color-text)]">
