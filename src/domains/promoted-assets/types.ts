@@ -1,4 +1,4 @@
-import type { IntentFragmentType } from '@/lib/db/schema';
+import type { IntentFragmentType, WorkCardSensitivity } from '@/lib/db/schema';
 
 interface PromotedAssetSummary {
   content: string;
@@ -8,6 +8,7 @@ interface PromotedAssetSummary {
   processAssetName: string | null;
   scope: string | null;
   sourceIntentId: string;
+  sourceSensitivity: WorkCardSensitivity;
   sourceSessionId: string | null;
   sourceWorkCardId: string | null;
   sourceWorkCardTitle: string | null;

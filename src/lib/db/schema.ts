@@ -7,6 +7,7 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
 
@@ -443,6 +444,10 @@ const promotedAssetsTable = pgTable(
       .notNull()
       .references(() => processAssetsTable.id, { onDelete: 'cascade' }),
     scope: text('scope'),
+    sourceSensitivity: text('source_sensitivity')
+      .$type<WorkCardSensitivity>()
+      .default('general')
+      .notNull(),
     sourceIntentId: uuid('source_intent_id')
       .notNull()
       .references(() => intentFragmentsTable.id, { onDelete: 'cascade' }),
@@ -459,7 +464,7 @@ const promotedAssetsTable = pgTable(
   },
   (table) => ({
     processAssetIndex: index('idx_promoted_assets_process_asset_id').on(table.processAssetId),
-    sourceIntentIndex: index('idx_promoted_assets_source_intent_id').on(table.sourceIntentId),
+    sourceIntentIndex: uniqueIndex('idx_promoted_assets_source_intent_id').on(table.sourceIntentId),
     sourceWorkCardIndex: index('idx_promoted_assets_source_work_card_id').on(
       table.sourceWorkCardId,
     ),

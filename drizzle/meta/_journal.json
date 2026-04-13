@@ -71,6 +71,13 @@
       "when": 1776146400000,
       "tag": "0009_promoted_assets",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1776232800000,
+      "tag": "0010_harden_promoted_asset_reuse",
+      "breakpoints": true
     }
   ]
 }

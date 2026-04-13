@@ -1,9 +1,25 @@
-import { and, asc, desc, eq, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
 
 import { getDb } from '@/lib/db';
+import type { WorkCardSensitivity } from '@/lib/db/schema';
 import { processAssetsTable, promotedAssetsTable, workCardsTable } from '@/lib/db/schema';
 
 import type { PromotedAssetSummary } from './types';
+
+function getAllowedPromotedAssetSensitivities(
+  currentSensitivity?: WorkCardSensitivity | null,
+): WorkCardSensitivity[] | null {
+  switch (currentSensitivity) {
+    case 'confidential':
+      return ['general', 'restricted', 'confidential'];
+    case 'restricted':
+      return ['general', 'restricted'];
+    case 'general':
+      return ['general'];
+    default:
+      return null;
+  }
+}
 
 function mapPromotedAssetRow(row: {
   content: string;
@@ -13,6 +29,7 @@ function mapPromotedAssetRow(row: {
   processAssetName: string | null;
   scope: string | null;
   sourceIntentId: string;
+  sourceSensitivity: WorkCardSensitivity;
   sourceSessionId: string | null;
   sourceWorkCardId: string | null;
   sourceWorkCardTitle: string | null;
@@ -26,6 +43,7 @@ function mapPromotedAssetRow(row: {
     processAssetName: row.processAssetName,
     scope: row.scope,
     sourceIntentId: row.sourceIntentId,
+    sourceSensitivity: row.sourceSensitivity,
     sourceSessionId: row.sourceSessionId,
     sourceWorkCardId: row.sourceWorkCardId,
     sourceWorkCardTitle: row.sourceWorkCardTitle,
@@ -37,11 +55,13 @@ async function listPromotedAssetsByProcessAsset(
   processAssetId: string,
   workspaceId: string,
   options?: {
+    currentSensitivity?: WorkCardSensitivity | null;
     excludeWorkCardId?: string | null;
     limit?: number;
   },
 ): Promise<PromotedAssetSummary[]> {
   const database = getDb();
+  const allowedSensitivities = getAllowedPromotedAssetSensitivities(options?.currentSensitivity);
   const rows = await database
     .select({
       content: promotedAssetsTable.content,
@@ -51,6 +71,7 @@ async function listPromotedAssetsByProcessAsset(
       processAssetName: processAssetsTable.name,
       scope: promotedAssetsTable.scope,
       sourceIntentId: promotedAssetsTable.sourceIntentId,
+      sourceSensitivity: promotedAssetsTable.sourceSensitivity,
       sourceSessionId: promotedAssetsTable.sourceSessionId,
       sourceWorkCardId: promotedAssetsTable.sourceWorkCardId,
       sourceWorkCardTitle: workCardsTable.title,
@@ -63,6 +84,9 @@ async function listPromotedAssetsByProcessAsset(
       and(
         eq(promotedAssetsTable.workspaceId, workspaceId),
         eq(promotedAssetsTable.processAssetId, processAssetId),
+        allowedSensitivities
+          ? inArray(promotedAssetsTable.sourceSensitivity, allowedSensitivities)
+          : undefined,
         options?.excludeWorkCardId
           ? sql`${promotedAssetsTable.sourceWorkCardId} is distinct from ${options.excludeWorkCardId}`
           : undefined,
@@ -85,6 +109,7 @@ async function listPromotedAssetsByWorkspace(workspaceId: string): Promise<Promo
       processAssetName: processAssetsTable.name,
       scope: promotedAssetsTable.scope,
       sourceIntentId: promotedAssetsTable.sourceIntentId,
+      sourceSensitivity: promotedAssetsTable.sourceSensitivity,
       sourceSessionId: promotedAssetsTable.sourceSessionId,
       sourceWorkCardId: promotedAssetsTable.sourceWorkCardId,
       sourceWorkCardTitle: workCardsTable.title,

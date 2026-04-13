@@ -48,6 +48,7 @@ async function promoteApprovedIntentsToAssets({
       reviewStatus: intentFragmentsTable.reviewStatus,
       scope: intentFragmentsTable.scope,
       sessionId: intentFragmentsTable.sessionId,
+      sourceSensitivity: workCardsTable.sensitivity,
       type: intentFragmentsTable.type,
       workCardId: intentFragmentsTable.workCardId,
     })
@@ -97,12 +98,16 @@ async function promoteApprovedIntentsToAssets({
         processAssetId: row.processAssetId!,
         scope: row.scope ?? null,
         sourceIntentId: row.id,
+        sourceSensitivity: row.sourceSensitivity ?? 'general',
         sourceSessionId: row.sessionId,
         sourceWorkCardId: row.workCardId ?? null,
         type: row.type,
         workspaceId,
       })),
     )
+    .onConflictDoNothing({
+      target: promotedAssetsTable.sourceIntentId,
+    })
     .returning({
       sourceIntentId: promotedAssetsTable.sourceIntentId,
     });

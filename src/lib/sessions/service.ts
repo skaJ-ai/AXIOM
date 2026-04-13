@@ -504,6 +504,7 @@ async function getSessionDetailForWorkspace(
   const promotedAssets =
     typeof sessionRow.workCardProcessAssetId === 'string'
       ? await listPromotedAssetsByProcessAsset(sessionRow.workCardProcessAssetId, workspaceId, {
+          currentSensitivity: sessionRow.workCardSensitivity ?? 'general',
           excludeWorkCardId: sessionRow.workCardId,
           limit: 6,
         })
@@ -1030,6 +1031,7 @@ async function getSessionPromptContext({
   const promotedAssets =
     typeof sessionRow.workCardProcessAssetId === 'string'
       ? await listPromotedAssetsByProcessAsset(sessionRow.workCardProcessAssetId, workspaceId, {
+          currentSensitivity: sessionRow.workCardSensitivity ?? 'general',
           excludeWorkCardId: sessionRow.workCardId,
           limit: 8,
         })
