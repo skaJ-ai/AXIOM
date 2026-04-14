@@ -22,6 +22,9 @@ export default async function WorkspaceReviewPage() {
               <Link className="btn-secondary focus-ring" href="/workspace">
                 대시보드로
               </Link>
+              <Link className="btn-secondary focus-ring" href="/workspace/conflicts">
+                충돌 검토
+              </Link>
               <Link className="btn-secondary focus-ring" href="/workspace/knowledge">
                 지식 브라우저
               </Link>

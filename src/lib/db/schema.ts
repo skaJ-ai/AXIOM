@@ -42,6 +42,10 @@ type IntentFragmentType =
   | 'judgment_basis'
   | 'preference'
   | 'prohibition';
+type PromotedAssetConflictResolutionType = 'accept_both' | 'archive_a' | 'archive_b';
+type PromotedAssetConflictStatus = 'detected' | 'resolved';
+type PromotedAssetConflictType = 'duplication' | 'supersede';
+type PromotedAssetStatus = 'active' | 'archived';
 type ReportStatus = 'draft' | 'final' | 'promoted_asset';
 type WorkCardPriority = 'high' | 'low' | 'medium';
 type WorkCardSensitivity = 'confidential' | 'general' | 'restricted';
@@ -448,6 +452,7 @@ const promotedAssetsTable = pgTable(
       .$type<WorkCardSensitivity>()
       .default('general')
       .notNull(),
+    status: text('status').$type<PromotedAssetStatus>().default('active').notNull(),
     sourceIntentId: uuid('source_intent_id')
       .notNull()
       .references(() => intentFragmentsTable.id, { onDelete: 'cascade' }),
@@ -464,11 +469,51 @@ const promotedAssetsTable = pgTable(
   },
   (table) => ({
     processAssetIndex: index('idx_promoted_assets_process_asset_id').on(table.processAssetId),
+    statusIndex: index('idx_promoted_assets_status').on(table.status),
     sourceIntentIndex: uniqueIndex('idx_promoted_assets_source_intent_id').on(table.sourceIntentId),
     sourceWorkCardIndex: index('idx_promoted_assets_source_work_card_id').on(
       table.sourceWorkCardId,
     ),
     workspaceIndex: index('idx_promoted_assets_workspace_id').on(table.workspaceId),
+  }),
+);
+
+const promotedAssetConflictsTable = pgTable(
+  'promoted_asset_conflicts',
+  {
+    assetAId: uuid('asset_a_id')
+      .notNull()
+      .references(() => promotedAssetsTable.id, { onDelete: 'cascade' }),
+    assetBId: uuid('asset_b_id')
+      .notNull()
+      .references(() => promotedAssetsTable.id, { onDelete: 'cascade' }),
+    conflictType: text('conflict_type').$type<PromotedAssetConflictType>().notNull(),
+    detectedAt: timestamp('detected_at', { withTimezone: true }).defaultNow().notNull(),
+    id: uuid('id').defaultRandom().primaryKey(),
+    processAssetId: uuid('process_asset_id')
+      .notNull()
+      .references(() => processAssetsTable.id, { onDelete: 'cascade' }),
+    resolutionType: text('resolution_type').$type<PromotedAssetConflictResolutionType>(),
+    resolvedAt: timestamp('resolved_at', { withTimezone: true }),
+    resolvedBy: uuid('resolved_by').references(() => usersTable.id, { onDelete: 'set null' }),
+    status: text('status').$type<PromotedAssetConflictStatus>().default('detected').notNull(),
+    workspaceId: uuid('workspace_id')
+      .notNull()
+      .references(() => workspacesTable.id, { onDelete: 'cascade' }),
+  },
+  (table) => ({
+    assetAIndex: index('idx_promoted_asset_conflicts_asset_a_id').on(table.assetAId),
+    assetBIndex: index('idx_promoted_asset_conflicts_asset_b_id').on(table.assetBId),
+    processAssetIndex: index('idx_promoted_asset_conflicts_process_asset_id').on(
+      table.processAssetId,
+    ),
+    statusIndex: index('idx_promoted_asset_conflicts_status').on(table.status),
+    uniquePairIndex: uniqueIndex('idx_promoted_asset_conflicts_pair_type').on(
+      table.assetAId,
+      table.assetBId,
+      table.conflictType,
+    ),
+    workspaceIndex: index('idx_promoted_asset_conflicts_workspace_id').on(table.workspaceId),
   }),
 );
 
@@ -593,6 +638,7 @@ export {
   memoryChunksTable,
   messagesTable,
   processAssetsTable,
+  promotedAssetConflictsTable,
   promotedAssetsTable,
   reportsTable,
   reviewsTable,
@@ -616,6 +662,10 @@ export type {
   MemoryChunkKind,
   MemoryChunkStatus,
   PersonaType,
+  PromotedAssetConflictResolutionType,
+  PromotedAssetConflictStatus,
+  PromotedAssetConflictType,
+  PromotedAssetStatus,
   ReportSection,
   ReportStatus,
   ReportType,

@@ -104,6 +104,7 @@ async function listPromotedAssetsByProcessAsset(
       and(
         eq(promotedAssetsTable.workspaceId, workspaceId),
         eq(promotedAssetsTable.processAssetId, processAssetId),
+        eq(promotedAssetsTable.status, 'active'),
         allowedSensitivities
           ? inArray(promotedAssetsTable.sourceSensitivity, allowedSensitivities)
           : undefined,
@@ -141,7 +142,12 @@ async function listPromotedAssetsByWorkspace(workspaceId: string): Promise<Promo
     .from(promotedAssetsTable)
     .innerJoin(processAssetsTable, eq(promotedAssetsTable.processAssetId, processAssetsTable.id))
     .leftJoin(workCardsTable, eq(promotedAssetsTable.sourceWorkCardId, workCardsTable.id))
-    .where(eq(promotedAssetsTable.workspaceId, workspaceId))
+    .where(
+      and(
+        eq(promotedAssetsTable.workspaceId, workspaceId),
+        eq(promotedAssetsTable.status, 'active'),
+      ),
+    )
     .orderBy(desc(promotedAssetsTable.createdAt));
 
   return rows.map(mapPromotedAssetRow);

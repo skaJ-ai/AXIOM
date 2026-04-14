@@ -1,5 +1,6 @@
 import { and, eq, inArray } from 'drizzle-orm';
 
+import { syncPromotedAssetConflictsForWorkspace } from '@/domains/promoted-assets/conflict-actions';
 import { getDb } from '@/lib/db';
 import { intentFragmentsTable, promotedAssetsTable, workCardsTable } from '@/lib/db/schema';
 
@@ -112,7 +113,13 @@ async function promoteApprovedIntentsToAssets({
       sourceIntentId: promotedAssetsTable.sourceIntentId,
     });
 
-  return createdRows.map((row) => row.sourceIntentId);
+  const promotedIntentIds = createdRows.map((row) => row.sourceIntentId);
+
+  if (promotedIntentIds.length > 0) {
+    await syncPromotedAssetConflictsForWorkspace(workspaceId);
+  }
+
+  return promotedIntentIds;
 }
 
 export { deletePromotedAssetsBySourceIntentIds, promoteApprovedIntentsToAssets };

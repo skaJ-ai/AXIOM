@@ -78,6 +78,13 @@
       "when": 1776232800000,
       "tag": "0010_harden_promoted_asset_reuse",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1776319200000,
+      "tag": "0011_minimal_promoted_asset_conflicts",
+      "breakpoints": true
     }
   ]
 }

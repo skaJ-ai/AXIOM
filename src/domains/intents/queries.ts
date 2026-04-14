@@ -70,6 +70,7 @@ async function listIntentReviewQueueByWorkspace(
         select 1
         from ${promotedAssetsTable}
         where ${promotedAssetsTable.sourceIntentId} = ${intentFragmentsTable.id}
+          and ${promotedAssetsTable.status} = 'active'
       )`,
       processAssetId: workCardsTable.processAssetId,
       processAssetName: processAssetsTable.name,
