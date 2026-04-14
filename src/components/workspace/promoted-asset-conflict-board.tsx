@@ -22,6 +22,8 @@ interface PromotedAssetConflictResponse {
 
 function formatConflictType(type: PromotedAssetConflictItem['conflictType']): string {
   switch (type) {
+    case 'contradiction':
+      return '모순 후보';
     case 'duplication':
       return '중복';
     case 'supersede':
@@ -144,8 +146,8 @@ function PromotedAssetConflictBoard({ initialItems }: PromotedAssetConflictBoard
           <div>
             <h2 className="font-headline text-xl font-bold text-[var(--color-text)]">충돌 상태</h2>
             <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-              같은 프로세스 자산 안에서 재사용 자산이 겹치거나 최신 결론으로 대체될 수 있는 항목을
-              비교합니다.
+              같은 프로세스 자산 안에서 재사용 자산이 겹치거나, 서로 모순되거나, 최신 결론으로
+              대체될 수 있는 항목을 비교합니다.
             </p>
           </div>
           <button className="btn-secondary" onClick={() => void handleRefresh()} type="button">

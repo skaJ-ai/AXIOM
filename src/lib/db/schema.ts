@@ -44,7 +44,7 @@ type IntentFragmentType =
   | 'prohibition';
 type PromotedAssetConflictResolutionType = 'accept_both' | 'archive_a' | 'archive_b';
 type PromotedAssetConflictStatus = 'detected' | 'resolved';
-type PromotedAssetConflictType = 'duplication' | 'supersede';
+type PromotedAssetConflictType = 'contradiction' | 'duplication' | 'supersede';
 type PromotedAssetBucketScope = 'personal' | 'workspace';
 type PromotedAssetMaturity = 'promoted' | 'verified_standard';
 type PromotedAssetStatus = 'active' | 'archived';

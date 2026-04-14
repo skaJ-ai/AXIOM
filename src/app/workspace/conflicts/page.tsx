@@ -30,7 +30,7 @@ export default async function WorkspaceConflictsPage() {
               </Link>
             </div>
           }
-          description="같은 프로세스 자산에 연결된 재사용 자산이 서로 중복되거나 최신 결론으로 대체될 수 있는지 비교하고, 사람이 최종 정리를 내립니다."
+          description="같은 프로세스 자산에 연결된 재사용 자산이 서로 중복되거나, 모순되거나, 최신 결론으로 대체될 수 있는지 비교하고 사람이 최종 정리를 내립니다."
           eyebrow="Conflict Review"
           meta={
             <>
