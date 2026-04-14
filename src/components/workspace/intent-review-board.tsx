@@ -5,6 +5,8 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 
 import type { IntentReviewItem } from '@/domains/intents/types';
+import { formatPromotedAssetBucketScope } from '@/domains/promoted-assets/bucket-scope';
+import type { PromotedAssetBucketScope } from '@/lib/db/schema';
 import { cn, safeFetch } from '@/lib/utils';
 
 type ReviewFilter = 'all' | 'approved' | 'captured' | 'nominated' | 'pending' | 'rejected';
@@ -100,6 +102,7 @@ function applyReviewDecision(item: IntentReviewItem, decision: ReviewDecision): 
   return {
     ...item,
     isPromoted: false,
+    promotedBucketScope: null,
     reviewStatus: 'captured',
   };
 }
@@ -115,10 +118,14 @@ function applyIntentAction(item: IntentReviewItem, action: BatchReviewAction): I
   return applyReviewDecision(item, action);
 }
 
-function applyPromoteAction(item: IntentReviewItem): IntentReviewItem {
+function applyPromoteAction(
+  item: IntentReviewItem,
+  bucketScope: PromotedAssetBucketScope,
+): IntentReviewItem {
   return {
     ...item,
     isPromoted: true,
+    promotedBucketScope: bucketScope,
   };
 }
 
@@ -128,6 +135,8 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
   const [items, setItems] = useState(initialItems);
   const [pendingBatchAction, setPendingBatchAction] = useState<BoardAction | null>(null);
   const [pendingIntentId, setPendingIntentId] = useState<string | null>(null);
+  const [promotionBucketScope, setPromotionBucketScope] =
+    useState<PromotedAssetBucketScope>('workspace');
   const [selectedIntentIds, setSelectedIntentIds] = useState<string[]>([]);
 
   const visibleItems = useMemo(() => {
@@ -172,7 +181,8 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
           (item) =>
             item.reviewStatus === 'approved' &&
             !item.isPromoted &&
-            typeof item.processAssetId === 'string',
+            typeof item.processAssetId === 'string' &&
+            item.processAssetId.length > 0,
         )
         .map((item) => item.id),
     [selectedItems],
@@ -266,6 +276,7 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
 
     const result = await safeFetch<PromoteAssetsResponse>('/api/promoted-assets', {
       body: JSON.stringify({
+        bucketScope: promotionBucketScope,
         intentIds: [item.id],
       }),
       headers: {
@@ -290,7 +301,9 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
 
     setItems((currentItems) =>
       currentItems.map((currentItem) =>
-        currentItem.id === item.id ? applyPromoteAction(currentItem) : currentItem,
+        currentItem.id === item.id
+          ? applyPromoteAction(currentItem, promotionBucketScope)
+          : currentItem,
       ),
     );
     setPendingIntentId(null);
@@ -352,6 +365,7 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
 
     const result = await safeFetch<PromoteAssetsResponse>('/api/promoted-assets', {
       body: JSON.stringify({
+        bucketScope: promotionBucketScope,
         intentIds: uniqueIntentIds,
       }),
       headers: {
@@ -376,7 +390,9 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
 
     setItems((currentItems) =>
       currentItems.map((currentItem) =>
-        promotedIdSet.has(currentItem.id) ? applyPromoteAction(currentItem) : currentItem,
+        promotedIdSet.has(currentItem.id)
+          ? applyPromoteAction(currentItem, promotionBucketScope)
+          : currentItem,
       ),
     );
     setSelectedIntentIds((currentIds) => currentIds.filter((id) => !promotedIdSet.has(id)));
@@ -478,6 +494,27 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
                 선택 해제
               </button>
             </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold text-[var(--color-text-secondary)]">
+              승격 버킷
+            </span>
+            {(['workspace', 'personal'] as const).map((bucketScope) => (
+              <button
+                className={cn(
+                  'btn-secondary',
+                  promotionBucketScope === bucketScope
+                    ? 'border-[var(--color-accent)] text-[var(--color-accent)]'
+                    : '',
+                )}
+                key={bucketScope}
+                onClick={() => setPromotionBucketScope(bucketScope)}
+                type="button"
+              >
+                {formatPromotedAssetBucketScope(bucketScope)}
+              </button>
+            ))}
           </div>
 
           <div className="flex flex-wrap gap-2">

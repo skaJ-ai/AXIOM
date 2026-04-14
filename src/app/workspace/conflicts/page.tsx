@@ -10,7 +10,9 @@ export default async function WorkspaceConflictsPage() {
   const currentUser = await requireAuthenticatedPageUser();
 
   await syncPromotedAssetConflictsForWorkspace(currentUser.workspaceId);
-  const items = await listPromotedAssetConflictsByWorkspace(currentUser.workspaceId);
+  const items = await listPromotedAssetConflictsByWorkspace(currentUser.workspaceId, {
+    currentUserId: currentUser.userId,
+  });
   const detectedCount = items.filter((item) => item.status === 'detected').length;
   const resolvedCount = items.filter((item) => item.status === 'resolved').length;
 

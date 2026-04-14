@@ -21,6 +21,7 @@ async function GET(request: Request) {
 
     await syncPromotedAssetConflictsForWorkspace(currentUser.workspaceId);
     const conflicts = await listPromotedAssetConflictsByWorkspace(currentUser.workspaceId, {
+      currentUserId: currentUser.userId,
       statuses,
     });
 

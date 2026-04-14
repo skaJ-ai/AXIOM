@@ -7,7 +7,11 @@ async function GET(_request: Request, { params }: { params: Promise<{ id: string
   try {
     const currentUser = await requireAuthenticatedApiUser();
     const { id } = await params;
-    const session = await getSessionDetailForWorkspace(id, currentUser.workspaceId);
+    const session = await getSessionDetailForWorkspace(
+      id,
+      currentUser.workspaceId,
+      currentUser.userId,
+    );
 
     if (!session) {
       return NextResponse.json(

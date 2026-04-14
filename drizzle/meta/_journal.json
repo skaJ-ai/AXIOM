@@ -85,6 +85,13 @@
       "when": 1776319200000,
       "tag": "0011_minimal_promoted_asset_conflicts",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1776405600000,
+      "tag": "0012_promoted_asset_bucket_scope",
+      "breakpoints": true
     }
   ]
 }

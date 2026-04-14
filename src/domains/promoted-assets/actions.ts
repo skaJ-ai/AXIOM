@@ -2,6 +2,7 @@ import { and, eq, inArray } from 'drizzle-orm';
 
 import { syncPromotedAssetConflictsForWorkspace } from '@/domains/promoted-assets/conflict-actions';
 import { getDb } from '@/lib/db';
+import type { PromotedAssetBucketScope } from '@/lib/db/schema';
 import { intentFragmentsTable, promotedAssetsTable, workCardsTable } from '@/lib/db/schema';
 
 async function deletePromotedAssetsBySourceIntentIds(
@@ -26,10 +27,12 @@ async function deletePromotedAssetsBySourceIntentIds(
 }
 
 async function promoteApprovedIntentsToAssets({
+  bucketScope,
   intentIds,
   workspaceId,
   userId,
 }: {
+  bucketScope: PromotedAssetBucketScope;
   intentIds: string[];
   userId: string;
   workspaceId: string;
@@ -94,6 +97,7 @@ async function promoteApprovedIntentsToAssets({
     .insert(promotedAssetsTable)
     .values(
       nextRows.map((row) => ({
+        bucketScope,
         content: row.content,
         createdBy: userId,
         processAssetId: row.processAssetId!,

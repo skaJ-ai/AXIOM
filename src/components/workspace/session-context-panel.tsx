@@ -5,6 +5,7 @@ import Link from 'next/link';
 import useSWR from 'swr';
 
 import type { IntentFragment } from '@/domains/intents/types';
+import { formatPromotedAssetBucketScope } from '@/domains/promoted-assets/bucket-scope';
 import type { PromotedAssetSummary } from '@/domains/promoted-assets/types';
 import { formatWorkCardStatus } from '@/domains/work-cards/state';
 import type { WorkCardSummary } from '@/domains/work-cards/types';
@@ -202,6 +203,9 @@ function SessionContextPanel({
                     {asset.sourceWorkCardTitle ? (
                       <span className="badge badge-neutral">{asset.sourceWorkCardTitle}</span>
                     ) : null}
+                    <span className="badge badge-neutral">
+                      {formatPromotedAssetBucketScope(asset.bucketScope)}
+                    </span>
                     {asset.scope ? <span className="meta">{asset.scope}</span> : null}
                   </div>
                   <p className="text-sm leading-6 text-[var(--color-text)]">{asset.content}</p>

@@ -74,6 +74,13 @@ async function listIntentReviewQueueByWorkspace(
       )`,
       processAssetId: workCardsTable.processAssetId,
       processAssetName: processAssetsTable.name,
+      promotedBucketScope: sql<IntentReviewItem['promotedBucketScope']>`(
+        select ${promotedAssetsTable.bucketScope}
+        from ${promotedAssetsTable}
+        where ${promotedAssetsTable.sourceIntentId} = ${intentFragmentsTable.id}
+          and ${promotedAssetsTable.status} = 'active'
+        limit 1
+      )`,
       reviewStatus: intentFragmentsTable.reviewStatus,
       scope: intentFragmentsTable.scope,
       sessionId: intentFragmentsTable.sessionId,
@@ -107,6 +114,7 @@ async function listIntentReviewQueueByWorkspace(
     isPromoted: row.isPromoted,
     processAssetId: row.processAssetId,
     processAssetName: row.processAssetName,
+    promotedBucketScope: row.promotedBucketScope,
     reviewStatus: row.reviewStatus,
     scope: row.scope,
     sessionId: row.sessionId,

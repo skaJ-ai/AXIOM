@@ -45,6 +45,7 @@ type IntentFragmentType =
 type PromotedAssetConflictResolutionType = 'accept_both' | 'archive_a' | 'archive_b';
 type PromotedAssetConflictStatus = 'detected' | 'resolved';
 type PromotedAssetConflictType = 'duplication' | 'supersede';
+type PromotedAssetBucketScope = 'personal' | 'workspace';
 type PromotedAssetStatus = 'active' | 'archived';
 type ReportStatus = 'draft' | 'final' | 'promoted_asset';
 type WorkCardPriority = 'high' | 'low' | 'medium';
@@ -440,6 +441,10 @@ const intentFragmentsTable = pgTable(
 const promotedAssetsTable = pgTable(
   'promoted_assets',
   {
+    bucketScope: text('bucket_scope')
+      .$type<PromotedAssetBucketScope>()
+      .default('workspace')
+      .notNull(),
     content: text('content').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     createdBy: uuid('created_by').references(() => usersTable.id, { onDelete: 'set null' }),
@@ -468,6 +473,7 @@ const promotedAssetsTable = pgTable(
       .references(() => workspacesTable.id, { onDelete: 'cascade' }),
   },
   (table) => ({
+    bucketScopeIndex: index('idx_promoted_assets_bucket_scope').on(table.bucketScope),
     processAssetIndex: index('idx_promoted_assets_process_asset_id').on(table.processAssetId),
     statusIndex: index('idx_promoted_assets_status').on(table.status),
     sourceIntentIndex: uniqueIndex('idx_promoted_assets_source_intent_id').on(table.sourceIntentId),
@@ -662,6 +668,7 @@ export type {
   MemoryChunkKind,
   MemoryChunkStatus,
   PersonaType,
+  PromotedAssetBucketScope,
   PromotedAssetConflictResolutionType,
   PromotedAssetConflictStatus,
   PromotedAssetConflictType,

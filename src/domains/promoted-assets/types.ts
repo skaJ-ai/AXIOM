@@ -1,6 +1,11 @@
-import type { IntentFragmentType, WorkCardSensitivity } from '@/lib/db/schema';
+import type {
+  IntentFragmentType,
+  PromotedAssetBucketScope,
+  WorkCardSensitivity,
+} from '@/lib/db/schema';
 
 interface PromotedAssetSummary {
+  bucketScope: PromotedAssetBucketScope;
   content: string;
   createdAt: string;
   id: string;

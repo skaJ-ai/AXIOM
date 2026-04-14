@@ -438,6 +438,7 @@ async function verifySessionOwnership(sessionId: string, workspaceId: string): P
 async function getSessionDetailForWorkspace(
   sessionId: string,
   workspaceId: string,
+  currentUserId?: string,
 ): Promise<SessionDetail | null> {
   const database = getDb();
   const sessionRows = await database
@@ -523,6 +524,7 @@ async function getSessionDetailForWorkspace(
             processLabel: sessionRow.workCardProcessLabel,
           }),
           currentSensitivity: sessionRow.workCardSensitivity ?? 'general',
+          currentUserId,
           excludeWorkCardId: sessionRow.workCardId,
           limit: 6,
         })
@@ -950,9 +952,11 @@ async function getParentSessionArtifacts({
 }
 
 async function getSessionPromptContext({
+  currentUserId,
   sessionId,
   workspaceId,
 }: {
+  currentUserId?: string;
   sessionId: string;
   workspaceId: string;
 }): Promise<{
@@ -1055,6 +1059,7 @@ async function getSessionPromptContext({
             processLabel: sessionRow.workCardProcessLabel,
           }),
           currentSensitivity: sessionRow.workCardSensitivity ?? 'general',
+          currentUserId,
           excludeWorkCardId: sessionRow.workCardId,
           limit: 8,
         })

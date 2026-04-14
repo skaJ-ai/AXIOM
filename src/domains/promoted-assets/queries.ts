@@ -1,8 +1,8 @@
-import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, or, sql } from 'drizzle-orm';
 
 import { inferIntentScopesFromTexts } from '@/domains/intents/scope';
 import { getDb } from '@/lib/db';
-import type { WorkCardSensitivity } from '@/lib/db/schema';
+import type { PromotedAssetBucketScope, WorkCardSensitivity } from '@/lib/db/schema';
 import { processAssetsTable, promotedAssetsTable, workCardsTable } from '@/lib/db/schema';
 
 import type { PromotedAssetSummary } from './types';
@@ -22,7 +22,22 @@ function getAllowedPromotedAssetSensitivities(
   }
 }
 
+function createBucketVisibilityFilter(currentUserId?: string) {
+  if (!currentUserId) {
+    return eq(promotedAssetsTable.bucketScope, 'workspace');
+  }
+
+  return or(
+    eq(promotedAssetsTable.bucketScope, 'workspace'),
+    and(
+      eq(promotedAssetsTable.bucketScope, 'personal'),
+      eq(promotedAssetsTable.createdBy, currentUserId),
+    ),
+  );
+}
+
 function mapPromotedAssetRow(row: {
+  bucketScope: PromotedAssetBucketScope;
   content: string;
   createdAt: Date;
   id: string;
@@ -37,6 +52,7 @@ function mapPromotedAssetRow(row: {
   type: PromotedAssetSummary['type'];
 }): PromotedAssetSummary {
   return {
+    bucketScope: row.bucketScope,
     content: row.content,
     createdAt: row.createdAt.toISOString(),
     id: row.id,
@@ -73,6 +89,7 @@ async function listPromotedAssetsByProcessAsset(
   options?: {
     currentScopeHints?: Array<string | null | undefined>;
     currentSensitivity?: WorkCardSensitivity | null;
+    currentUserId?: string;
     excludeWorkCardId?: string | null;
     limit?: number;
   },
@@ -84,6 +101,7 @@ async function listPromotedAssetsByProcessAsset(
     currentScopes.length > 0 ? Math.max((options?.limit ?? 8) * 4, 16) : (options?.limit ?? 8);
   const rows = await database
     .select({
+      bucketScope: promotedAssetsTable.bucketScope,
       content: promotedAssetsTable.content,
       createdAt: promotedAssetsTable.createdAt,
       id: promotedAssetsTable.id,
@@ -105,6 +123,7 @@ async function listPromotedAssetsByProcessAsset(
         eq(promotedAssetsTable.workspaceId, workspaceId),
         eq(promotedAssetsTable.processAssetId, processAssetId),
         eq(promotedAssetsTable.status, 'active'),
+        createBucketVisibilityFilter(options?.currentUserId),
         allowedSensitivities
           ? inArray(promotedAssetsTable.sourceSensitivity, allowedSensitivities)
           : undefined,
@@ -122,10 +141,14 @@ async function listPromotedAssetsByProcessAsset(
     .map(mapPromotedAssetRow);
 }
 
-async function listPromotedAssetsByWorkspace(workspaceId: string): Promise<PromotedAssetSummary[]> {
+async function listPromotedAssetsByWorkspace(
+  workspaceId: string,
+  currentUserId?: string,
+): Promise<PromotedAssetSummary[]> {
   const database = getDb();
   const rows = await database
     .select({
+      bucketScope: promotedAssetsTable.bucketScope,
       content: promotedAssetsTable.content,
       createdAt: promotedAssetsTable.createdAt,
       id: promotedAssetsTable.id,
@@ -146,6 +169,7 @@ async function listPromotedAssetsByWorkspace(workspaceId: string): Promise<Promo
       and(
         eq(promotedAssetsTable.workspaceId, workspaceId),
         eq(promotedAssetsTable.status, 'active'),
+        createBucketVisibilityFilter(currentUserId),
       ),
     )
     .orderBy(desc(promotedAssetsTable.createdAt));

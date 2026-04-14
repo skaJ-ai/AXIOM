@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray } from 'drizzle-orm';
+import { and, desc, eq, inArray, or } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 
 import { getDb } from '@/lib/db';
@@ -17,6 +17,7 @@ const workCardATable = alias(workCardsTable, 'promoted_asset_conflict_work_card_
 const workCardBTable = alias(workCardsTable, 'promoted_asset_conflict_work_card_b');
 
 function mapConflictRow(row: {
+  assetABucketScope: PromotedAssetConflictItem['assetA']['bucketScope'];
   assetAContent: string;
   assetACreatedAt: Date;
   assetAId: string;
@@ -27,6 +28,7 @@ function mapConflictRow(row: {
   assetASourceWorkCardTitle: string | null;
   assetAStatus: 'active' | 'archived';
   assetAType: PromotedAssetConflictItem['assetA']['type'];
+  assetBBucketScope: PromotedAssetConflictItem['assetB']['bucketScope'];
   assetBContent: string;
   assetBCreatedAt: Date;
   assetBId: string;
@@ -48,6 +50,7 @@ function mapConflictRow(row: {
 }): PromotedAssetConflictItem {
   return {
     assetA: {
+      bucketScope: row.assetABucketScope,
       content: row.assetAContent,
       createdAt: row.assetACreatedAt.toISOString(),
       id: row.assetAId,
@@ -60,6 +63,7 @@ function mapConflictRow(row: {
       type: row.assetAType,
     },
     assetB: {
+      bucketScope: row.assetBBucketScope,
       content: row.assetBContent,
       createdAt: row.assetBCreatedAt.toISOString(),
       id: row.assetBId,
@@ -86,6 +90,7 @@ async function listPromotedAssetConflictsByWorkspace(
   workspaceId: string,
   options?: {
     activeOnly?: boolean;
+    currentUserId?: string;
     statuses?: Array<'detected' | 'resolved'>;
   },
 ): Promise<PromotedAssetConflictItem[]> {
@@ -95,6 +100,7 @@ async function listPromotedAssetConflictsByWorkspace(
       assetAContent: assetATable.content,
       assetACreatedAt: assetATable.createdAt,
       assetAId: assetATable.id,
+      assetABucketScope: assetATable.bucketScope,
       assetAScope: assetATable.scope,
       assetASourceIntentId: assetATable.sourceIntentId,
       assetASourceSensitivity: assetATable.sourceSensitivity,
@@ -105,6 +111,7 @@ async function listPromotedAssetConflictsByWorkspace(
       assetBContent: assetBTable.content,
       assetBCreatedAt: assetBTable.createdAt,
       assetBId: assetBTable.id,
+      assetBBucketScope: assetBTable.bucketScope,
       assetBScope: assetBTable.scope,
       assetBSourceIntentId: assetBTable.sourceIntentId,
       assetBSourceSensitivity: assetBTable.sourceSensitivity,
@@ -133,6 +140,24 @@ async function listPromotedAssetConflictsByWorkspace(
     .where(
       and(
         eq(promotedAssetConflictsTable.workspaceId, workspaceId),
+        options?.currentUserId
+          ? and(
+              or(
+                eq(assetATable.bucketScope, 'workspace'),
+                and(
+                  eq(assetATable.bucketScope, 'personal'),
+                  eq(assetATable.createdBy, options.currentUserId),
+                ),
+              ),
+              or(
+                eq(assetBTable.bucketScope, 'workspace'),
+                and(
+                  eq(assetBTable.bucketScope, 'personal'),
+                  eq(assetBTable.createdBy, options.currentUserId),
+                ),
+              ),
+            )
+          : and(eq(assetATable.bucketScope, 'workspace'), eq(assetBTable.bucketScope, 'workspace')),
         options?.statuses && options.statuses.length > 0
           ? inArray(promotedAssetConflictsTable.status, options.statuses)
           : undefined,

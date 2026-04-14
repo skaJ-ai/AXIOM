@@ -1,3 +1,4 @@
+import { formatPromotedAssetBucketScope } from '@/domains/promoted-assets/bucket-scope';
 import type { SessionChecklist, SessionMode, TemplateType } from '@/lib/db/schema';
 import { getModeByType } from '@/lib/modes';
 import type {
@@ -247,7 +248,7 @@ function buildPromotedAssetSections(promotedAssets: SessionDetail['promotedAsset
         : '';
       const scopeLabel = asset.scope ? ` | 범위: ${asset.scope}` : '';
 
-      return `- ${index + 1}. [${formatIntentPromptType(asset.type)}] ${asset.content}${sourceCardLabel}${scopeLabel}`;
+      return `- ${index + 1}. [${formatIntentPromptType(asset.type)}] ${asset.content}${sourceCardLabel}${asset.scope ? ` | 버킷: ${formatPromotedAssetBucketScope(asset.bucketScope)}${scopeLabel}` : ` | 버킷: ${formatPromotedAssetBucketScope(asset.bucketScope)}`}`;
     }),
   ];
 }

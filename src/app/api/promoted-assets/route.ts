@@ -8,7 +8,10 @@ import { requireAuthenticatedApiUser } from '@/lib/auth/middleware';
 async function GET() {
   try {
     const currentUser = await requireAuthenticatedApiUser();
-    const promotedAssets = await listPromotedAssetsByWorkspace(currentUser.workspaceId);
+    const promotedAssets = await listPromotedAssetsByWorkspace(
+      currentUser.workspaceId,
+      currentUser.userId,
+    );
 
     return NextResponse.json({
       data: {
@@ -52,6 +55,7 @@ async function POST(request: Request) {
     }
 
     const promotedIntentIds = await promoteApprovedIntentsToAssets({
+      bucketScope: parsedRequest.data.bucketScope,
       intentIds: parsedRequest.data.intentIds,
       userId: currentUser.userId,
       workspaceId: currentUser.workspaceId,

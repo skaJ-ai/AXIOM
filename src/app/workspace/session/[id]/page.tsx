@@ -14,7 +14,11 @@ export default async function WorkspaceSessionPage({
 }) {
   const currentUser = await requireAuthenticatedPageUser();
   const { id } = await params;
-  const session = await getSessionDetailForWorkspace(id, currentUser.workspaceId);
+  const session = await getSessionDetailForWorkspace(
+    id,
+    currentUser.workspaceId,
+    currentUser.userId,
+  );
 
   if (!session) {
     notFound();

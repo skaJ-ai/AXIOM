@@ -1,5 +1,6 @@
 import type {
   IntentFragmentType,
+  PromotedAssetBucketScope,
   PromotedAssetConflictResolutionType,
   PromotedAssetConflictStatus,
   PromotedAssetConflictType,
@@ -8,6 +9,7 @@ import type {
 } from '@/lib/db/schema';
 
 interface PromotedAssetConflictAssetSummary {
+  bucketScope: PromotedAssetBucketScope;
   content: string;
   createdAt: string;
   id: string;

@@ -16,7 +16,9 @@ type ConflictCandidate = {
 };
 
 type DetectablePromotedAsset = {
+  bucketScope: 'personal' | 'workspace';
   content: string;
+  createdBy: string | null;
   createdAt: Date;
   id: string;
   processAssetId: string;
@@ -105,8 +107,10 @@ function detectConflictCandidates(assets: DetectablePromotedAsset[]): ConflictCa
   const groupedAssets = new Map<string, DetectablePromotedAsset[]>();
 
   for (const asset of assets) {
+    const bucketOwnerKey =
+      asset.bucketScope === 'personal' ? asset.createdBy?.trim() || asset.id : '__workspace__';
     const scopeKey = normalizeConflictScope(asset.scope) ?? '__none__';
-    const groupKey = `${asset.processAssetId}:${asset.type}:${scopeKey}`;
+    const groupKey = `${asset.processAssetId}:${asset.bucketScope}:${bucketOwnerKey}:${asset.type}:${scopeKey}`;
     const currentGroup = groupedAssets.get(groupKey) ?? [];
 
     currentGroup.push(asset);
@@ -169,7 +173,9 @@ async function syncPromotedAssetConflictsForWorkspace(workspaceId: string): Prom
   const database = getDb();
   const assetRows = await database
     .select({
+      bucketScope: promotedAssetsTable.bucketScope,
       content: promotedAssetsTable.content,
+      createdBy: promotedAssetsTable.createdBy,
       createdAt: promotedAssetsTable.createdAt,
       id: promotedAssetsTable.id,
       processAssetId: promotedAssetsTable.processAssetId,

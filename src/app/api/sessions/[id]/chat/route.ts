@@ -93,6 +93,7 @@ async function POST(request: Request, { params }: { params: Promise<{ id: string
     });
 
     const promptContext = await getSessionPromptContext({
+      currentUserId: currentUser.userId,
       sessionId: id,
       workspaceId: currentUser.workspaceId,
     });
