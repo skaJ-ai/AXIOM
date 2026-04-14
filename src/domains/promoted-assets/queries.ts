@@ -1,9 +1,15 @@
-import { and, asc, desc, eq, inArray, or, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
 
 import { inferIntentScopesFromTexts } from '@/domains/intents/scope';
 import { getDb } from '@/lib/db';
-import type { PromotedAssetBucketScope, WorkCardSensitivity } from '@/lib/db/schema';
+import type {
+  PromotedAssetBucketScope,
+  PromotedAssetMaturity,
+  WorkCardSensitivity,
+} from '@/lib/db/schema';
 import { processAssetsTable, promotedAssetsTable, workCardsTable } from '@/lib/db/schema';
+
+import { createPromotedAssetBucketVisibilityFilter } from './visibility';
 
 import type { PromotedAssetSummary } from './types';
 
@@ -22,25 +28,12 @@ function getAllowedPromotedAssetSensitivities(
   }
 }
 
-function createBucketVisibilityFilter(currentUserId?: string) {
-  if (!currentUserId) {
-    return eq(promotedAssetsTable.bucketScope, 'workspace');
-  }
-
-  return or(
-    eq(promotedAssetsTable.bucketScope, 'workspace'),
-    and(
-      eq(promotedAssetsTable.bucketScope, 'personal'),
-      eq(promotedAssetsTable.createdBy, currentUserId),
-    ),
-  );
-}
-
 function mapPromotedAssetRow(row: {
   bucketScope: PromotedAssetBucketScope;
   content: string;
   createdAt: Date;
   id: string;
+  maturity: PromotedAssetMaturity;
   processAssetId: string;
   processAssetName: string | null;
   scope: string | null;
@@ -50,12 +43,14 @@ function mapPromotedAssetRow(row: {
   sourceWorkCardId: string | null;
   sourceWorkCardTitle: string | null;
   type: PromotedAssetSummary['type'];
+  verifiedAt: Date | null;
 }): PromotedAssetSummary {
   return {
     bucketScope: row.bucketScope,
     content: row.content,
     createdAt: row.createdAt.toISOString(),
     id: row.id,
+    maturity: row.maturity,
     processAssetId: row.processAssetId,
     processAssetName: row.processAssetName,
     scope: row.scope,
@@ -65,6 +60,7 @@ function mapPromotedAssetRow(row: {
     sourceWorkCardId: row.sourceWorkCardId,
     sourceWorkCardTitle: row.sourceWorkCardTitle,
     type: row.type,
+    verifiedAt: row.verifiedAt ? row.verifiedAt.toISOString() : null,
   };
 }
 
@@ -105,6 +101,7 @@ async function listPromotedAssetsByProcessAsset(
       content: promotedAssetsTable.content,
       createdAt: promotedAssetsTable.createdAt,
       id: promotedAssetsTable.id,
+      maturity: promotedAssetsTable.maturity,
       processAssetId: promotedAssetsTable.processAssetId,
       processAssetName: processAssetsTable.name,
       scope: promotedAssetsTable.scope,
@@ -114,6 +111,7 @@ async function listPromotedAssetsByProcessAsset(
       sourceWorkCardId: promotedAssetsTable.sourceWorkCardId,
       sourceWorkCardTitle: workCardsTable.title,
       type: promotedAssetsTable.type,
+      verifiedAt: promotedAssetsTable.verifiedAt,
     })
     .from(promotedAssetsTable)
     .innerJoin(processAssetsTable, eq(promotedAssetsTable.processAssetId, processAssetsTable.id))
@@ -123,7 +121,7 @@ async function listPromotedAssetsByProcessAsset(
         eq(promotedAssetsTable.workspaceId, workspaceId),
         eq(promotedAssetsTable.processAssetId, processAssetId),
         eq(promotedAssetsTable.status, 'active'),
-        createBucketVisibilityFilter(options?.currentUserId),
+        createPromotedAssetBucketVisibilityFilter(options?.currentUserId),
         allowedSensitivities
           ? inArray(promotedAssetsTable.sourceSensitivity, allowedSensitivities)
           : undefined,
@@ -132,7 +130,14 @@ async function listPromotedAssetsByProcessAsset(
           : undefined,
       ),
     )
-    .orderBy(desc(promotedAssetsTable.createdAt), asc(promotedAssetsTable.id))
+    .orderBy(
+      sql`case ${promotedAssetsTable.maturity}
+        when 'verified_standard' then 0
+        else 1
+      end`,
+      desc(promotedAssetsTable.createdAt),
+      asc(promotedAssetsTable.id),
+    )
     .limit(queryLimit);
 
   return rows
@@ -152,6 +157,7 @@ async function listPromotedAssetsByWorkspace(
       content: promotedAssetsTable.content,
       createdAt: promotedAssetsTable.createdAt,
       id: promotedAssetsTable.id,
+      maturity: promotedAssetsTable.maturity,
       processAssetId: promotedAssetsTable.processAssetId,
       processAssetName: processAssetsTable.name,
       scope: promotedAssetsTable.scope,
@@ -161,6 +167,7 @@ async function listPromotedAssetsByWorkspace(
       sourceWorkCardId: promotedAssetsTable.sourceWorkCardId,
       sourceWorkCardTitle: workCardsTable.title,
       type: promotedAssetsTable.type,
+      verifiedAt: promotedAssetsTable.verifiedAt,
     })
     .from(promotedAssetsTable)
     .innerJoin(processAssetsTable, eq(promotedAssetsTable.processAssetId, processAssetsTable.id))
@@ -169,10 +176,16 @@ async function listPromotedAssetsByWorkspace(
       and(
         eq(promotedAssetsTable.workspaceId, workspaceId),
         eq(promotedAssetsTable.status, 'active'),
-        createBucketVisibilityFilter(currentUserId),
+        createPromotedAssetBucketVisibilityFilter(currentUserId),
       ),
     )
-    .orderBy(desc(promotedAssetsTable.createdAt));
+    .orderBy(
+      sql`case ${promotedAssetsTable.maturity}
+        when 'verified_standard' then 0
+        else 1
+      end`,
+      desc(promotedAssetsTable.createdAt),
+    );
 
   return rows.map(mapPromotedAssetRow);
 }

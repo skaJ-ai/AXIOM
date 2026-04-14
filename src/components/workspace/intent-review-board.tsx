@@ -6,14 +6,22 @@ import Link from 'next/link';
 
 import type { IntentReviewItem } from '@/domains/intents/types';
 import { formatPromotedAssetBucketScope } from '@/domains/promoted-assets/bucket-scope';
-import type { PromotedAssetBucketScope } from '@/lib/db/schema';
+import { formatPromotedAssetMaturity } from '@/domains/promoted-assets/maturity';
+import type {
+  PromotedAssetMaturityUpdateSummary,
+  PromotedAssetMutationSummary,
+} from '@/domains/promoted-assets/types';
+import type { PromotedAssetBucketScope, PromotedAssetMaturity } from '@/lib/db/schema';
 import { cn, safeFetch } from '@/lib/utils';
 
 type ReviewFilter = 'all' | 'approved' | 'captured' | 'nominated' | 'pending' | 'rejected';
 type ReviewDecision = 'approve' | 'reject' | 'reset';
 type BatchReviewAction = ReviewDecision | 'nominate';
-type PromoteAction = 'promote';
-type BoardAction = BatchReviewAction | PromoteAction;
+type BoardAction =
+  | BatchReviewAction
+  | 'demote_to_promoted'
+  | 'promote'
+  | 'verify_standard';
 
 interface IntentReviewBoardProps {
   initialItems: IntentReviewItem[];
@@ -33,7 +41,14 @@ interface IntentReviewBatchResponse {
 
 interface PromoteAssetsResponse {
   data: {
+    promotedAssets: PromotedAssetMutationSummary[];
     promotedIntentIds: string[];
+  };
+}
+
+interface UpdatePromotedAssetMaturityResponse {
+  data: {
+    updatedAssets: PromotedAssetMaturityUpdateSummary[];
   };
 }
 
@@ -84,6 +99,36 @@ function formatDateTimeLabel(value: string): string {
   }).format(date);
 }
 
+function canPromoteIntent(item: IntentReviewItem): boolean {
+  return (
+    item.reviewStatus === 'approved' &&
+    !item.isPromoted &&
+    typeof item.processAssetId === 'string' &&
+    item.processAssetId.length > 0
+  );
+}
+
+function canVerifyPromotedAsset(item: IntentReviewItem): boolean {
+  return (
+    item.reviewStatus === 'approved' &&
+    item.isPromoted &&
+    typeof item.promotedAssetId === 'string' &&
+    item.promotedAssetId.length > 0 &&
+    item.promotedAssetMaturity === 'promoted' &&
+    item.promotedBucketScope === 'workspace'
+  );
+}
+
+function canDemoteVerifiedAsset(item: IntentReviewItem): boolean {
+  return (
+    item.reviewStatus === 'approved' &&
+    item.isPromoted &&
+    typeof item.promotedAssetId === 'string' &&
+    item.promotedAssetId.length > 0 &&
+    item.promotedAssetMaturity === 'verified_standard'
+  );
+}
+
 function applyReviewDecision(item: IntentReviewItem, decision: ReviewDecision): IntentReviewItem {
   if (decision === 'approve') {
     return {
@@ -102,6 +147,8 @@ function applyReviewDecision(item: IntentReviewItem, decision: ReviewDecision): 
   return {
     ...item,
     isPromoted: false,
+    promotedAssetId: null,
+    promotedAssetMaturity: null,
     promotedBucketScope: null,
     reviewStatus: 'captured',
   };
@@ -120,12 +167,24 @@ function applyIntentAction(item: IntentReviewItem, action: BatchReviewAction): I
 
 function applyPromoteAction(
   item: IntentReviewItem,
-  bucketScope: PromotedAssetBucketScope,
+  promotedAsset: PromotedAssetMutationSummary,
 ): IntentReviewItem {
   return {
     ...item,
     isPromoted: true,
-    promotedBucketScope: bucketScope,
+    promotedAssetId: promotedAsset.id,
+    promotedAssetMaturity: promotedAsset.maturity,
+    promotedBucketScope: promotedAsset.bucketScope,
+  };
+}
+
+function applyPromotedAssetMaturity(
+  item: IntentReviewItem,
+  maturity: PromotedAssetMaturity,
+): IntentReviewItem {
+  return {
+    ...item,
+    promotedAssetMaturity: maturity,
   };
 }
 
@@ -175,16 +234,23 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
     [selectedItems],
   );
   const selectedPromotableApprovedIds = useMemo(
+    () => selectedItems.filter(canPromoteIntent).map((item) => item.id),
+    [selectedItems],
+  );
+  const selectedVerifiableAssetIds = useMemo(
     () =>
       selectedItems
-        .filter(
-          (item) =>
-            item.reviewStatus === 'approved' &&
-            !item.isPromoted &&
-            typeof item.processAssetId === 'string' &&
-            item.processAssetId.length > 0,
-        )
-        .map((item) => item.id),
+        .filter(canVerifyPromotedAsset)
+        .map((item) => item.promotedAssetId)
+        .filter((assetId): assetId is string => typeof assetId === 'string' && assetId.length > 0),
+    [selectedItems],
+  );
+  const selectedDemotableAssetIds = useMemo(
+    () =>
+      selectedItems
+        .filter(canDemoteVerifiedAsset)
+        .map((item) => item.promotedAssetId)
+        .filter((assetId): assetId is string => typeof assetId === 'string' && assetId.length > 0),
     [selectedItems],
   );
 
@@ -198,9 +264,12 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
       ).length,
       rejected: items.filter((item) => item.reviewStatus === 'rejected').length,
       total: items.length,
+      verified: items.filter((item) => item.promotedAssetMaturity === 'verified_standard').length,
     }),
     [items],
   );
+
+  const isBusy = pendingBatchAction !== null;
 
   const handleRefresh = async () => {
     setErrorMessage('');
@@ -291,19 +360,19 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
       return;
     }
 
-    const promotedIdSet = new Set(result.data.data.promotedIntentIds);
+    const promotedAsset = result.data.data.promotedAssets.find(
+      (currentAsset) => currentAsset.sourceIntentId === item.id,
+    );
 
-    if (!promotedIdSet.has(item.id)) {
+    if (!promotedAsset) {
       setPendingIntentId(null);
-      setErrorMessage('승격된 재사용 자산이 없습니다.');
+      setErrorMessage('승격된 자산이 없습니다.');
       return;
     }
 
     setItems((currentItems) =>
       currentItems.map((currentItem) =>
-        currentItem.id === item.id
-          ? applyPromoteAction(currentItem, promotionBucketScope)
-          : currentItem,
+        currentItem.id === item.id ? applyPromoteAction(currentItem, promotedAsset) : currentItem,
       ),
     );
     setPendingIntentId(null);
@@ -380,22 +449,79 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
       return;
     }
 
-    const promotedIdSet = new Set(result.data.data.promotedIntentIds);
+    const promotedAssetMap = new Map(
+      result.data.data.promotedAssets.map((asset) => [asset.sourceIntentId, asset]),
+    );
 
-    if (promotedIdSet.size === 0) {
+    if (promotedAssetMap.size === 0) {
       setPendingBatchAction(null);
-      setErrorMessage('승격된 재사용 자산이 없습니다.');
+      setErrorMessage('승격된 자산이 없습니다.');
       return;
     }
 
     setItems((currentItems) =>
-      currentItems.map((currentItem) =>
-        promotedIdSet.has(currentItem.id)
-          ? applyPromoteAction(currentItem, promotionBucketScope)
-          : currentItem,
-      ),
+      currentItems.map((currentItem) => {
+        const promotedAsset = promotedAssetMap.get(currentItem.id);
+        return promotedAsset ? applyPromoteAction(currentItem, promotedAsset) : currentItem;
+      }),
     );
-    setSelectedIntentIds((currentIds) => currentIds.filter((id) => !promotedIdSet.has(id)));
+    setSelectedIntentIds((currentIds) => currentIds.filter((id) => !promotedAssetMap.has(id)));
+    setPendingBatchAction(null);
+  };
+
+  const handlePromotedAssetMaturityUpdate = async (
+    action: BoardAction,
+    assetIds: string[],
+    maturity: PromotedAssetMaturity,
+  ) => {
+    const uniqueAssetIds = Array.from(new Set(assetIds));
+
+    if (uniqueAssetIds.length === 0) {
+      return;
+    }
+
+    setPendingBatchAction(action);
+    setErrorMessage('');
+
+    const result = await safeFetch<UpdatePromotedAssetMaturityResponse>('/api/promoted-assets', {
+      body: JSON.stringify({
+        assetIds: uniqueAssetIds,
+        maturity,
+      }),
+      headers: {
+        'content-type': 'application/json',
+      },
+      method: 'PATCH',
+    });
+
+    if (!result.success) {
+      setPendingBatchAction(null);
+      setErrorMessage(result.error);
+      return;
+    }
+
+    const updatedAssetMap = new Map(
+      result.data.data.updatedAssets.map((asset) => [asset.id, asset.maturity]),
+    );
+
+    if (updatedAssetMap.size === 0) {
+      setPendingBatchAction(null);
+      setErrorMessage('변경된 자산이 없습니다.');
+      return;
+    }
+
+    setItems((currentItems) =>
+      currentItems.map((currentItem) => {
+        if (!currentItem.promotedAssetId) {
+          return currentItem;
+        }
+
+        const nextMaturity = updatedAssetMap.get(currentItem.promotedAssetId);
+        return nextMaturity
+          ? applyPromotedAssetMaturity(currentItem, nextMaturity)
+          : currentItem;
+      }),
+    );
     setPendingBatchAction(null);
   };
 
@@ -421,7 +547,9 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
         return currentIds.filter((id) => !visibleIds.includes(id));
       }
 
-      return Array.from(new Set([...currentIds, ...visibleIds]));
+      const nextIds = new Set(currentIds);
+      visibleIds.forEach((id) => nextIds.add(id));
+      return [...nextIds];
     });
   };
 
@@ -429,12 +557,10 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
     setSelectedIntentIds([]);
   };
 
-  const isBusy = pendingBatchAction !== null || pendingIntentId !== null;
-
   return (
     <div className="flex flex-col gap-6">
       {errorMessage.length > 0 ? (
-        <div className="border-[var(--color-error)]/20 rounded-[var(--radius-md)] border bg-[var(--color-error-light)] px-4 py-3 text-sm text-[var(--color-error)]">
+        <div className="rounded-[var(--radius-md)] border border-[var(--color-error)]/20 bg-[var(--color-error-light)] px-4 py-3 text-sm text-[var(--color-error)]">
           {errorMessage}
         </div>
       ) : null}
@@ -442,9 +568,12 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
       <section className="workspace-card-muted flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="font-headline text-xl font-bold text-[var(--color-text)]">검토 상태</h2>
+            <h2 className="font-headline text-xl font-bold text-[var(--color-text)]">
+              검토 상태
+            </h2>
             <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-              포착된 작업 맥락을 바로 쓰지 않고, 검토 후보와 승인 단계로 나눠 관리합니다.
+              포착된 작업 맥락을 검토 후보, 승인, 반려, 재사용 자산, 표준 자산 단계로
+              구분해 관리합니다.
             </p>
           </div>
           <button className="btn-secondary" onClick={() => void handleRefresh()} type="button">
@@ -452,7 +581,7 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
           </button>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-5">
+        <div className="grid gap-3 md:grid-cols-6">
           {(
             [
               ['pending', `pending ${counts.pending}`],
@@ -460,6 +589,7 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
               ['nominated', `nominated ${counts.nominated}`],
               ['approved', `approved ${counts.approved}`],
               ['rejected', `rejected ${counts.rejected}`],
+              ['all', `all ${counts.total}`],
             ] as const
           ).map(([value, label]) => (
             <button
@@ -483,6 +613,7 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
             <div className="text-sm text-[var(--color-text-secondary)]">
               선택 {selectedIntentIds.length}건
               {visibleItems.length > 0 ? ` / 현재 목록 ${selectedVisibleCount}건` : ''}
+              {counts.verified > 0 ? ` / 표준 ${counts.verified}건` : ''}
             </div>
             <div className="flex flex-wrap gap-2">
               <button className="btn-secondary" onClick={toggleVisibleSelection} type="button">
@@ -565,6 +696,40 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
                 ? ` (${selectedPromotableApprovedIds.length})`
                 : ''}
             </button>
+            <button
+              className="btn-secondary"
+              disabled={isBusy || selectedVerifiableAssetIds.length === 0}
+              onClick={() =>
+                void handlePromotedAssetMaturityUpdate(
+                  'verify_standard',
+                  selectedVerifiableAssetIds,
+                  'verified_standard',
+                )
+              }
+              type="button"
+            >
+              선택 표준 승격
+              {selectedVerifiableAssetIds.length > 0
+                ? ` (${selectedVerifiableAssetIds.length})`
+                : ''}
+            </button>
+            <button
+              className="btn-secondary"
+              disabled={isBusy || selectedDemotableAssetIds.length === 0}
+              onClick={() =>
+                void handlePromotedAssetMaturityUpdate(
+                  'demote_to_promoted',
+                  selectedDemotableAssetIds,
+                  'promoted',
+                )
+              }
+              type="button"
+            >
+              선택 표준 해제
+              {selectedDemotableAssetIds.length > 0
+                ? ` (${selectedDemotableAssetIds.length})`
+                : ''}
+            </button>
           </div>
         </div>
       </section>
@@ -580,6 +745,8 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
           {visibleItems.map((item) => {
             const isSelected = selectedIntentIdSet.has(item.id);
             const isPending = isBusy || pendingIntentId === item.id;
+            const canShowVerifyButton = canVerifyPromotedAsset(item);
+            const canShowDemoteButton = canDemoteVerifiedAsset(item);
 
             return (
               <article
@@ -608,8 +775,15 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
                         <span className="badge badge-neutral">
                           {formatReviewStatus(item.reviewStatus)}
                         </span>
-                        {item.isPromoted ? (
-                          <span className="badge badge-accent">재사용 자산</span>
+                        {item.isPromoted && item.promotedAssetMaturity ? (
+                          <span className="badge badge-accent">
+                            {formatPromotedAssetMaturity(item.promotedAssetMaturity)}
+                          </span>
+                        ) : null}
+                        {item.promotedBucketScope ? (
+                          <span className="badge badge-neutral">
+                            {formatPromotedAssetBucketScope(item.promotedBucketScope)}
+                          </span>
                         ) : null}
                         <span className="badge badge-neutral">{item.confidence}</span>
                         {item.scope ? (
@@ -664,13 +838,43 @@ function IntentReviewBoard({ initialItems }: IntentReviewBoardProps) {
                     {item.reviewStatus === 'approved' ? (
                       <button
                         className="btn-secondary"
-                        disabled={
-                          isPending || item.isPromoted || typeof item.processAssetId !== 'string'
-                        }
+                        disabled={isPending || !canPromoteIntent(item)}
                         onClick={() => void handlePromote(item)}
                         type="button"
                       >
                         {item.isPromoted ? '자산화됨' : '재사용 자산 승격'}
+                      </button>
+                    ) : null}
+                    {canShowVerifyButton ? (
+                      <button
+                        className="btn-secondary"
+                        disabled={isPending || !item.promotedAssetId}
+                        onClick={() =>
+                          void handlePromotedAssetMaturityUpdate(
+                            'verify_standard',
+                            [item.promotedAssetId!],
+                            'verified_standard',
+                          )
+                        }
+                        type="button"
+                      >
+                        표준 자산 승격
+                      </button>
+                    ) : null}
+                    {canShowDemoteButton ? (
+                      <button
+                        className="btn-secondary"
+                        disabled={isPending || !item.promotedAssetId}
+                        onClick={() =>
+                          void handlePromotedAssetMaturityUpdate(
+                            'demote_to_promoted',
+                            [item.promotedAssetId!],
+                            'promoted',
+                          )
+                        }
+                        type="button"
+                      >
+                        표준 해제
                       </button>
                     ) : null}
                   </div>

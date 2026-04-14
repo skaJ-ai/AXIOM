@@ -22,23 +22,27 @@ function mapConflictRow(row: {
   assetACreatedAt: Date;
   assetAId: string;
   assetAScope: string | null;
+  assetAMaturity: 'promoted' | 'verified_standard';
   assetASourceIntentId: string;
   assetASourceSensitivity: 'confidential' | 'general' | 'restricted';
   assetASourceWorkCardId: string | null;
   assetASourceWorkCardTitle: string | null;
   assetAStatus: 'active' | 'archived';
   assetAType: PromotedAssetConflictItem['assetA']['type'];
+  assetAVerifiedAt: Date | null;
   assetBBucketScope: PromotedAssetConflictItem['assetB']['bucketScope'];
   assetBContent: string;
   assetBCreatedAt: Date;
   assetBId: string;
   assetBScope: string | null;
+  assetBMaturity: 'promoted' | 'verified_standard';
   assetBSourceIntentId: string;
   assetBSourceSensitivity: 'confidential' | 'general' | 'restricted';
   assetBSourceWorkCardId: string | null;
   assetBSourceWorkCardTitle: string | null;
   assetBStatus: 'active' | 'archived';
   assetBType: PromotedAssetConflictItem['assetB']['type'];
+  assetBVerifiedAt: Date | null;
   conflictType: PromotedAssetConflictItem['conflictType'];
   detectedAt: Date;
   id: string;
@@ -54,6 +58,7 @@ function mapConflictRow(row: {
       content: row.assetAContent,
       createdAt: row.assetACreatedAt.toISOString(),
       id: row.assetAId,
+      maturity: row.assetAMaturity,
       scope: row.assetAScope,
       sourceIntentId: row.assetASourceIntentId,
       sourceSensitivity: row.assetASourceSensitivity,
@@ -61,12 +66,14 @@ function mapConflictRow(row: {
       sourceWorkCardTitle: row.assetASourceWorkCardTitle,
       status: row.assetAStatus,
       type: row.assetAType,
+      verifiedAt: row.assetAVerifiedAt ? row.assetAVerifiedAt.toISOString() : null,
     },
     assetB: {
       bucketScope: row.assetBBucketScope,
       content: row.assetBContent,
       createdAt: row.assetBCreatedAt.toISOString(),
       id: row.assetBId,
+      maturity: row.assetBMaturity,
       scope: row.assetBScope,
       sourceIntentId: row.assetBSourceIntentId,
       sourceSensitivity: row.assetBSourceSensitivity,
@@ -74,6 +81,7 @@ function mapConflictRow(row: {
       sourceWorkCardTitle: row.assetBSourceWorkCardTitle,
       status: row.assetBStatus,
       type: row.assetBType,
+      verifiedAt: row.assetBVerifiedAt ? row.assetBVerifiedAt.toISOString() : null,
     },
     conflictType: row.conflictType,
     detectedAt: row.detectedAt.toISOString(),
@@ -101,6 +109,7 @@ async function listPromotedAssetConflictsByWorkspace(
       assetACreatedAt: assetATable.createdAt,
       assetAId: assetATable.id,
       assetABucketScope: assetATable.bucketScope,
+      assetAMaturity: assetATable.maturity,
       assetAScope: assetATable.scope,
       assetASourceIntentId: assetATable.sourceIntentId,
       assetASourceSensitivity: assetATable.sourceSensitivity,
@@ -108,10 +117,12 @@ async function listPromotedAssetConflictsByWorkspace(
       assetASourceWorkCardTitle: workCardATable.title,
       assetAStatus: assetATable.status,
       assetAType: assetATable.type,
+      assetAVerifiedAt: assetATable.verifiedAt,
       assetBContent: assetBTable.content,
       assetBCreatedAt: assetBTable.createdAt,
       assetBId: assetBTable.id,
       assetBBucketScope: assetBTable.bucketScope,
+      assetBMaturity: assetBTable.maturity,
       assetBScope: assetBTable.scope,
       assetBSourceIntentId: assetBTable.sourceIntentId,
       assetBSourceSensitivity: assetBTable.sourceSensitivity,
@@ -119,6 +130,7 @@ async function listPromotedAssetConflictsByWorkspace(
       assetBSourceWorkCardTitle: workCardBTable.title,
       assetBStatus: assetBTable.status,
       assetBType: assetBTable.type,
+      assetBVerifiedAt: assetBTable.verifiedAt,
       conflictType: promotedAssetConflictsTable.conflictType,
       detectedAt: promotedAssetConflictsTable.detectedAt,
       id: promotedAssetConflictsTable.id,

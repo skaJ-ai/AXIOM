@@ -4,6 +4,7 @@ import type {
   PromotedAssetConflictResolutionType,
   PromotedAssetConflictStatus,
   PromotedAssetConflictType,
+  PromotedAssetMaturity,
   PromotedAssetStatus,
   WorkCardSensitivity,
 } from '@/lib/db/schema';
@@ -13,6 +14,7 @@ interface PromotedAssetConflictAssetSummary {
   content: string;
   createdAt: string;
   id: string;
+  maturity: PromotedAssetMaturity;
   scope: string | null;
   sourceIntentId: string;
   sourceSensitivity: WorkCardSensitivity;
@@ -20,6 +22,7 @@ interface PromotedAssetConflictAssetSummary {
   sourceWorkCardTitle: string | null;
   status: PromotedAssetStatus;
   type: IntentFragmentType;
+  verifiedAt: string | null;
 }
 
 interface PromotedAssetConflictItem {

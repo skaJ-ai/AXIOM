@@ -1,4 +1,5 @@
 import { formatPromotedAssetBucketScope } from '@/domains/promoted-assets/bucket-scope';
+import { formatPromotedAssetMaturity } from '@/domains/promoted-assets/maturity';
 import type { SessionChecklist, SessionMode, TemplateType } from '@/lib/db/schema';
 import { getModeByType } from '@/lib/modes';
 import type {
@@ -234,23 +235,48 @@ function buildIntentSections(intents: SessionDetail['intents']): string[] {
   return lines;
 }
 
+function formatPromotedAssetPromptLine(
+  asset: SessionDetail['promotedAssets'][number],
+  index: number,
+): string {
+  const sourceCardLabel = asset.sourceWorkCardTitle
+    ? ` | 출처 카드: ${asset.sourceWorkCardTitle}`
+    : '';
+  const scopeLabel = asset.scope ? ` | 범위: ${asset.scope}` : '';
+
+  return `- ${index + 1}. [${formatIntentPromptType(asset.type)}] ${asset.content}${sourceCardLabel} | 버킷: ${formatPromotedAssetBucketScope(asset.bucketScope)} | 신뢰: ${formatPromotedAssetMaturity(asset.maturity)}${scopeLabel}`;
+}
+
 function buildPromotedAssetSections(promotedAssets: SessionDetail['promotedAssets']): string[] {
   if (promotedAssets.length === 0) {
     return [];
   }
 
-  return [
-    '## 연결 프로세스의 재사용 자산',
-    '- 아래 항목은 같은 프로세스 자산에 연결된 다른 카드에서 승인 후 승격된 자산입니다. 현재 카드에 적용 가능할 때만 사용하세요.',
-    ...promotedAssets.slice(0, 6).map((asset, index) => {
-      const sourceCardLabel = asset.sourceWorkCardTitle
-        ? ` | 출처 카드: ${asset.sourceWorkCardTitle}`
-        : '';
-      const scopeLabel = asset.scope ? ` | 범위: ${asset.scope}` : '';
+  const verifiedAssets = promotedAssets.filter((asset) => asset.maturity === 'verified_standard');
+  const reusableAssets = promotedAssets.filter((asset) => asset.maturity === 'promoted');
+  const lines: string[] = [];
 
-      return `- ${index + 1}. [${formatIntentPromptType(asset.type)}] ${asset.content}${sourceCardLabel}${asset.scope ? ` | 버킷: ${formatPromotedAssetBucketScope(asset.bucketScope)}${scopeLabel}` : ` | 버킷: ${formatPromotedAssetBucketScope(asset.bucketScope)}`}`;
-    }),
-  ];
+  if (verifiedAssets.length > 0) {
+    lines.push('## 검증된 표준 자산');
+    lines.push(
+      '- 아래 항목은 같은 프로세스 자산에 연결된 다른 카드에서 반복 검토를 거쳐 표준으로 승격된 자산입니다. 현재 카드에 직접 적용 가능한 규칙처럼 우선 참고하세요.',
+    );
+    lines.push(...verifiedAssets.slice(0, 4).map(formatPromotedAssetPromptLine));
+  }
+
+  if (reusableAssets.length > 0) {
+    if (lines.length > 0) {
+      lines.push('');
+    }
+
+    lines.push('## 연결 프로세스의 재사용 자산');
+    lines.push(
+      '- 아래 항목은 같은 프로세스 자산에 연결된 다른 카드에서 승인 후 승격된 자산입니다. 현재 카드에 적용 가능할 때만 사용하고, 표준 규칙처럼 일반화하지 마세요.',
+    );
+    lines.push(...reusableAssets.slice(0, 4).map(formatPromotedAssetPromptLine));
+  }
+
+  return lines;
 }
 
 function buildSourceContext(

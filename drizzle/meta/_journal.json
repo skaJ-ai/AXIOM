@@ -92,6 +92,13 @@
       "when": 1776405600000,
       "tag": "0012_promoted_asset_bucket_scope",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1776492000000,
+      "tag": "0013_promoted_asset_maturity",
+      "breakpoints": true
     }
   ]
 }

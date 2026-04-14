@@ -66,6 +66,20 @@ async function listIntentReviewQueueByWorkspace(
       content: intentFragmentsTable.content,
       createdAt: intentFragmentsTable.createdAt,
       id: intentFragmentsTable.id,
+      promotedAssetId: sql<IntentReviewItem['promotedAssetId']>`(
+        select ${promotedAssetsTable.id}
+        from ${promotedAssetsTable}
+        where ${promotedAssetsTable.sourceIntentId} = ${intentFragmentsTable.id}
+          and ${promotedAssetsTable.status} = 'active'
+        limit 1
+      )`,
+      promotedAssetMaturity: sql<IntentReviewItem['promotedAssetMaturity']>`(
+        select ${promotedAssetsTable.maturity}
+        from ${promotedAssetsTable}
+        where ${promotedAssetsTable.sourceIntentId} = ${intentFragmentsTable.id}
+          and ${promotedAssetsTable.status} = 'active'
+        limit 1
+      )`,
       isPromoted: sql<boolean>`exists(
         select 1
         from ${promotedAssetsTable}
@@ -114,6 +128,8 @@ async function listIntentReviewQueueByWorkspace(
     isPromoted: row.isPromoted,
     processAssetId: row.processAssetId,
     processAssetName: row.processAssetName,
+    promotedAssetId: row.promotedAssetId,
+    promotedAssetMaturity: row.promotedAssetMaturity,
     promotedBucketScope: row.promotedBucketScope,
     reviewStatus: row.reviewStatus,
     scope: row.scope,

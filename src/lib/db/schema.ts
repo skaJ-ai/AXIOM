@@ -46,6 +46,7 @@ type PromotedAssetConflictResolutionType = 'accept_both' | 'archive_a' | 'archiv
 type PromotedAssetConflictStatus = 'detected' | 'resolved';
 type PromotedAssetConflictType = 'duplication' | 'supersede';
 type PromotedAssetBucketScope = 'personal' | 'workspace';
+type PromotedAssetMaturity = 'promoted' | 'verified_standard';
 type PromotedAssetStatus = 'active' | 'archived';
 type ReportStatus = 'draft' | 'final' | 'promoted_asset';
 type WorkCardPriority = 'high' | 'low' | 'medium';
@@ -449,6 +450,7 @@ const promotedAssetsTable = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     createdBy: uuid('created_by').references(() => usersTable.id, { onDelete: 'set null' }),
     id: uuid('id').defaultRandom().primaryKey(),
+    maturity: text('maturity').$type<PromotedAssetMaturity>().default('promoted').notNull(),
     processAssetId: uuid('process_asset_id')
       .notNull()
       .references(() => processAssetsTable.id, { onDelete: 'cascade' }),
@@ -468,18 +470,22 @@ const promotedAssetsTable = pgTable(
       onDelete: 'set null',
     }),
     type: text('type').$type<IntentFragmentType>().notNull(),
+    verifiedAt: timestamp('verified_at', { withTimezone: true }),
+    verifiedBy: uuid('verified_by').references(() => usersTable.id, { onDelete: 'set null' }),
     workspaceId: uuid('workspace_id')
       .notNull()
       .references(() => workspacesTable.id, { onDelete: 'cascade' }),
   },
   (table) => ({
     bucketScopeIndex: index('idx_promoted_assets_bucket_scope').on(table.bucketScope),
+    maturityIndex: index('idx_promoted_assets_maturity').on(table.maturity),
     processAssetIndex: index('idx_promoted_assets_process_asset_id').on(table.processAssetId),
     statusIndex: index('idx_promoted_assets_status').on(table.status),
     sourceIntentIndex: uniqueIndex('idx_promoted_assets_source_intent_id').on(table.sourceIntentId),
     sourceWorkCardIndex: index('idx_promoted_assets_source_work_card_id').on(
       table.sourceWorkCardId,
     ),
+    verifiedByIndex: index('idx_promoted_assets_verified_by').on(table.verifiedBy),
     workspaceIndex: index('idx_promoted_assets_workspace_id').on(table.workspaceId),
   }),
 );
@@ -669,6 +675,7 @@ export type {
   MemoryChunkStatus,
   PersonaType,
   PromotedAssetBucketScope,
+  PromotedAssetMaturity,
   PromotedAssetConflictResolutionType,
   PromotedAssetConflictStatus,
   PromotedAssetConflictType,

@@ -3,6 +3,7 @@ import type {
   IntentFragmentReviewStatus,
   IntentFragmentType,
   PromotedAssetBucketScope,
+  PromotedAssetMaturity,
 } from '@/lib/db/schema';
 
 interface IntentFragment {
@@ -28,6 +29,8 @@ interface IntentReviewItem extends IntentFragment {
   isPromoted: boolean;
   processAssetId: string | null;
   processAssetName: string | null;
+  promotedAssetId: string | null;
+  promotedAssetMaturity: PromotedAssetMaturity | null;
   promotedBucketScope: PromotedAssetBucketScope | null;
   sessionId: string;
   sessionTitle: string;

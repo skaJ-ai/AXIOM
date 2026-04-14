@@ -6,6 +6,7 @@ import useSWR from 'swr';
 
 import type { IntentFragment } from '@/domains/intents/types';
 import { formatPromotedAssetBucketScope } from '@/domains/promoted-assets/bucket-scope';
+import { formatPromotedAssetMaturity } from '@/domains/promoted-assets/maturity';
 import type { PromotedAssetSummary } from '@/domains/promoted-assets/types';
 import { formatWorkCardStatus } from '@/domains/work-cards/state';
 import type { WorkCardSummary } from '@/domains/work-cards/types';
@@ -120,22 +121,17 @@ function SessionContextPanel({
                     <span className="badge badge-neutral">{workCard.processAsset.domainLabel}</span>
                   ) : null}
                 </div>
-                {workCard.processAsset.description ? (
-                  <p className="text-xs leading-5 text-[var(--color-text-secondary)]">
-                    {workCard.processAsset.description}
-                  </p>
-                ) : (
-                  <p className="text-xs leading-5 text-[var(--color-text-secondary)]">
-                    이 카드는 표준 프로세스 자산과 연결되어 있습니다.
-                  </p>
-                )}
+                <p className="text-xs leading-5 text-[var(--color-text-secondary)]">
+                  {workCard.processAsset.description ??
+                    '이 카드는 현재 프로세스 자산과 연결되어 있습니다.'}
+                </p>
               </div>
             ) : null}
           </>
         ) : (
           <p className="text-sm leading-6 text-[var(--color-text-secondary)]">
-            아직 연결된 업무 카드가 없습니다. 새 세션을 만들 때 카드 제목과 대상 독자를 함께 적으면
-            작업 맥락이 고정됩니다.
+            아직 연결된 업무 카드가 없습니다. 새 세션 생성 시 카드 제목과 대상 독자를 함께
+            입력하면 작업 맥락을 고정할 수 있습니다.
           </p>
         )}
       </div>
@@ -144,7 +140,7 @@ function SessionContextPanel({
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <h2 className="font-headline text-lg font-bold text-[var(--color-text)]">
-              포착된 작업 맥락
+              현재 작업 맥락
             </h2>
             <span className="badge badge-neutral">{intents.length}</span>
           </div>
@@ -175,7 +171,8 @@ function SessionContextPanel({
           </div>
         ) : (
           <p className="text-sm leading-6 text-[var(--color-text-secondary)]">
-            대화 중에 판단 기준, 예외, 대상 독자 같은 표현이 나오면 여기에 후보 맥락으로 쌓입니다.
+            대화 중에 판단 기준, 예외, 대상 독자 같은 표현이 나오면 여기에 작업 맥락으로
+            표시됩니다.
           </p>
         )}
       </div>
@@ -200,6 +197,9 @@ function SessionContextPanel({
                 >
                   <div className="mb-2 flex flex-wrap items-center gap-2">
                     <span className="badge badge-accent">{formatIntentType(asset.type)}</span>
+                    <span className="badge badge-neutral">
+                      {formatPromotedAssetMaturity(asset.maturity)}
+                    </span>
                     {asset.sourceWorkCardTitle ? (
                       <span className="badge badge-neutral">{asset.sourceWorkCardTitle}</span>
                     ) : null}
