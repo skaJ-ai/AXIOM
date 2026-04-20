@@ -37,6 +37,14 @@ docker compose up --build -d
 - 앱: `http://127.0.0.1:26000`
 - 헬스체크: `http://127.0.0.1:26000/api/health`
 
+## Run Modes
+
+- **Docker Compose 앱 실행**: `docker compose up --build -d`
+  - 앱 컨테이너는 `APP_DATABASE_URL` 또는 기본값 `postgresql://axiom:axiom@db:5432/axiom`을 사용합니다.
+- **호스트에서 직접 실행**: `docker compose up -d db` 후 `npm run dev` 또는 `npm run build && npm start`
+  - 호스트 실행은 `DATABASE_URL=postgresql://axiom:axiom@127.0.0.1:5432/axiom`처럼 `127.0.0.1` 또는 실제 DB 호스트를 써야 합니다.
+  - `DATABASE_URL`에 Docker 내부 호스트명 `db`를 넣으면 부팅 훅의 DB 마이그레이션에서 실패하고 브라우저에는 `500 Internal Server Error`가 보입니다.
+
 ## Tech Stack
 
 - **Framework**: Next.js 15 (App Router)

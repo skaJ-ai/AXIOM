@@ -14,7 +14,7 @@ services:
     environment:
       ADMIN_LOGIN_ID: ${ADMIN_LOGIN_ID:-admin}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-me}
-      DATABASE_URL: ${DATABASE_URL:-postgresql://axiom:axiom@db:5432/axiom}
+      DATABASE_URL: ${APP_DATABASE_URL:-postgresql://axiom:axiom@db:5432/axiom}
       HTTPS_PROXY: ${HTTPS_PROXY:-http://168.219.61.252:8080}
       HTTP_PROXY: ${HTTP_PROXY:-http://168.219.61.252:8080}
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
