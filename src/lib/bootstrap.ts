@@ -9,6 +9,11 @@ import { usersTable, workspacesTable } from '@/lib/db/schema';
 type NodePostgresMigratorModule = typeof import('drizzle-orm/node-postgres/migrator');
 
 let bootstrapPromise: Promise<void> | null = null;
+let bootstrapRetryTimeout: NodeJS.Timeout | null = null;
+let hasCompletedBootstrap = false;
+let bootstrapRetryCount = 0;
+
+const BOOTSTRAP_RETRY_DELAY_MS = 3000;
 
 function getRuntimeRequire(): NodeJS.Require {
   return eval('require') as NodeJS.Require;
@@ -63,21 +68,48 @@ async function ensureAdminAccount(): Promise<void> {
 }
 
 async function runApplicationBootstrap(): Promise<void> {
-  if (!process.env.DATABASE_URL) {
+  if (!process.env.DATABASE_URL || hasCompletedBootstrap) {
     return;
   }
 
   if (!bootstrapPromise) {
     bootstrapPromise = (async () => {
-      const database = getDb();
-      const { migrate } = getNodePostgresMigratorModule();
+      try {
+        const database = getDb();
+        const { migrate } = getNodePostgresMigratorModule();
 
-      await migrate(database, { migrationsFolder: './drizzle' });
-      await ensureAdminAccount();
+        await migrate(database, { migrationsFolder: './drizzle' });
+        await ensureAdminAccount();
+        hasCompletedBootstrap = true;
+        bootstrapRetryCount = 0;
+      } catch (error) {
+        bootstrapPromise = null;
+        throw error;
+      }
     })();
   }
 
   await bootstrapPromise;
 }
 
-export { runApplicationBootstrap };
+function scheduleApplicationBootstrap(): void {
+  if (!process.env.DATABASE_URL || hasCompletedBootstrap || bootstrapPromise || bootstrapRetryTimeout) {
+    return;
+  }
+
+  void runApplicationBootstrap().catch((error) => {
+    bootstrapRetryCount += 1;
+
+    console.error(
+      `Application bootstrap failed (attempt ${bootstrapRetryCount}). Retrying in ${BOOTSTRAP_RETRY_DELAY_MS}ms.`,
+      error,
+    );
+
+    bootstrapRetryTimeout = setTimeout(() => {
+      bootstrapRetryTimeout = null;
+      scheduleApplicationBootstrap();
+    }, BOOTSTRAP_RETRY_DELAY_MS);
+  });
+}
+
+export { runApplicationBootstrap, scheduleApplicationBootstrap };

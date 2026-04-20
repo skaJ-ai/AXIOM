@@ -3,8 +3,8 @@ async function register() {
     return;
   }
 
-  const { runApplicationBootstrap } = await import('@/lib/bootstrap');
-  await runApplicationBootstrap();
+  const { scheduleApplicationBootstrap } = await import('@/lib/bootstrap');
+  scheduleApplicationBootstrap();
 }
 
 export { register };
